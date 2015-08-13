@@ -1,7 +1,8 @@
-#!/usr/bin/python
 __author__ = 'Seqian Wang'
 
 import os
+from Recurser.ScanSession import ScanSession
+import Config.ADNI_RecurserConfig as arc
 
 # Parse ADNI Data Structure from Monica Download
 
@@ -11,33 +12,41 @@ class MonicaDownloadAdni:
         self.root_folder = root_folder
 
     def execute(self):
-        for subject_folder in os.walk(self.root_folder).next()[1]
-        walk_in = os.walk(self.root_folder).next()
-            if not walk_in[1]:
-                folder_path = walk_in[1]
-        # ls the root_folder
-        # make sure that you reach the S000000 folder at the end
-        # for each scan_folder, remove root_folder from string
-        # split and parse the string to extract information
-        # create new scan_session instance with valid information
+        directories_list, filenames = self.list_root_folder_contents()
+        instancesList = []
+        for directory, filename in zip(directories_list, filenames):
+            instancesList.append(self.create_new_scan_session_instance(directory, filename))
+        return instancesList
         # check if folder contents is dcm, nii or mnc
-        list_folder_contents()
-        create_new_scan_session_instance()
 
-    def check(self):
-        data = None
-        i = os.walk(self.root_folder).next()
-        if not i[1]:  # If no subfolder, continue, else fail. Make sure that it is at the deepest level
-            data = i[2][0].split("/")    # ['ADNI', '130', 'S', '2391', 'MR', 'Resting', 'State', 'fMRI', 'br', 'raw', '20110622150204096', '1', 'S112049', 'I240902.dcm']
-            if len(data) >= 10:  # Make sure it's a proper DCM file
-                data.append(i[0])  # i - ['<path>','<folders in the path>','<files in the path>']
-        return data
+    def create_new_scan_session_instance(self,down_most_folder, filename):
+        # Return parts of the folder path, the ones of interest
+        folder = down_most_folder.replace(self.root_folder,"")
+        folder_parts = folder.split("/")
+        filename_parts = filename[0].split("_")
+        study = 'ADNI'
+        rid = folder_parts[1][-4:] # Get the last 4 characters
+        scan_type = arc.scanTypeDict[folder_parts[2]]
+        scan_date = folder_parts[-2].split('_')[0]
+        scan_time = folder_parts[-2].split('_', 1)[-1].replace("_",":")
+        s_identifier = folder_parts[-1]
+        i_identifier = filename_parts[-1].split('.', 1)[0]
+        download_folder = down_most_folder
+        raw_folder = '{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}'.format(arc.databaseRoot, study, scan_type, rid, scan_date, scan_time, 'raw')
+        file_type = arc.fileExtensionDict[filename_parts[-1].split('.', 1)[-1]]
 
-    def create_new_scan_session_instance(self):
-        pass
+        newScanSession = ScanSession\
+            (study, rid, scan_type, scan_date, scan_time,
+             s_identifier, i_identifier, download_folder, raw_folder, file_type)
+        return newScanSession
 
-    def parse_path_info(self):
-        pass
 
-    def list_folder_contents(self, root_folder):
-        pass
+    def list_root_folder_contents(self):
+        # Reach down-most directories and return a list
+        down_most_directories_list = []
+        filenames_list = []
+        for dirpath, dirnames, filenames in os.walk(self.root_folder):
+            if not dirnames: # Down-most directory
+                down_most_directories_list.append(dirpath)
+                filenames_list.append([x for x in filenames if x.endswith(('.nii', '.dcm', '.mnc', '.nii.gz', '.dcm.gz', '.mnc.gz'))])
+        return down_most_directories_list, filenames_list

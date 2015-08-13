@@ -1,4 +1,3 @@
-#!/usr/bin/python
 __author__ = 'Seqian Wang'
 
 import MySQLdb
@@ -38,7 +37,7 @@ class DBUtils:
         # Prepare a cursor object using cursor() method
         self.cursor = self.db.cursor()
 
-    def insert(self,command):
+    def insert(self, command):
         exist = False
         # Check if scan_session already exist in SQL database
         pass
