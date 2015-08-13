@@ -7,12 +7,12 @@ class EmailClient:
         pass
 
     @staticmethod
-    def send_email(recipient, subject, body):
+    def send_email(rec_list, subject, body):
 
         userName = ec.EmailUserName
         passWd = ec.EmailPassWd
         FROM = ec.EmailFrom
-        TO = ec.EmailRecList_admin[0]
+        TO = rec_list[0]
         SUBJECT = subject
         TEXT = body
 
