@@ -1,8 +1,10 @@
 __author__ = 'Seqian Wang'
 
 import os
-from Recurser.ScanSession import ScanSession
+
+from Recurser.ADNI import ScanSession
 import Config.ADNI_RecurserConfig as arc
+
 
 # Parse ADNI Data Structure from Monica Download
 
