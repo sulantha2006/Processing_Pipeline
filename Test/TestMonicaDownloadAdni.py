@@ -1,6 +1,6 @@
 __author__ = 'Seqian Wang'
 
-from Recurser.ADNI import MonicaDownloadAdni
+from Recurser.ADNI.MonicaDownloadAdni import MonicaDownloadAdni
 
 newFolder = MonicaDownloadAdni('/data/data02/ADNI/downloads/New')
 instancesList = newFolder.execute()

@@ -2,7 +2,7 @@ __author__ = 'Seqian Wang'
 
 import os
 
-from Recurser.ADNI import ScanSession
+from Recurser.ADNI.ScanSession import ScanSession
 import Config.ADNI_RecurserConfig as arc
 
 
