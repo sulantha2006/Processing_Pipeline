@@ -16,12 +16,14 @@ class EmailClient:
         SUBJECT = subject
         TEXT = body
 
+        message = 'Subject: {0}\n\n{1}'.format(SUBJECT, TEXT)
+
         try:
             server = smtplib.SMTP("smtp.gmail.com", 587)
             server.ehlo()
             server.starttls()
             server.login(userName, passWd)
-            server.sendmail(FROM, TO, TEXT)
+            server.sendmail(FROM, TO, message)
             server.close()
             print('Successfully sent the mail')
         except:
