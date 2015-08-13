@@ -25,7 +25,7 @@ class SqlDatabase:
 
         if not exist:
             # Send SQL query to INSERT a record into the database
-            sql_command = "INSERT " + command
+            sql_command = "INSERT IF NOT EXIST unique_key" + command
             self.execute(sql_command)
 
     def execute(self, command):
