@@ -2,11 +2,31 @@
 __author__ = 'Seqian Wang'
 
 import MySQLdb
+# import Config.DBConfig as dbConfig
 
-# Manage the Database interaction (Initiate connection, read, write, update)
+"""
+Manage the Database interaction (Initiate connection, read, write, update)
+"""
 
 
-class SqlDatabase:
+class DBUtils:
+    """
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def execute_query(query, **kwargs):
+        con = MySQLdb.msqlDB.connect(dbConfig.DBParams['host'], dbConfig.DBParams['user'], dbConfig.DBParams['userPass'],
+                             dbConfig.DBParams['dbName'])
+        con.autocommit(True)
+        cursor = con.cursor()
+        cursor.execute(query)
+        if 'numOfResults' in kwargs:
+            return cursor.fetchmany(kwargs['numOfResults'])
+        else:
+            return cursor.fetchall()
+    """
+
     def __init__(self, location="localhost", username="wang030", password="firefox", database="Processing_Pipeline"):
         self.location = location
         self.username = username
