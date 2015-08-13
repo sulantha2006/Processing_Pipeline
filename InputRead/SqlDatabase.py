@@ -3,26 +3,35 @@ __author__ = 'Seqian Wang'
 
 import MySQLdb
 
-# the Database (Initiate connection, read, write, update)
+# Manage the Database interaction (Initiate connection, read, write, update)
+
 
 class SqlDatabase:
-    def __init__(self, location, username, password, database):
-        # Insert default values
+    def __init__(self, location="localhost", username="wang030", password="firefox", database="Processing_Pipeline"):
+        self.location = location
+        self.username = username
+        self.password = password
+        self.database = database
 
-        #Open database connection
-        db = MySQLdb.connect(location, username, password, database)
+        # Open database connection
+        self.db = MySQLdb.connect(self.location, self.username, self.password, self.database)
         # Prepare a cursor object using cursor() method
-        cursor = db.cursor()
+        self.cursor = self.db.cursor()
 
-    def insert:
-        #Parepare SQL query to INSERT a record into the database
-        sql_command = "INSERT "
-        self.execute(sql_command)
+    def insert(self,command):
+        exist = False
+        # Check if scan_session already exist in SQL database
+        pass
+
+        if not exist:
+            # Send SQL query to INSERT a record into the database
+            sql_command = "INSERT " + command
+            self.execute(sql_command)
 
     def execute(self, command):
         try:
             # Execute the SQL command
-            cursor.execute(command)
+            self.cursor.execute(command)
             # Commit changes into the database
             self.commit()
         except:
@@ -30,10 +39,11 @@ class SqlDatabase:
             self.rollback()
 
     def commit(self):
-        db.commit()
+        self.db.commit()
 
     def rollback(self):
-        db.rollback()
+        self.db.rollback()
 
     def close(self):
-        db.close()
+        # Disconnect from server
+        self.db.close()
