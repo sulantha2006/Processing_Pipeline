@@ -18,8 +18,8 @@ def main():
         DBUtils.execute(
             "If Not Exists (Select * from Sorting_Table where (studyID, rid, scan_type, study_date, s_identifider, i_identifier) = ({0},{1},{2},{3},{4})"
             "Begin"
-            "Insert into Sorting_Table values "
-            "End")
+            "Insert into Sorting {5} "
+            "End".format())
 
 if __name__ == '__main__':
     main()

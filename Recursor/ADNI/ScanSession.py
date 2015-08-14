@@ -25,3 +25,5 @@ class ScanSession:
 
     def printScanType(self):
         print('{0}'.format(self.scan_type))
+
+    def printForSql(self):
