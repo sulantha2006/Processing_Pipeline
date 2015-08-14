@@ -44,9 +44,10 @@ class DBUtils:
 
         if not exist:
             # Send SQL query to INSERT a record into the database
-            sql_command = "INSERT IF NOT EXIST unique_key" + command
+            sql_command = "INSERT IF NOT EXIST " + command
             self.execute(sql_command)
 
+    @staticmethod
     def execute(self, command):
         try:
             # Execute the SQL command

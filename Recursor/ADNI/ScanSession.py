@@ -18,7 +18,10 @@ class ScanSession:
         self.file_type = file_type
         self.moved = moved
 
-    def print_object(self):
+    def printObject(self):
         print('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}'.format(
             self.study, self.rid, self.scan_type, self.scan_date, self.scan_time, self.s_identifier,
             self.i_identifier, self.download_folder, self.raw_folder, self.file_type, self.moved))
+
+    def printScanType(self):
+        print('{0}'.format(self.scan_type))
