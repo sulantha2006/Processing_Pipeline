@@ -1,5 +1,5 @@
 __author__ = 'wang'
-from Recursor.ADNI.MonicaDownloadAdni import MonicaDownloadAdni
+from Recursor.ADNI.ADNIRecursor import ADNIRecursor
 
 class Recursor:
     def __init__(self, studyID, root_download):
@@ -7,7 +7,7 @@ class Recursor:
         self.root_download = root_download
         self.subRecursor = None
         if studyID == 'ADNI':
-            self.subRecursor = MonicaDownloadAdni(studyID, root_download)
+            self.subRecursor = ADNIRecursor(studyID, root_download)
 
     def recurse(self):
         return self.subRecursor.recurse()

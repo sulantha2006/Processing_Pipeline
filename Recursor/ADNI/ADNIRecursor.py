@@ -8,7 +8,7 @@ import Config.ADNI_RecurserConfig as arc
 # Parse ADNI Data Structure from Monica Download and return a list of instances with scans' information
 
 
-class MonicaDownloadAdni():
+class ADNIRecursor():
     def __init__(self, study, recurse_folder):
         self.study = study
         self.root_folder = recurse_folder

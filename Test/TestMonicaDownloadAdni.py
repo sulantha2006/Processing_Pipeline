@@ -1,8 +1,8 @@
 __author__ = 'Seqian Wang'
 
-from Recursor.ADNI.MonicaDownloadAdni import MonicaDownloadAdni
+from Recursor.ADNI.ADNIRecursor import ADNIRecursor
 
-newFolder = MonicaDownloadAdni('/data/data02/ADNI/downloads/New2')
+newFolder = ADNIRecursor('/data/data02/ADNI/downloads/New2')
 instancesList = newFolder.execute()
 
 for i in instancesList:
