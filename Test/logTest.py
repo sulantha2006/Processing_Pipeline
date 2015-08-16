@@ -6,7 +6,7 @@ from Test.logTestSubModule import testSubModuleLogging
 
 logging.config.fileConfig('../Config/LoggingConfig.conf')
 
-PipelineLogger.log('root', 'error', 'Main module log')
+PipelineLogger.log('root', 'info', 'Main module log')
 
 lg = testSubModuleLogging()
 

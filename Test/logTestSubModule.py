@@ -6,4 +6,4 @@ class testSubModuleLogging:
         pass
 
     def log(self):
-        PipelineLogger.log('manager', 'warning', 'Hope this works.')
+        PipelineLogger.log('manager', 'debug', 'Hope this works.')
