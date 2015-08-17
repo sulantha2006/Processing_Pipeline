@@ -37,15 +37,11 @@ class DBUtils:
         # Prepare a cursor object using cursor() method
         self.cursor = self.db.cursor()
 
-    def insert(self, command):
-        exist = False
-        # Check if scan_session already exist in SQL database
-        pass
-
-        if not exist:
-            # Send SQL query to INSERT a record into the database
-            sql_command = "INSERT IF NOT EXIST " + command
-            self.execute(sql_command)
+    def insert(self, command, uniqueTest = ''):
+        # Send SQL query to INSERT a record into the database if record does not already exist
+        sql_command = "IF NOT EXIST WHERE (%s) \
+                      INSERT INTO Sorting VALUES (%s)" % (uniqueTest, command)
+        self.execute(sql_command)
 
     @staticmethod
     def execute(self, command):

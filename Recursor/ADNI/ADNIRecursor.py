@@ -4,9 +4,9 @@ import os
 from Recursor.ADNI.ScanSession import ScanSession
 import Config.ADNI_RecurserConfig as arc
 
-
-# Parse ADNI Data Structure from Monica Download and return a list of instances with scans' information
-
+"""
+Parse ADNI Data Structure from Monica Download and return a list of instances with scans' information
+"""
 
 class ADNIRecursor():
     def __init__(self, study, recurse_folder):
@@ -20,16 +20,16 @@ class ADNIRecursor():
             instancesList.append(self.createNewScanSession(directory, filename))
         return instancesList
 
-    def createNewScanSession(self,down_most_folder, filename):
+    def createNewScanSession(self,down_most_folder, filelist):
         # Return parts of the folder path, the ones of interest
         folder = down_most_folder.replace(self.root_folder,"")
-        folder_parts = folder.split("/")
-        filename_parts = filename[0].split("_")
+        folder_parts = folder.split("/")  # List containing each parts/folders of the full path
+        filename_parts = filelist[0].split("_")  # Takes the first filename and create a list of its parts
 
-        rid = folder_parts[1][-4:] # Get the last 4 characters
+        rid = folder_parts[1][-4:]  # Get the last 4 characters
         scan_type = self.determineScanType(folder_parts[2])
         scan_date = folder_parts[-2].split('_')[0]
-        scan_time = folder_parts[-2].split('_', 1)[-1].replace("_",":")
+        scan_time = folder_parts[-2].split('_', 1)[-1].replace("_", ":")
         s_identifier = filename_parts[-2]
         i_identifier = filename_parts[-1].split('.', 1)[0]
         file_type = self.determineExtension(filename_parts)
@@ -41,13 +41,13 @@ class ADNIRecursor():
              s_identifier, i_identifier, download_folder, raw_folder, file_type)
         return newScanSession
 
-    def determineExtension(self,filename):
+    def determineExtension(self, filename):
         fileEnding = filename[-1].split('.')[-1]
         if fileEnding == "gz":
-            fileEnding = filename[-1].split('.',1)[-1]
+            fileEnding = filename[-1].split('.', 1)[-1]
         return arc.fileExtensionDict[fileEnding]
 
-    def determineScanType(self,scanTypeRaw):
+    def determineScanType(self, scanTypeRaw):
         try:
             return arc.scanTypeDict[scanTypeRaw]
         except KeyError:

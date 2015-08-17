@@ -26,4 +26,12 @@ class ScanSession:
     def printScanType(self):
         print('{0}'.format(self.scan_type))
 
-    def printForSql(self):
+    def sqlInsert(self):
+        print("%s, %d, %s, %s, %s, %s, %s, %s, %s, %s, %d"\
+              % (self.study, self.rid, self.scan_type, self.scan_date, self.scan_time,
+                 self.s_identifier, self.i_identifier, self.file_type,
+                 self.download_folder, self.raw_folder, self.moved))
+
+    def sqlUnique(self):
+        print("STUDY=%s, RID=%d, SCAN_TYPE=%s, S_IDENTIFIER=%s, I_IDENTIFIER=%s"\
+              % (self.study, self.rid, self.scan_type, self.s_identifier, self.i_identifier))
