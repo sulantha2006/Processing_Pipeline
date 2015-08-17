@@ -26,11 +26,7 @@ class PipelineManager:
     def addNewDatatoDB(self):
         for sortingDataSet in self.sortingDataList:
             for sortingEntry in sortingDataSet:
-                DBUtils.execute(
-                    "If Not Exists (Select * from Sorting_Table where (studyID, rid, scan_type, study_date, s_identifider, i_identifier) = ({0},{1},{2},{3},{4})"
-                    "Begin"
-                    "Insert into Sorting {5} "
-                    "End".format())
+                self.DBClient.insertIfNotExist(sortingEntry.sqlInsert, sortingEntry.sqlUnique)
 
     ##This method will get the list of files need to be moved to study, subject specific folders.
     def getUnmovedRawDataList(self):

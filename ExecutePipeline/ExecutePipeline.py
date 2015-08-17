@@ -13,9 +13,11 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--studyList', required=True, nargs='+', choices=StudyConfig.AllowedStudyList, help='Space seperated study list.')
     parser.add_argument('--steps', required=False, nargs='+', choices=StudyConfig.AllowedStepsList, help='Space seperated steps list.')
+    parser.add_argument('--pipe_v', required=False, nargs='+', choices=StudyConfig.AllowedVersions, help='Version of pipeline need to run.')
     args = parser.parse_args()
     studyList = args.studyList
     steps = args.steps
+    version = args.pipe_v
 
     if not validateStepSequence(steps):
         sys.exit(2)
@@ -23,6 +25,7 @@ def main(argv):
     PipelineLogger.log('root', 'info', '##################Pipeline Started.#################')
     PipelineLogger.log('root', 'info', 'StudyIds = %s' %', '.join(map(str, studyList)))
     PipelineLogger.log('root', 'info', 'Steps = %s' %', '.join(map(str, steps)))
+    PipelineLogger.log('root', 'info', 'Version = %s' %', '.join(map(str, version)))
 
     pipeline = PipelineManager(studyList)
 

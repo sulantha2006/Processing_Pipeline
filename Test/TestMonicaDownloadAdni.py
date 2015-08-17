@@ -9,6 +9,6 @@ instancesList = newFolder.recurse()
 for i in instancesList:
     i.printObject()
 
-sqlDatabase = DBUtils()
+sqlDatabase = DBUtils(location="localhost", username="wang030", password="firefox", database="Processing_Pipeline")
 for record in instancesList:
-    sqlDatabase.insert(record.sqlInsert, record.sqlUnique)
+    sqlDatabase.insertIfNotExist(record.sqlInsert, record.sqlUnique)

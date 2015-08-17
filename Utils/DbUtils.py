@@ -1,7 +1,7 @@
 __author__ = 'Seqian Wang'
 
 import MySQLdb
-# import Config.DBConfig as dbConfig
+import Config.DBConfig as dbConfig
 
 """
 Manage the Database interaction (Initiate connection, read, write, update)
@@ -26,7 +26,7 @@ class DBUtils:
             return cursor.fetchall()
     """
 
-    def __init__(self, location="localhost", username="wang030", password="firefox", database="Processing_Pipeline"):
+    def __init__(self, location=dbConfig.DBParams['host'], username=dbConfig.DBParams['user'], password=dbConfig.DBParams['userPass'], database=dbConfig.DBParams['dbName']):
         self.location = location
         self.username = username
         self.password = password
@@ -37,17 +37,16 @@ class DBUtils:
         # Prepare a cursor object using cursor() method
         self.cursor = self.db.cursor()
 
-    def insert(self, command, uniqueTest = ''):
+    def insertIfNotExist(self, command, uniqueTest = ''):
         # Send SQL query to INSERT a record into the database if record does not already exist
         sql_command = "IF NOT EXIST WHERE (%s) \
                       INSERT INTO Sorting VALUES (%s)" % (uniqueTest, command)
-        self.execute(sql_command)
+        self._execute(sql_command)
 
-    @staticmethod
-    def execute(self, command):
+    def _execute(self, command):
         try:
             # Execute the SQL command
-            self.cursor.execute(command)
+            self.cursor._execute(command)
             # Commit changes into the database
             self.commit()
         except:
