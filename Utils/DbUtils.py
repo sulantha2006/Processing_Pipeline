@@ -1,6 +1,6 @@
 __author__ = 'Seqian Wang'
 
-import MySQLdb
+import mysql.connector
 import Config.DBConfig as dbConfig
 
 """
@@ -31,34 +31,37 @@ class DBUtils:
         self.username = username
         self.password = password
         self.database = database
+        self.conn = mysql.connector.connect(host=self.location,
+                                       database=self.database,
+                                       user=self.username,
+                                       password=self.password)
+        self.cursor = self.conn.cursor()
 
-        # Open database connection
-        self.db = MySQLdb.connect(self.location, self.username, self.password, self.database)
-        # Prepare a cursor object using cursor() method
-        self.cursor = self.db.cursor()
-
-    def insertIfNotExist(self, command, uniqueTest = ''):
+    def insertIfNotExist(self, values, uniqueTestFields='', uniqueTestValues = ''):
         # Send SQL query to INSERT a record into the database if record does not already exist
-        sql_command = "IF NOT EXIST WHERE (%s) \
-                      INSERT INTO Sorting VALUES (%s)" % (uniqueTest, command)
-        self._execute(sql_command)
+        #sql_command = "INSERT INTO Sorting VALUES (%s) WHERE NOT EXISTS (SELECT * FROM Sorting WHERE (%s)=(%s))" % (values, uniqueTestFields, uniqueTestValues)
+        sql_command = "INSERT IGNORE INTO Sorting VALUES (%s) " % (values)
+        self.executeNoResult(sql_command)
 
-    def _execute(self, command):
+    def executeNoResult(self, sqlStr):
         try:
-            # Execute the SQL command
-            self.cursor._execute(command)
-            # Commit changes into the database
+            self.cursor.execute(sqlStr)
             self.commit()
         except:
-            # Rollback in case of error
             self.rollback()
+            raise
+
+    def executeAllResults(self, sqlStr):
+        pass
+
+    def executeSomeResults(self, sqlStr, numOfResults):
+        pass
 
     def commit(self):
-        self.db.commit()
+        self.conn.commit()
 
     def rollback(self):
-        self.db.rollback()
+        self.conn.rollback()
 
     def close(self):
-        # Disconnect from server
-        self.db.close()
+        self.conn.close()

@@ -1,19 +1,20 @@
 __author__ = 'Sulantha'
 import sys, argparse
+sys.path.extend(['/home/sulantha/PycharmProjects/Processing_Pipeline'])
 from Config import StudyConfig
 from Manager.PipelineManager import PipelineManager
 import logging.config
 from Utils.PipelineLogger import PipelineLogger
 
-def main(argv):
-    logging.config.fileConfig('../Config/LoggingConfig.conf')
+def main():
+    logging.config.fileConfig('Config/LoggingConfig.conf')
     studyList = None
 
     ##Added ability to run from command line.
     parser = argparse.ArgumentParser()
     parser.add_argument('--studyList', required=True, nargs='+', choices=StudyConfig.AllowedStudyList, help='Space seperated study list.')
     parser.add_argument('--steps', required=False, nargs='+', choices=StudyConfig.AllowedStepsList, help='Space seperated steps list.')
-    parser.add_argument('--pipe_v', required=False, nargs='+', choices=StudyConfig.AllowedVersions, help='Version of pipeline need to run.')
+    parser.add_argument('--pipe_v', required=False, nargs=1, choices=StudyConfig.AllowedVersions, help='Version of pipeline need to run.')
     args = parser.parse_args()
     studyList = args.studyList
     steps = args.steps
@@ -22,10 +23,13 @@ def main(argv):
     if not validateStepSequence(steps):
         sys.exit(2)
 
+    steps = ['ALL'] if not steps else steps
+    version = '1' if not version else version
+
     PipelineLogger.log('root', 'info', '##################Pipeline Started.#################')
     PipelineLogger.log('root', 'info', 'StudyIds = %s' %', '.join(map(str, studyList)))
     PipelineLogger.log('root', 'info', 'Steps = %s' %', '.join(map(str, steps)))
-    PipelineLogger.log('root', 'info', 'Version = %s' %', '.join(map(str, version)))
+    PipelineLogger.log('root', 'info', 'Version = %s' %version)
 
     pipeline = PipelineManager(studyList)
 
@@ -35,6 +39,10 @@ def main(argv):
     pipeline.recurseForNewData()
     ## Add data to Sorting table.
     pipeline.addNewDatatoDB()
+    ##Get Unmoved Raw File List
+    pipeline.getUnmovedRawDataList()
+
+    pipeline.moveRawData()
 
 
 
