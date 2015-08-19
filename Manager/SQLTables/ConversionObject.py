@@ -17,7 +17,7 @@ class ConversionObject:
         self.converted = values['converted']
 
     def sqlInsert(self):
-        return ("NULL, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d"
+        return ("NULL, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, NULL, NULL, NULL"
                 % (self.study, self.rid, self.scan_type, self.scan_date, self.scan_time,
                    self.s_identifier, self.i_identifier, self.file_type,
                    self.raw_folder, self.converted_folder, self.version, self.converted))
