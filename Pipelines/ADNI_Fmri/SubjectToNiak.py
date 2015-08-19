@@ -19,7 +19,7 @@ class SubjectToNiak():
                                                )
 
         # Execute script
-        command = '%s -nodisplay << %s' % (config.matlab_location, templateFileWithInformation)
+        command = '%s %s' % (config.matlab_call, templateFileWithInformation)
         outputStd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
         print(outputStd) # Will have to implement a way that NIAK can output its running session to stdout
 

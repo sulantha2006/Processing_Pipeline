@@ -1,11 +1,11 @@
-function runFmrilm(input_file, unsmoothed_image, output_base, name, x, y, z, slice_number, time_frames, tr, voxelType)
+function runFmrilm(fmristat_location, emma_location, input_file, unsmoothed_image, output_base, x, y, z, voxelType, slice_number, time_frames, tr)
 
 % Terminate if file exists already
 %if exist([output_base '_mag_t.mnc'], 'file'); return; end
 
 %Adding paths
-addpath('/home/wang/Documents/MATLAB/fmristat','-end');
-addpath('/home/wang/Documents/MATLAB/emma','-end');
+addpath(fmristat_location,'-end');
+addpath(emma_location,'-end');
 
 %{
 mask_thresh = fmri_mask_thresh(input_file);
