@@ -11,10 +11,10 @@ class Sorting:
         self.sqlBuilder = SQLBuilder()
 
     def getObjectFromTuple(self, tuple):
-        valuesDict = dict(study=tuple[0], rid=tuple[1], scan_type=tuple[2],
-                          scan_date=tuple[3].strftime("%Y-%m-%d"), scan_time=str(tuple[4]),
-                          s_identifier=tuple[5], i_identifier=tuple[6], file_type=tuple[7], download_folder=tuple[8],
-                          raw_folder=tuple[9], moved=tuple[10])
+        valuesDict = dict(record_id=tuple[0], study=tuple[1], rid=tuple[2], scan_type=tuple[3],
+                          scan_date=tuple[4].strftime("%Y-%m-%d"), scan_time=str(tuple[5]),
+                          s_identifier=tuple[6], i_identifier=tuple[7], file_type=tuple[8], download_folder=tuple[9],
+                          raw_folder=tuple[10], moved=tuple[11])
         return SortingObject(valuesDict)
 
     def insertToTable(self, objList):
@@ -28,4 +28,9 @@ class Sorting:
         return [self.getObjectFromTuple(t) for t in unmovedList]
 
     def setMovedTrue(self, sortingObj):
-        pass
+        sortingObj.moved = 1
+        self.saveObj(sortingObj)
+
+    def saveObj(self, sortingObj):
+        self.DBClient.executeNoResult(self.sqlBuilder.getSQL_saveObjSortingTable(sortingObj))
+

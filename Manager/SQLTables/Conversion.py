@@ -10,10 +10,10 @@ class Conversion:
         self.sqlBuilder = SQLBuilder()
 
     def getObjectFromTuple(self, tuple):
-        valuesDict = dict(study=tuple[0], rid=tuple[1], scan_type=tuple[2],
-                          scan_date=tuple[3].strftime("%Y-%m-%d"), scan_time=tuple[4].strftime("%H:%M:%S"),
-                          s_identifier=tuple[5], i_identifier=tuple[6], file_type=tuple[7], raw_folder=tuple[8],
-                          converted_folder=tuple[9], version=tuple[10], converted=tuple[11])
+        valuesDict = dict(record_id=tuple[0], study=tuple[1], rid=tuple[2], scan_type=tuple[3],
+                          scan_date=tuple[4].strftime("%Y-%m-%d"), scan_time=str(tuple[5]),
+                          s_identifier=tuple[6], i_identifier=tuple[7], file_type=tuple[8], raw_folder=tuple[9],
+                          converted_folder=tuple[10], version=tuple[11], converted=tuple[12])
         return ConversionObject(valuesDict)
 
     def insertToTable(self, objList):
