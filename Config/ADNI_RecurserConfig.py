@@ -43,4 +43,3 @@ scanTypeDict = {'4x5minute_frames_4i_16s__AV45': 'AV45',
                 'relCBF': 'relCBF',
                 'Spatially_Normalized,_Masked_and_N3_corrected_T1_image': '3T-T1-Spa_Norm_Mask_N3_Corr'}
 
-databaseRoot = '/data/data03/Database'

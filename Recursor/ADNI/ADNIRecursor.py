@@ -3,6 +3,7 @@ __author__ = 'Seqian Wang'
 import os
 from Recursor.ADNI.ScanSession import ScanSession
 import Config.ADNI_RecurserConfig as arc
+import Config.StudyConfig as sc
 
 """
 Parse ADNI Data Structure from Monica Download and return a list of instances with scans' information
@@ -34,7 +35,7 @@ class ADNIRecursor():
         i_identifier = filename_parts[-1].split('.', 1)[0]
         file_type = self.determineExtension(filename_parts)
         download_folder = down_most_folder
-        raw_folder = '{0}/{1}/{2}/{3}/{4}_{5}_{6}/raw/'.format(arc.databaseRoot, self.study, scan_type, rid, scan_date, s_identifier, i_identifier)
+        raw_folder = '{0}/{1}/{2}/{3}/{4}_{5}_{6}/raw'.format(sc.studyDatabaseRootDict[self.study], self.study, scan_type, rid, scan_date, s_identifier, i_identifier)
 
         newScanSession = ScanSession\
             (self.study, rid, scan_type, scan_date, scan_time,

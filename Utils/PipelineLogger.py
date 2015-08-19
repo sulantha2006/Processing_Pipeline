@@ -6,7 +6,8 @@ class PipelineLogger:
                 'debug':logging.debug,
                 'warning':logging.warning,
                 'error':logging.error,
-                'critical':logging.critical}
+                'critical':logging.critical,
+                  'exception':logging.exception}
 
     @staticmethod
     def log(moduleName, level, message):

@@ -35,6 +35,7 @@ class DBUtils:
                                        database=self.database,
                                        user=self.username,
                                        password=self.password)
+        self.conn.autocommit
         self.cursor = self.conn.cursor()
 
     def insertIfNotExist(self, values, uniqueTestFields='', uniqueTestValues = ''):
@@ -52,10 +53,20 @@ class DBUtils:
             raise
 
     def executeAllResults(self, sqlStr):
-        pass
+        try:
+            self.cursor.execute(sqlStr)
+            return self.cursor.fetchall()
+        except:
+            self.rollback()
+            raise
 
     def executeSomeResults(self, sqlStr, numOfResults):
-        pass
+        try:
+            self.cursor.execute(sqlStr)
+            return self.cursor.fetchmany(numOfResults)
+        except:
+            self.rollback()
+            raise
 
     def commit(self):
         self.conn.commit()

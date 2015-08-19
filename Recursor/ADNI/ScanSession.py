@@ -38,3 +38,15 @@ class ScanSession:
 
     def sqlUniqueFields(self):
         return "'STUDY', 'RID', 'SCAN_TYPE', 'S_IDENTIFIER', 'I_IDENTIFIER'"
+
+    def getValuesDict(self):
+        return {'study': self.study, 'rid': self.rid,
+                'scan_type': self.scan_type,
+                'scan_date': self.scan_date,
+                'scan_time': self.scan_time,
+                's_identifier': self.s_identifier,
+                'i_identifier': self.i_identifier,
+                'download_folder': self.download_folder,
+                'raw_folder': self.raw_folder,
+                'file_type': self.file_type,
+                'moved': self.moved}

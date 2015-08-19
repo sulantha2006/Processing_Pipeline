@@ -14,24 +14,30 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--studyList', required=True, nargs='+', choices=StudyConfig.AllowedStudyList, help='Space seperated study list.')
     parser.add_argument('--steps', required=False, nargs='+', choices=StudyConfig.AllowedStepsList, help='Space seperated steps list.')
-    parser.add_argument('--pipe_v', required=False, nargs=1, choices=StudyConfig.AllowedVersions, help='Version of pipeline need to run.')
+    parser.add_argument('--modalities', required=False, nargs='+', choices=StudyConfig.AllowedModalityList, help='Space seperated modality list.')
+    parser.add_argument('--pipe_v', required=False, nargs='+', choices=StudyConfig.AllowedVersions, help='Version of pipeline need to run.')
     args = parser.parse_args()
     studyList = args.studyList
     steps = args.steps
+    modalities = args.modalities
     version = args.pipe_v
 
     if not validateStepSequence(steps):
         sys.exit(2)
 
     steps = ['ALL'] if not steps else steps
-    version = '1' if not version else version
+    modalities = StudyConfig.AllowedModalityList if not modalities else modalities
+    if version and len(version) > 1 and len(studyList) > 1:
+        PipelineLogger.log('root', 'info', 'Versioning with multiple studies is not supported. ')
+        sys.exit(2)
+    version = StudyConfig.defaultVersioningForStudy[studyList[0]] if not version else dict(zip(modalities, version))
 
     PipelineLogger.log('root', 'info', '##################Pipeline Started.#################')
     PipelineLogger.log('root', 'info', 'StudyIds = %s' %', '.join(map(str, studyList)))
     PipelineLogger.log('root', 'info', 'Steps = %s' %', '.join(map(str, steps)))
     PipelineLogger.log('root', 'info', 'Version = %s' %version)
 
-    pipeline = PipelineManager(studyList)
+    pipeline = PipelineManager(studyList, version)
 
     ####ToDo: Process steps sequence.
 
