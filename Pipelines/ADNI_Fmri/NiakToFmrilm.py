@@ -1,5 +1,6 @@
 __author__ = 'wang'
 import Config.FmriConfig as config
+import subprocess
 
 class NiakToFmrilm():
     def __init__(self, sqlObject):
