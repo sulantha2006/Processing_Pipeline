@@ -6,41 +6,44 @@ import distutils.dir_util
 import distutils.file_util
 import shutil
 from Utils.PipelineLogger import PipelineLogger
+import Config.ConverterConfig as cc
 
 class Raw2MINCConverter:
     def __init__(self):
         self.convertionScriptsDict = {'ADNI':
                              {'AV45': {'V1': {'nifti': self.adni_v1_pet_nii,
                                               'dicom': self.adni_v1_pet_dicom,
-                                              'v': self.adni_v1_pet_v}},
+                                              'v': self.adni_v1_pet_v,
+                                              'minc': self.adni_v1_pet_minc}},
                               'FDG': {'V1': {'nifti': self.adni_v1_pet_nii,
                                              'dicom': self.adni_v1_pet_dicom,
-                                             'v': self.adni_v1_pet_v}},
+                                             'v': self.adni_v1_pet_v,
+                                             'minc': self.adni_v1_pet_minc}},
                               'T1': {'V1': {'nifti': self.adni_v1_t1_nii,
                                             'dicom': self.adni_v1_t1_dicom,
-                                            'v': self.adni_v1_t1_v}},
+                                            'v': self.adni_v1_t1_v,
+                                            'minc': self.adni_v1_t1_minc}},
                               'rsfmri': {'V1': {'nifti': self.adni_v1_rsfmri_nii,
                                             'dicom': self.adni_v1_rsfmri_dicom,
-                                            'v': self.adni_v1_rsfmri_v}}
+                                            'v': self.adni_v1_rsfmri_v,
+                                            'minc': self.adni_v1_rsfmri_minc}}
                               }}
 
     def convert2minc(self, convertionObj):
         converted = 0
         study = convertionObj.study
-        scan_type = convertionObj.scan_type
+        scan_type = self.get_scanType_forConversion(convertionObj) # PET Conversion is done differently in ADNI
         file_type = convertionObj.file_type
         version = convertionObj.version
 
-        # PET Conversion is done differently in ADNI
-        if study == 'ADNI' and (scan_type != 'AV45' or scan_type != 'FDG' or scan_type != 'ext-rsfmri' or scan_type != 'rsfmri'):
-            scan_type = 'T1'
-
-        if study == 'ADNI' and (scan_type == 'ext-rsfmri' or 'rsfmri'):
-            scan_type = 'rsfmri'
-
-        if file_type != 'minc':
-            converted = self.convertionScriptsDict[study][scan_type][version][file_type](convertionObj)
+        converted = self.convertionScriptsDict[study][scan_type][version][file_type](convertionObj)
         return converted
+
+    def get_scanType_forConversion(self, conversionObj):
+        if conversionObj.scan_type not in cc.studyTypeForConvertionDict[conversionObj.study]:
+            return 'T1'
+        else:
+            return conversionObj.scan_type
 
     def adni_v1_pet_nii(self, convertionObj):
         pass
@@ -89,7 +92,7 @@ class Raw2MINCConverter:
         PipelineLogger.log('converter', 'info', 'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study, convertionObj.rid, convertionObj.scan_date, convertionObj.scan_type))
         PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(cmd))
         try:
-            shutil.rmtree('{1}/../'.format(convertionObj.converted_folder))
+            shutil.rmtree('{0}/../'.format(convertionObj.converted_folder))
         except:
             pass
         try:
@@ -102,7 +105,7 @@ class Raw2MINCConverter:
         PipelineLogger.log('converter', 'debug', 'Conversion Log Err : \n{0}'.format(err))
 
         mincPresent = 0
-        for root, dirnames, filenames in os.walk('{1}/../'.format(convertionObj.converted_folder)):
+        for root, dirnames, filenames in os.walk('{0}/../'.format(convertionObj.converted_folder)):
             for filename in fnmatch.filter(filenames, '*.mnc'):
                 distutils.file_util.copy_file(os.path.join(root, filename), convertionObj.converted_folder)
                 mincPresent = 1
@@ -147,4 +150,13 @@ class Raw2MINCConverter:
         pass
 
     def adni_v1_rsfmri_v(self, convertionObj):
+        pass
+
+    def adni_v1_pet_minc(self, conversionObj):
+        pass
+
+    def adni_v1_t1_minc(self, conversionObj):
+        pass
+
+    def adni_v1_rsfmri_minc(self, conversionObj):
         pass
