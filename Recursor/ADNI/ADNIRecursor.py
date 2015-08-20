@@ -4,6 +4,7 @@ import os
 from Recursor.ADNI.ScanSession import ScanSession
 import Config.ADNI_RecurserConfig as arc
 import Config.StudyConfig as sc
+from Utils.PipelineLogger import PipelineLogger
 
 """
 Parse ADNI Data Structure from Monica Download and return a list of instances with scans' information
@@ -53,10 +54,13 @@ class ADNIRecursor():
             return arc.scanTypeDict[scanTypeRaw]
         except KeyError:
             if 'FDG' in scanTypeRaw:
+                PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match FDG...'.format(scanTypeRaw))
                 return 'uFDG'
             if 'AV45' in scanTypeRaw:
+                PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match AV45...'.format(scanTypeRaw))
                 return 'uAV45'
             else:
+                PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> No match...'.format(scanTypeRaw))
                 return 'unknown'
 
     def listRootFolderContents(self):
