@@ -42,14 +42,20 @@ def main():
     ####ToDo: Process steps sequence.
 
     ## Recurse for new data
+    PipelineLogger.log('root', 'info', 'Recursing for new data started ...')
     pipeline.recurseForNewData()
+    PipelineLogger.log('root', 'info', 'Recursing for new data done ...############')
     ## Add data to Sorting table.
     pipeline.addNewDatatoDB()
     ##Get Unmoved Raw File List
     pipeline.getUnmovedRawDataList()
-
+    PipelineLogger.log('root', 'info', 'Moving new data started ...')
     pipeline.moveRawData()
-
+    PipelineLogger.log('root', 'info', 'Moving new data done ...############')
+    pipeline.getConversionList()
+    PipelineLogger.log('root', 'info', 'Converting to MINC started ...')
+    pipeline.convertRawData()
+    PipelineLogger.log('root', 'info', 'Converting to MINC done ...############')
 
 
 ##This method will validate the sequence of steps. If not returns False.

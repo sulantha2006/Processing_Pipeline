@@ -23,10 +23,23 @@ class Conversion:
 
     def insertFromSortingObj(self, sortingObj, versionDict):
         sortingValues = sortingObj.getValuesDict()
-        sortingValues['converted_folder'] = '{0}/{1}/{2}/{3}/{4}_{5}_{6}/{7}/converted'.format(sc.studyDatabaseRootDict[sortingObj.study],
+        sortingValues['converted_folder'] = '{0}/{1}/{2}/{3}/{4}_{5}_{6}/{7}/converted/final'.format(sc.studyDatabaseRootDict[sortingObj.study],
                                                                         sortingObj.study, sortingObj.scan_type, sortingObj.rid,
                                                                         sortingObj.scan_date, sortingObj.s_identifier, sortingObj.i_identifier, versionDict[sortingObj.scan_type])
         sortingValues['version'] = versionDict[sortingObj.scan_type]
         sortingValues['converted'] = 0
         self.insertToTable([ConversionObject(sortingValues)])
+
+    def gettoBeConvertedPerStudy(self, study):
+        toConvertList = self.DBClient.executeAllResults(
+            self.sqlBuilder.getSQL_getToBeConvertedFileFromConversionTable(study))
+        return [self.getObjectFromTuple(t) for t in toConvertList]
+
+    def setConvertedTrue(self, convertionObj):
+        convertionObj.converted = 1
+        self.saveObj(convertionObj)
+
+    def saveObj(self, convertionObj):
+        self.DBClient.executeNoResult(self.sqlBuilder.getSQL_saveObjConversionTable(convertionObj))
+
 

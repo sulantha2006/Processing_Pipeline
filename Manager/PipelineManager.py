@@ -8,6 +8,7 @@ from Utils.PipelineLogger import PipelineLogger
 from Manager.SQLTables.Sorting import Sorting
 from Manager.SQLTables.SortingObject import SortingObject
 from Manager.SQLTables.Conversion import Conversion
+from Converters.Raw2MINCConverter import Raw2MINCConverter
 
 
 class PipelineManager:
@@ -19,10 +20,14 @@ class PipelineManager:
         self._getRecursorList(studyList)
         self.sortingDataList = []
         self.sqlBuilder = SQLBuilder()
+
         self.moveSortingObjListDict = {}
+        self.toConvertObjListDict = {}
 
         self.sortingTable = Sorting()
         self.conversionTable = Conversion()
+
+        self.raw2mincConverter = Raw2MINCConverter()
 
     # This method will return a list of Recursor Objects based on the study list provided.
     def _getRecursorList(self, studyList):
@@ -68,3 +73,18 @@ class PipelineManager:
                     self.sortingTable.setMovedTrue(sortingObj)
                 else:
                     PipelineLogger.log('manager', 'error', 'File Move Error : {0} -> {1}. Moving to next...'.format(sortingObj.download_folder, sortingObj.raw_folder))
+
+    def getConversionList(self):
+        for study in self.studyList:
+            self.toConvertObjListDict[study] = self.conversionTable.gettoBeConvertedPerStudy(study)
+
+    def convertRawData(self):
+        for study in self.studyList:
+            for convertionObj in self.toConvertObjListDict[study]:
+                converted = self.raw2mincConverter.convert2minc(convertionObj)
+                if converted:
+                    #### Add to correspoing table
+                    #self.conversionTable.insertFromConvertionObj(convertionObj, self.version)
+                    self.conversionTable.setConvertedTrue(convertionObj)
+                else:
+                    PipelineLogger.log('manager', 'error', 'File conversion Error : {0} -> {1}. Moving to next...'.format(convertionObj.raw_folder, convertionObj.converted_folder))

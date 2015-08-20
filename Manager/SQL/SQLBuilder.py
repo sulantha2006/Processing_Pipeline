@@ -24,7 +24,7 @@ class SQLBuilder:
                                                           sortingObj.record_id)
 
     def getSQL_saveObjConversionTable(self, conversionObj):
-        return "UPDATE Sorting SET STUDY='{0}', RID='{1}', SCAN_TYPE='{2}', SCAN_DATE='{3}', SCAN_TIME='{4}', " \
+        return "UPDATE Conversion SET STUDY='{0}', RID='{1}', SCAN_TYPE='{2}', SCAN_DATE='{3}', SCAN_TIME='{4}', " \
                "S_IDENTIFIER='{5}', I_IDENTIFIER='{6}', FILE_TYPE='{7}', RAW_FOLDER='{8}', CONVERTED_FOLDER='{9}', " \
                "VERSION='{10}', CONVERTED={11} WHERE RECORD_ID={12}".format(conversionObj.study, conversionObj.rid,
                                                                               conversionObj.scan_type,
@@ -47,3 +47,6 @@ class SQLBuilder:
                                                           sortingObj.s_identifier, sortingObj.i_identifier,
                                                           sortingObj.file_type, sortingObj.download_folder,
                                                           sortingObj.raw_folder, sortingObj.moved)
+
+    def getSQL_getToBeConvertedFileFromConversionTable(self, studyID):
+        return "SELECT * FROM Conversion WHERE STUDY='{0}' AND CONVERTED=0".format(studyID.upper())
