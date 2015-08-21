@@ -1,0 +1,20 @@
+#!/bin/bash
+
+source /opt/minc-toolkit/minc-toolkit-config.sh
+
+dicomFolder=$1
+outputFolder=$2
+outDynFile=$3
+
+dcmList=$(ls $dicomFolder/*.dcm)
+
+intFolder=$outputFolder/../intermediate
+mkdir $intFolder
+
+for i in $dcmList;do echo $i,$(gdcmdump -d $i|grep 0054,1300|tr '\t' ' '|cut -d ' '  -f 4);done |tee $intFolder/scans
+
+cut -d , -f 2 $intFolder/scans|sort|uniq | tee $intFolder/frames
+
+for t in $(cat $intFolder/frames); do n=$(printf '%08d' $t); /opt/minc-toolkit/bin/dcm2mnc $(cat $intFolder/scans | fgrep ",$t"|cut -d , -f 1) $intFolder/ -fname ${n}"_PET" ; done
+
+/opt/minc/bin/mincconcat -short -concat_dimension time $intFolder/*/*mnc $outDynFile

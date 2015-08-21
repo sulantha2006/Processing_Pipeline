@@ -5,6 +5,7 @@ import fnmatch
 import distutils.dir_util
 import distutils.file_util
 import shutil
+import glob
 from Utils.PipelineLogger import PipelineLogger
 
 
@@ -127,34 +128,11 @@ class ADNI_V1_T1:
                                    convertionObj.scan_type))
             return 0
         elif len(mncList) == 1:
-            distutils.file_util.copy_file(mncList[0], outFile)
-            PipelineLogger.log('converter', 'info',
-                               'MINC Conversion success : {0} - {1} - {2} - {3}'.format(convertionObj.study,
-                                                                                        convertionObj.rid,
-                                                                                        convertionObj.scan_date,
-                                                                                        convertionObj.scan_type))
-            return 1
-        else:
-            checkTimeDimCmd = '/opt/minc-toolkit/bin/mincinfo {0} | grep time'.format(mncList[0])
-            p_t = subprocess.Popen(checkTimeDimCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            copyMIncCmd = '/opt/minc-toolkit/bin/mincaverage -short {0} {1}'.format(mncList[0], outFile)
+            p_t = subprocess.Popen(copyMIncCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out_t, err_t = p_t.communicate()
-            PipelineLogger.log('converter', 'debug', 'Check time dim Output : \n{0}'.format(out_t))
-            PipelineLogger.log('converter', 'debug', 'Check time dim Err : \n{0}'.format(err_t))
-            if 'time' in out_t or 'time' in err_t:
-                concatCMD = '/opt/minc/bin/mincconcat -short -concat_dimension time {0}/*.mnc {1}'.format(convertionObj.converted_folder, outFile)
-                p_c = subprocess.Popen(concatCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                out_c, err_c = p_c.communicate()
-                PipelineLogger.log('converter', 'debug', 'MincConcat Output : \n{0}'.format(out_c))
-                PipelineLogger.log('converter', 'debug', 'MincConcat Err : \n{0}'.format(err_c))
-            else:
-                PipelineLogger.log('converter', 'error', 'T1 - dicom conversion failed : Many unlinked MINC files')
-                PipelineLogger.log('converter', 'error',
-                               'MINC Conversion unsuccessful : Check log for : {0} - {1} - {2} - {3}'.format(
-                                   convertionObj.study, convertionObj.rid, convertionObj.scan_date,
-                                   convertionObj.scan_type))
-                return 0
-
-        if os.path.exists(outFile):
+            PipelineLogger.log('converter', 'debug', 'Mincncopy Output : \n{0}'.format(out_t))
+            PipelineLogger.log('converter', 'debug', 'Mincncopy Err : \n{0}'.format(err_t))
             PipelineLogger.log('converter', 'info',
                                'MINC Conversion success : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                         convertionObj.rid,
@@ -162,6 +140,7 @@ class ADNI_V1_T1:
                                                                                         convertionObj.scan_type))
             return 1
         else:
+            PipelineLogger.log('converter', 'critical', 'More than 1 MINC file found for 3D scan. Please check {0}.'.format(mncList))
             PipelineLogger.log('converter', 'error',
                                'MINC Conversion unsuccessful : Check log for : {0} - {1} - {2} - {3}'.format(
                                    convertionObj.study, convertionObj.rid, convertionObj.scan_date,
@@ -169,4 +148,47 @@ class ADNI_V1_T1:
             return 0
 
     def convertMinc(self, convertionObj):
-        pass
+        PipelineLogger.log('converter', 'info',
+                           'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
+                                                                                         convertionObj.rid,
+                                                                                         convertionObj.scan_date,
+                                                                                         convertionObj.scan_type))
+        rawFile = '{0}/*.mnc'.format(convertionObj.raw_folder)
+        mncList = glob.glob(rawFile)
+        outFile = '{0}/{1}_{2}{3}{4}{5}_{6}.mnc'.format(convertionObj.converted_folder, convertionObj.study,
+                                                        convertionObj.rid, convertionObj.scan_date.replace('-', ''),
+                                                        convertionObj.s_identifier, convertionObj.i_identifier,
+                                                        convertionObj.scan_type)
+        if len(mncList) == 0:
+            PipelineLogger.log('converter', 'error',
+                               'MINC Conversion unsuccessful : Check log for : {0} - {1} - {2} - {3}'.format(
+                                   convertionObj.study, convertionObj.rid, convertionObj.scan_date,
+                                   convertionObj.scan_type))
+            return 0
+        elif len(mncList) == 1:
+            PipelineLogger.log('converter', 'Error',
+                               'T1 Conversion MINC file as INPUT. Only 1 MINC found. Checking for time dimension ')
+            checkTimeDimCmd = '/opt/minc-toolkit/bin/mincinfo {0} | grep time'.format(mncList[0])
+            p_t = subprocess.Popen(checkTimeDimCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out_t, err_t = p_t.communicate()
+            PipelineLogger.log('converter', 'debug', 'Check time dim Output : \n{0}'.format(out_t))
+            PipelineLogger.log('converter', 'debug', 'Check time dim Err : \n{0}'.format(err_t))
+            if 'time' in out_t or 'time' in err_t:
+                PipelineLogger.log('converter', 'Info',
+                               'T1 Conversion MINC file as INPUT. Only 1 MINC found. Time dimension found. Conversion failed ')
+                return 0
+            else:
+                copyMIncCmd = '/opt/minc-toolkit/bin/mincaverage -short {0} {1}'.format(mncList[0], outFile)
+                p_t = subprocess.Popen(copyMIncCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out_t, err_t = p_t.communicate()
+                PipelineLogger.log('converter', 'debug', 'Mincncopy Output : \n{0}'.format(out_t))
+                PipelineLogger.log('converter', 'debug', 'Mincncopy Err : \n{0}'.format(err_t))
+                PipelineLogger.log('converter', 'info',
+                                   'MINC Conversion success : {0} - {1} - {2} - {3}'.format(convertionObj.study,
+                                                                                            convertionObj.rid,
+                                                                                            convertionObj.scan_date,
+                                                                                            convertionObj.scan_type))
+                return 1
+        else:
+            PipelineLogger.log('converter', 'critical', 'More than 1 MINC file found. Please check {0}.'.format(mncList))
+            return 0

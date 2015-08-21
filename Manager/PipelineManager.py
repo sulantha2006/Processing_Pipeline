@@ -1,4 +1,5 @@
 __author__ = 'sulantha'
+import os
 from Recursor.Recursor import Recursor
 from Utils.DbUtils import DBUtils
 from Config import StudyConfig as sc
@@ -53,12 +54,24 @@ class PipelineManager:
 
     # This method will move the downloaded raw files to the study, subject specific folders and add moved tag in sorting table.
     def moveRawData(self):
+        def removeCommaIfThere(destFolder):
+            PipelineLogger.log('manager', 'debug',
+                                   'Removing unsupported chars from file names...... :')
+            for dpath, dnames, fnames in os.walk(destFolder):
+                for f in fnames:
+                    os.chdir(dpath)
+                    if ',' in f:
+                        os.rename(f, f.replace(',', ''))
+            PipelineLogger.log('manager', 'debug',
+                                   'Removing unsupported chars from file names done ...:')
+
         def copyFile(sourceFolder, destFolder):
             try:
                 PipelineLogger.log('manager', 'debug', 'Raw Data Copying : {0} -> {1}'.format(sourceFolder, destFolder))
                 distutils.dir_util.copy_tree(sourceFolder, destFolder, update=True)
                 PipelineLogger.log('manager', 'debug',
                                    'Raw Data Copy Done...... : {0} -> {1}'.format(sourceFolder, destFolder))
+                removeCommaIfThere(destFolder)
                 return 1
             except Exception as exc:
                 PipelineLogger.log('manager', 'error',
