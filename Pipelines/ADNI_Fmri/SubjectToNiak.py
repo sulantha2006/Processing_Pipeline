@@ -14,7 +14,7 @@ class SubjectToNiak():
             templateFileWithInformation = templateFile.read()
             templateFile.close()
 
-		# Replacing 
+        # Replacing
         replacing_dict = {'%{patient_information}' : self.patientInfo,
                           '%{opt.folder_out}': outputFolder,
                           '%{niak_location}' : config.niak_location,
@@ -31,6 +31,6 @@ class SubjectToNiak():
         pass
 
     def replaceString(self, text, replacing_dict):
-		for query, replacedInto in replacing_dict:
-			text = text.replace(query, replacedInto)
-		return text
+        for query, replacedInto in replacing_dict:
+            text = text.replace(query, replacedInto)
+        return text
