@@ -49,4 +49,4 @@ class SQLBuilder:
                                                           sortingObj.raw_folder, sortingObj.moved)
 
     def getSQL_getToBeConvertedFileFromConversionTable(self, studyID):
-        return "SELECT * FROM Conversion WHERE STUDY='{0}' AND CONVERTED=0".format(studyID.upper())
+        return "SELECT * FROM Conversion WHERE STUDY='{0}' AND NOT (CONVERTED OR SKIP)".format(studyID.upper())
