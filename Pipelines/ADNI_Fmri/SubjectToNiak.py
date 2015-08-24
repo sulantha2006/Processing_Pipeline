@@ -14,21 +14,13 @@ class SubjectToNiak():
             templateFileWithInformation = templateFile.read()
             templateFile.close()
 
+		# Replacing 
         replacing_dict = {'%{patient_information}' : self.patientInfo,
                           '%{opt.folder_out}': outputFolder,
                           '%{niak_location}' : config.niak_location,
-                          '%{fwhm}', config.fwhm_smoothing
+                          '%{fwhm}' : config.fwhm_smoothing
                           }
-
         templateFileWithInformation = self.replaceString(templateFileWithInformation, replacing_dict)
-
-        for line in fileinput.input(self.niakTemplateFile, inplace=True):
-            templateFileWithInformation.append(line
-                                               .replace('%{patient_information}', self.patientInfo)
-                                               .replace('%{opt.folder_out}', outputFolder)
-                                               .replace('%{niak_location}', config.niak_location)
-                                               .replace('%{fwhm}', config.fwhm_smoothing)
-                                               )
 
         # Execute script
         command = '%s %s' % (config.matlab_call, templateFileWithInformation)
@@ -39,4 +31,6 @@ class SubjectToNiak():
         pass
 
     def replaceString(self, text, replacing_dict):
-        pass
+		for query, replacedInto in replacing_dict:
+			text = text.replace(query, replacedInto)
+		return text
