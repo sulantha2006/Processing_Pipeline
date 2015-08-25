@@ -6,6 +6,6 @@ studyTypeForConvertionDict = {'ADNI':{'AV45': 'AV45',
                                       'rsfmri': 'rsfmri'}}
 
 dcmToMnc_exec = '/home/vfonov/quarantine/bin/dcm2mnc32'
-dcmToNii_exec = ''
-niiToMnc_exec = ''
+dcmToNii_exec = '/home/wang/Documents/bin/references/dcm2nii'
+niiToMnc_exec = '/opt/minc-toolkit/bin/nii2mnc'
 mincSource_exec = 'source /opt/minc-toolkit/minc-toolkit-config.sh'

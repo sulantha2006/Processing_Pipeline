@@ -109,7 +109,7 @@ class ADNI_V1_PET:
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
 
-        cmd = 'Converters/ConversionScripts/BashScripts/ADNI_V1_PET_dicom {0} {1} {2} {3}'.format(convertionObj.raw_folder, convertionObj.converted_folder, outDynFile, outFile)
+        cmd = 'source /opt/minc-toolkit/minc-toolkit-config.sh; Converters/ConversionScripts/BashScripts/ADNI_V1_PET_dicom {0} {1} {2} {3}'.format(convertionObj.raw_folder, convertionObj.converted_folder, outDynFile, outFile)
         PipelineLogger.log('converter', 'info',
                            'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                          convertionObj.rid,

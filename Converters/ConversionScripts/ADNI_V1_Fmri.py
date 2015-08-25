@@ -10,7 +10,7 @@ from Utils.PipelineLogger import PipelineLogger
 import Config.ConverterConfig
 
 
-class ADNI_V1_FMRI:
+class ADNI_V1_Fmri:
     def __init__(self):
         pass
 
@@ -43,23 +43,25 @@ class ADNI_V1_FMRI:
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
 
-        tempFolder = convertionObj.converted_folder + '/../temp'
-        self.createNewFolder(tempFolder)
+        self.createNewFolder(convertionObj.converted_folder) # Create output folder
+        tempFolder = convertionObj.converted_folder + '/../temp'  # Generate path for temp folder
+        self.createNewFolder(tempFolder)  # Create temp folder
+
         # Move all the non-dicom stuff out of the original folder into tempFolder
-        otherFiles = self.removeOtherFilesInFolder(rawFolder, ".dcm", tempFolder)
+        otherFiles = self.removeOtherFilesInFolder(rawFolder, '.dcm', tempFolder)
         # Run dcm2nii
-        dcm2nii_command = Config.ConverterConfig.dcmToNii_exec + ' -a N -e N -p N -o ' + tempFolder + '/ -v Y ' + rawFolder
-        cmd = '{0} {1} {2}/../'.format(dcm2nii_command, rawFolder, convertionObj.converted_folder)		
+        cmd = Config.ConverterConfig.dcmToNii_exec + ' -a N -e N -p N -g N -o ' + tempFolder + '/ -v Y ' + rawFolder
         PipelineLogger.log('converter', 'info',
                            'dcm2nii conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                          convertionObj.rid,
                                                                                          convertionObj.scan_date,
                                                                                          convertionObj.scan_type))
         PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(cmd))
+        self.runShellCommand(cmd)
         # Move all the non-dicom stuff back into the original folder
-        self.addBackOtherFiles(rawFolder,otherFiles,tempFolder)
+        self.addBackOtherFiles(rawFolder, otherFiles, tempFolder)
+
         # Run nii2mnc
-        self.createNewFolder(convertionObj.converted_folder)
         cmd = '{0} {1} {2}/../'.format(Config.ConverterConfig.niiToMnc_exec, rawFolder, convertionObj.converted_folder)		
         PipelineLogger.log('converter', 'info',
                            'nii2mnc conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
@@ -68,18 +70,18 @@ class ADNI_V1_FMRI:
                                                                                          convertionObj.scan_type))
         PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(cmd))
         iterator = 1
-        for niiFile in glob.glob(tempFolder + '/*.nii.gz'):
-            tempOutFile = outFile.replace('.mnc', '_' + iterator + '.mnc')
+        for niiFile in glob.glob(tempFolder + '/*.nii'):
+            tempOutFile = outFile.replace('.mnc', '_run' + str(iterator) + '.mnc')
             cmd = '%s %s %s' % (Config.ConverterConfig.niiToMnc_exec, niiFile, tempOutFile)
             self.runShellCommand(cmd)
             self.checkMncFile(tempOutFile) # Check whether the fMRI files have a time component/axis
-            iterator = iterator + 1
+            iterator += 1
         # Delete Temporary Folder
         self.deleteFolder(tempFolder)
 
         # Check how many mnc files were generated
         mncList = []
-        for root, dirnames, filenames in os.walk('{0}/../'.format(convertionObj.converted_folder)):
+        for root, dirnames, filenames in os.walk(convertionObj.converted_folder):
             for filename in fnmatch.filter(filenames, '*.mnc'):
                 mncList.append(os.path.join(root, filename))
         if len(mncList) == 0:
@@ -98,7 +100,7 @@ class ADNI_V1_FMRI:
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
         # Move files
-        cmd = '{0} {1} {2}/../'.format('mv ' + rawFile + ' outFile')
+        cmd = '{0} {1} {2}/../'.format('mv ' + rawFile + ' ' + outFile)
         PipelineLogger.log('converter', 'info',
                            'MINC transfer starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                          convertionObj.rid,
@@ -116,7 +118,7 @@ class ADNI_V1_FMRI:
 
     def deleteFolder(self, folder):
         try:
-            shutil.rmtree('{0}/../'.format(folder))
+            shutil.rmtree(folder)
         except:
             pass
 
@@ -134,14 +136,14 @@ class ADNI_V1_FMRI:
         PipelineLogger.log('converter', 'debug', 'Conversion Log Output : \n{0}'.format(out))
         PipelineLogger.log('converter', 'debug', 'Conversion Log Err : \n{0}'.format(err))
 
-    def removeOtherFilesInFolder(t_folderPath, extToKeep,temp_file_folder):
+    def removeOtherFilesInFolder(self, original_folder, extToKeep, temp_file_folder):
         otherFiles = []
-        for file in os.listdir(t_folderPath):
+        for file in os.listdir(original_folder):
             if not file.endswith(extToKeep):
-                shutil.move(t_folderPath + "/" + file, temp_file_folder)
+                shutil.move(original_folder + "/" + file, temp_file_folder)
                 otherFiles.append(file)
         return otherFiles
 
-    def addBackOtherFiles(folderPath,otherFiles,temp_file_folder):
+    def addBackOtherFiles(self, folderPath, otherFiles, temp_file_folder):
         for file in otherFiles:
             shutil.move(temp_file_folder + '/' + file, folderPath + "/")
