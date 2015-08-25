@@ -10,6 +10,7 @@ import Config.ConverterConfig as cc
 from Converters.ConversionScripts.ADNI_V1_T1 import ADNI_V1_T1
 from Converters.ConversionScripts.ADNI_V1_PET import ADNI_V1_PET
 from Converters.ConversionScripts.ADNI_V1_FMRI import ADNI_V1_FMRI
+import Config.LIB_PATH as libpath
 
 class Raw2MINCConverter:
     def __init__(self):
@@ -41,6 +42,10 @@ class Raw2MINCConverter:
         self.adni_v1_fmri = ADNI_V1_FMRI()
 
     def convert2minc(self, convertionObj):
+        os.environ['PATH'] = ':'.join(libpath.PATH)
+        os.environ['LD_LIBRARY_PATH'] = ':'.join(libpath.LD_LIBRARY_PATH)
+        os.environ['LD_LIBRARYN32_PATH'] = ':'.join(libpath.LD_LIBRARYN32_PATH)
+        os.environ['PERL5LIB'] = ':'.join(libpath.PERL5LIB)
         study = convertionObj.study
         scan_type = self.get_scanType_forConversion(convertionObj) # PET Conversion is done differently in ADNI
         file_type = convertionObj.file_type
