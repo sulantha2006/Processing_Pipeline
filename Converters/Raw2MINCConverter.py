@@ -9,7 +9,7 @@ from Utils.PipelineLogger import PipelineLogger
 import Config.ConverterConfig as cc
 from Converters.ConversionScripts.ADNI_V1_T1 import ADNI_V1_T1
 from Converters.ConversionScripts.ADNI_V1_PET import ADNI_V1_PET
-from Converters.ConversionScripts.ADNI_V1_FMRI import ADNI_V1_FMRI
+from Converters.ConversionScripts.ADNI_V1_Fmri import ADNI_V1_Fmri
 import Config.LIB_PATH as libpath
 
 class Raw2MINCConverter:
@@ -39,7 +39,7 @@ class Raw2MINCConverter:
 
         self.adni_v1_t1 = ADNI_V1_T1()
         self.adni_v1_pet = ADNI_V1_PET()
-        self.adni_v1_fmri = ADNI_V1_FMRI()
+        self.adni_v1_fmri = ADNI_V1_Fmri()
 
     def convert2minc(self, convertionObj):
         os.environ['PATH'] = ':'.join(libpath.PATH)

@@ -15,7 +15,7 @@ def main():
     logging.config.fileConfig('Config/LoggingConfig.conf')
     studyList = None
 
-     ##Added ability to run from command line.
+    ## Added ability to run from command line.
     try:
         parser = argparse.ArgumentParser()
         parser.add_argument('--studyList', required=True, nargs='+', choices=StudyConfig.AllowedStudyList, help='Space seperated study list.')

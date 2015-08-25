@@ -4,13 +4,14 @@ import subprocess
 
 class NiakToFmrilm():
     def __init__(self, sqlObject):
-        self.input_files, self_output_files, self_unsmoothed_images, self_outputbases = self.parseSql()
+        self.input_files, self_output_files, self_unsmoothed_images, self_outputbases = self.parseSql(sqlObject)
         for input_file, output_file, unsmoothed_image, output_folder \
                 in self.input_files, self.output_files, self.unsmoothed_images, self.output_folders:
             self.execute(input_file, output_file, unsmoothed_image, output_folder)
 
-    def parseSql(self):
-        pass
+    def parseSql(self, sqlObject):
+        input_files = sqlObject.converted_folder
+        output_files = sqlObject.
         return input_files, output_files, unsmoothed_images, output_bases
 
     def execute(self, input_file, output_file, unsmoothed_image, output_folder):
