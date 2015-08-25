@@ -29,6 +29,10 @@ class Raw2MINCConverter:
                               'rsfmri': {'V1': {'nifti': self.adni_v1_rsfmri_nii,
                                             'dicom': self.adni_v1_rsfmri_dicom,
                                             'v': self.adni_v1_rsfmri_v,
+                                            'minc': self.adni_v1_rsfmri_minc}},
+                              'ext-rsfmri': {'V1': {'nifti': self.adni_v1_rsfmri_nii,
+                                            'dicom': self.adni_v1_rsfmri_dicom,
+                                            'v': self.adni_v1_rsfmri_v,
                                             'minc': self.adni_v1_rsfmri_minc}}
                               }}
 
