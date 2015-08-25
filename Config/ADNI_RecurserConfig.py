@@ -46,5 +46,10 @@ scanTypeDict = {'4x5minute_frames_4i_16s__AV45': 'AV45',
                 '3D_ADNI2_AV45_F18_ACQUI._4i_16s': 'AV45',
                 'ADNI2_FDG__AC_': 'FDG',
                 '30_min_3D_FDG_4i_16s': 'FDG',
-                '[F-18]_20_min_4i_16s__AV45': 'AV45'}
+                '[F-18]_20_min_4i_16s__AV45': 'AV45',
+                'Resting_State_fMRI':'rsfmri',
+                'HHP_6_DOF_AC-PC_registered_MPRAGE':'HHP6MPRAGE',
+                'EPI_corrected_image':'EPIC_DTI',
+                'EPI_current_corrected_image':'EPI_DTI',
+                'corrected_AD_image':'Corr_ADDTI'}
 
