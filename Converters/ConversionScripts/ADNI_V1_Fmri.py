@@ -15,13 +15,9 @@ class ADNI_V1_Fmri:
         pass
 
     def convert_nii(self, convertionObj):
-        rawFile = '{0}/*.nii*'.format(convertionObj.raw_folder)
-        outFile = '{0}/{1}_{2}{3}{4}{5}_{6}.mnc'.format(convertionObj.converted_folder, convertionObj.study,
-                                                        convertionObj.rid, convertionObj.scan_date.replace('-', ''),
-                                                        convertionObj.s_identifier, convertionObj.i_identifier,
-                                                        convertionObj.scan_type)
         # Run nii2mnc
-        cmd = '{0} {1} {2}/../'.format('mv ' + rawFile + ' outFile')
+        cmd = '{0} {1} {2}/../'.format(Config.ConverterConfig.niiToMnc_exec,
+                                       convertionObj.raw_folder, convertionObj.converted_folder)
         PipelineLogger.log('converter', 'info',
                            'nii2mnc conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                          convertionObj.rid,
@@ -29,9 +25,36 @@ class ADNI_V1_Fmri:
                                                                                          convertionObj.scan_type))
         PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(cmd))
 
-        cmd = '%s %s %s' % (Config.ConverterConfig.niiToMnc_exec, rawFile, outFile)
-        self.runShellCommand(cmd)
-        self.checkMncFile(outFile) # Check whether the fMRI file has a time component/axis
+        outFile = '{0}/{1}_{2}{3}{4}{5}_{6}.mnc'.format(convertionObj.converted_folder, convertionObj.study,
+                                                        convertionObj.rid, convertionObj.scan_date.replace('-', ''),
+                                                        convertionObj.s_identifier, convertionObj.i_identifier,
+                                                        convertionObj.scan_type)
+
+        iterator = 1
+        for niiFile in glob.glob(convertionObj.raw_folder + '/*.nii*'):
+            if niiFile.endswith('.gz'):
+                subprocess.Popen('gzip -d ' + niiFile, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                niiFile = niiFile.replace('.gz', '')
+            tempOutFile = outFile.replace('.mnc', '_run' + str(iterator) + '.mnc')
+            cmd = '%s %s %s' % (Config.ConverterConfig.niiToMnc_exec, niiFile, tempOutFile)
+            self.runShellCommand(cmd)
+            self.checkMncFile(tempOutFile) # Check whether the fMRI files have a time component/axis
+            iterator += 1
+
+        # Check how many mnc files were generated
+        mncList = []
+        for root, dirnames, filenames in os.walk(convertionObj.converted_folder):
+            for filename in fnmatch.filter(filenames, '*.mnc'):
+                mncList.append(os.path.join(root, filename))
+        if len(mncList) == 0:
+            PipelineLogger.log('converter', 'error',
+                               'MINC Conversion unsuccessful : Check log for : {0} - {1} - {2} - {3}'.format(
+                                   convertionObj.study, convertionObj.rid, convertionObj.scan_date,
+                                   convertionObj.scan_type))
+            return 0
+        else:
+            return 1
+
 
     def convert_v(self, convertionObj):
         pass
@@ -62,13 +85,13 @@ class ADNI_V1_Fmri:
         self.addBackOtherFiles(rawFolder, otherFiles, tempFolder)
 
         # Run nii2mnc
-        cmd = '{0} {1} {2}/../'.format(Config.ConverterConfig.niiToMnc_exec, rawFolder, convertionObj.converted_folder)		
+        fake_command = '{0} {1} {2}/../'.format(Config.ConverterConfig.niiToMnc_exec, rawFolder, convertionObj.converted_folder)
         PipelineLogger.log('converter', 'info',
                            'nii2mnc conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                          convertionObj.rid,
                                                                                          convertionObj.scan_date,
                                                                                          convertionObj.scan_type))
-        PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(cmd))
+        PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(fake_command))
         iterator = 1
         for niiFile in glob.glob(tempFolder + '/*.nii'):
             tempOutFile = outFile.replace('.mnc', '_run' + str(iterator) + '.mnc')
