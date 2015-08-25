@@ -1,5 +1,6 @@
 __author__ = 'wang'
 from Recursor.ADNI.ADNIRecursor import ADNIRecursor
+from Recursor.ADNI.ADNIRecursorFromOldData import ADNIRecursorFromOldData
 
 """
 A non-specific recursor that calls the right study-specific recursor and informs the root folder location
@@ -12,6 +13,8 @@ class Recursor:
         self.subRecursor = None
         if studyID.lower() == 'adni':
             self.subRecursor = ADNIRecursor(studyID, root_download)
+        elif studyID.lower() == 'adni_old':
+            self.subRecursor = ADNIRecursorFromOldData(studyID, root_download)
         else:
             pass
 

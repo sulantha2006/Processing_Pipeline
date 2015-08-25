@@ -186,7 +186,7 @@ class ADNI_V1_PET:
                                            convertionObj.scan_type))
                     return 0
         else:
-            PipelineLogger.log('converter', 'critical', 'More than 1 MINC file found. Please check {0}.'.format(mncList))
+            PipelineLogger.log('converter', 'info', 'More than 1 MINC file found. Concat on time dimension.'.format(mncList))
             outDynFile = '{0}/{1}_{2}{3}{4}{5}_{6}_Dyn.mnc'.format(convertionObj.converted_folder, convertionObj.study,
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
