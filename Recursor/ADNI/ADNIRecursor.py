@@ -19,7 +19,9 @@ class ADNIRecursor():
         directories_list, filenames = self.listRootFolderContents()
         instancesList = []
         for directory, filename in zip(directories_list, filenames):
-            instancesList.append(self.createNewScanSession(directory, filename))
+            newSession = self.createNewScanSession(directory, filename)
+            if newSession:
+                instancesList.append(newSession)
         return instancesList
 
     def createNewScanSession(self,down_most_folder, filelist):
@@ -29,7 +31,7 @@ class ADNIRecursor():
         filename_parts = filelist[0].split("_")  # Takes the first filename and create a list of its parts
 
         rid = folder_parts[1][-4:]  # Get the last 4 characters
-        scan_type = self.determineScanType(folder_parts[2])
+        scan_type = self.determineScanType(folder_parts[-3])
         scan_date = folder_parts[-2].split('_')[0]
         scan_time = folder_parts[-2].split('_', 1)[-1].replace("_", ":")
         s_identifier = filename_parts[-2]
@@ -55,10 +57,10 @@ class ADNIRecursor():
         except KeyError:
             if 'FDG' in scanTypeRaw:
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match FDG...'.format(scanTypeRaw))
-                return 'uFDG'
+                return 'FDG'
             if 'AV45' in scanTypeRaw:
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match AV45...'.format(scanTypeRaw))
-                return 'uAV45'
+                return 'AV45'
             else:
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> No match...'.format(scanTypeRaw))
                 return 'unknown'

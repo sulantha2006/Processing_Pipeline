@@ -20,7 +20,7 @@ class ADNIRecursorFromOldData():
         instancesList = []
         for directory, filename in zip(directories_list, filenames):
             newSession = self.createNewScanSession(directory, filename)
-            if not newSession:
+            if newSession:
                 instancesList.append(newSession)
         return instancesList
 
@@ -32,10 +32,8 @@ class ADNIRecursorFromOldData():
             filename_parts = filelist[0].split("_")  # Takes the first filename and create a list of its parts
 
             rid = folder_parts[1][-4:]  # Get the last 4 characters
-            if folder_parts[2] == 'other':
-                scan_type = self.determineScanType(folder_parts[3])
-            else:
-                scan_type = self.determineScanType(folder_parts[4])
+            scan_type = self.determineScanType(folder_parts[-3])
+
             scan_date = folder_parts[-2].split('_')[0]
             scan_time = folder_parts[-2].split('_', 1)[-1].replace("_", ":")
             s_identifier = filename_parts[-2]
@@ -47,10 +45,11 @@ class ADNIRecursorFromOldData():
             newScanSession = ScanSession\
                 ('ADNI', rid, scan_type, scan_date, scan_time,
                  s_identifier, i_identifier, download_folder, raw_folder, file_type)
-            newScanSession.printObject()
+            if scan_type == 'unknown':
+                newScanSession.printObject()
+                return None
             return newScanSession
-        except:
-            print('################# Error : {0} - {1}'.format(down_most_folder, filelist))
+        except Exception as e:
             return None
 
     def determineExtension(self, filename):
@@ -64,11 +63,11 @@ class ADNIRecursorFromOldData():
             return arc.scanTypeDict[scanTypeRaw]
         except KeyError:
             if 'FDG' in scanTypeRaw:
-                PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match FDG...'.format(scanTypeRaw))
-                return 'uFDG'
+                PipelineLogger.log('root', 'error', 'Scan Type not defined : {0} -> Close match FDG...'.format(scanTypeRaw))
+                return 'FDG'
             if 'AV45' in scanTypeRaw:
-                PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match AV45...'.format(scanTypeRaw))
-                return 'uAV45'
+                PipelineLogger.log('root', 'error', 'Scan Type not defined : {0} -> Close match AV45...'.format(scanTypeRaw))
+                return 'AV45'
             else:
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> No match...'.format(scanTypeRaw))
                 return 'unknown'

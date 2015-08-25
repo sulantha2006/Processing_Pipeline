@@ -3,7 +3,7 @@ __author__ = 'Seqian Wang'
 from Recursor.Recursor import Recursor
 from Utils.DbUtils import DBUtils
 
-newFolder = Recursor('ADNI_OLD', '/data/backup-data02/ADNI/new_raw/AD')
+newFolder = Recursor('ADNI_OLD', '/data/backup-data02/ADNI/new_raw/MCI')
 instancesList = newFolder.recurse()
 
 for i in instancesList:

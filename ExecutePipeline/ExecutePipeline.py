@@ -54,13 +54,13 @@ def main():
         ## Add data to Sorting table.
         pipeline.addNewDatatoDB()
         ##Get Unmoved Raw File List
-        pipeline.getUnmovedRawDataList()
+        #pipeline.getUnmovedRawDataList()
         PipelineLogger.log('root', 'info', 'Moving new data started ...')
-        pipeline.moveRawData()
+        #pipeline.moveRawData()
         PipelineLogger.log('root', 'info', 'Moving new data done ...############')
-        pipeline.getConversionList()
+        #pipeline.getConversionList()
         PipelineLogger.log('root', 'info', 'Converting to MINC started ...')
-        pipeline.convertRawData()
+        #pipeline.convertRawData()
         PipelineLogger.log('root', 'info', 'Converting to MINC done ...############')
 
     except:

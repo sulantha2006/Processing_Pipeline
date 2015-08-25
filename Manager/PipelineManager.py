@@ -35,6 +35,8 @@ class PipelineManager:
         for study in studyList:
             if study == 'ADNI':
                 self.recursorList.append(Recursor(study, sc.ADNIDownloadRoot))
+            elif study == 'ADNI_OLD':
+                self.recursorList.append(Recursor(study, sc.ADNIOLDDownloadRoot))
 
     # This method will recurse through the download folders.
     def recurseForNewData(self):

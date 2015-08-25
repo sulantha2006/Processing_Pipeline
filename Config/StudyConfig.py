@@ -1,6 +1,6 @@
 __author__ = 'Sulantha'
 
-AllowedStudyList = ['ADNI']
+AllowedStudyList = ['ADNI', 'ADNI_OLD']
 AllowedStepsList = ['Sort', 'Move', 'T1Beast', 'T1Process', 'ProcessAV45', 'ProcessFDG', 'ProcessFMRI', 'ProcessDTI']
 AllowedVersions = ['1', '2', '3']
 AllowedModalityList = ['T1', 'AV45', 'FDG', 'MT1__GradWarp__N3m', 'MT1__N3m']
@@ -12,6 +12,7 @@ defaultVersioningForStudy = {'ADNI':{'T1':'V1', 'AV45':'V1', 'FDG':'V1', 'MT1_G_
                                      'rsfmri':'V1','ext-rsfmri':'V1'}}
 
 ADNIDownloadRoot = '/data/backup-data02/ADNI/downloads/New2'
+ADNIOLDDownloadRoot = '/data/backup-data02/ADNI/new_raw/EMCI'
 
 
 studyDatabaseRootDict = {'ADNI': '/data/data03/Database', 'ADNI_OLD': '/data/data03/Database' }
