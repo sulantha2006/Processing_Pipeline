@@ -24,7 +24,7 @@ class Sorting:
 
     def getUnmovedFilesPerStudy(self, study):
         unmovedList = self.DBClient.executeAllResults(
-            self.sqlBuilder.getSQL_getUnmovedFilesFromSortingTable(study, sc.ProcessingImagingModalities[study]))
+            self.sqlBuilder.getSQL_getUnmovedFilesFromSortingTable(study, tuple(sc.ProcessingModalityAndPipelineTypePerStudy[study].keys())))
         return [self.getObjectFromTuple(t) for t in unmovedList]
 
     def setMovedTrue(self, sortingObj):
