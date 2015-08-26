@@ -11,7 +11,7 @@ fileExtensionDict = {'dcm': 'dicom',
 fileExtensionTuple = ('.nii', '.dcm', '.mnc', '.nii.gz', '.dcm.gz', '.mnc.gz', '.v', '.v.gz')
 
 scanTypeDict = {
-    '4x5minute_frames_4i_16s__AV45': 'AV45',
+                '4x5minute_frames_4i_16s__AV45': 'AV45',
                 '4x5minute_frames_-_Iter_Bra_AV45': 'AV45',
                 '50-70_min_dynamic-3D_4i_16s_AV45': 'AV45',
                 'ADNI2_AV45__AC_': 'AV45',
