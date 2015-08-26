@@ -4,15 +4,12 @@ import subprocess
 
 class NiakToFmrilm():
     def __init__(self, sqlObject):
-        self.input_files, self_output_files, self_unsmoothed_images, self_outputbases = self.parseSql(sqlObject)
-        for input_file, output_file, unsmoothed_image, output_folder \
-                in self.input_files, self.output_files, self.unsmoothed_images, self.output_folders:
-            self.execute(input_file, output_file, unsmoothed_image, output_folder)
+        self.input_file, self.output_file, self.unsmoothed_image, self.output_folder = self.parseSql(sqlObject)
+        self.execute(self.input_file, self.output_file, self.unsmoothed_image, self.output_folder)
 
     def parseSql(self, sqlObject):
-        input_files = sqlObject.converted_folder
-        output_files = sqlObject.
-        return input_files, output_files, unsmoothed_images, output_bases
+        pass
+        return input_file, output_file, unsmoothed_image, output_folder
 
     def execute(self, input_file, output_file, unsmoothed_image, output_folder):
         for x, y, z, voxelType in self.seedPoints():

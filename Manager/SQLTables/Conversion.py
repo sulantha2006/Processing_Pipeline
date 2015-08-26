@@ -42,5 +42,3 @@ class Conversion:
 
     def saveObj(self, convertionObj):
         self.DBClient.executeNoResult(self.sqlBuilder.getSQL_saveObjConversionTable(convertionObj))
-
-

@@ -1,6 +1,6 @@
-function combiningRuns(inputFolder, subjectID, sessionID)
+function combiningRuns(fmristat_location, emma_location, inputFolder, subjectID, sessionID)
 
-addpath(genpath('/opt/matlab7.5/toolbox/fmristat')); addpath(genpath('/opt/matlab12b/toolbox/emma'),'-end');
+addpath(genpath(fmristat_location')); addpath(genpath(emma_location),'-end');
 
 filename = ['subject' subjectID '_session' sessionID];
 

@@ -38,12 +38,6 @@ class DBUtils:
         self.conn.autocommit
         self.cursor = self.conn.cursor()
 
-    def insertIfNotExist(self, values, uniqueTestFields='', uniqueTestValues = ''):
-        # Send SQL query to INSERT a record into the database if record does not already exist
-        #sql_command = "INSERT INTO Sorting VALUES (%s) WHERE NOT EXISTS (SELECT * FROM Sorting WHERE (%s)=(%s))" % (values, uniqueTestFields, uniqueTestValues)
-        sql_command = "INSERT IGNORE INTO Sorting VALUES (%s) " % (values)
-        self.executeNoResult(sql_command)
-
     def executeNoResult(self, sqlStr):
         try:
             self.cursor.execute(sqlStr)
