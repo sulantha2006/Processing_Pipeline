@@ -6,7 +6,7 @@ import datetime
 from Manager.QSubJob import QSubJob
 
 class QSubJobHandler(threading.Thread):
-    submittedJobs = {'100':QSubJob('100', '00:00:40')}
+    submittedJobs = {}
     QUIT = 0
 
     def checkJobs(self):
