@@ -8,6 +8,7 @@ from Utils.PipelineLogger import PipelineLogger
 import Config.EmailConfig as ec
 from Utils.EmailClient import EmailClient
 import traceback
+from Manager.QSubJobHanlder import QSubJobHandler
 
 def main():
 
@@ -63,6 +64,14 @@ def main():
         pipeline.convertRawData()
         PipelineLogger.log('root', 'info', 'Converting to MINC done ...############')
 
+
+
+        #### End
+        if not QSubJobHandler.submittedJobs:
+            PipelineLogger.log('root', 'info', 'No QSUB Jobs in waiting ...############')
+            PipelineLogger.log('root', 'info', 'Pipeline exiting ...############')
+            PipelineLogger.log('root', 'info', '##################Pipeline Done.#################')
+            pipeline.qsubJobHandler.QUIT = 1
     except:
         PipelineLogger.log('root', 'exception', 'Pipeline crashed with exception. ')
         emailClient.send_email(ec.EmailRecList_admin, 'Pipeline crashed with exception. ', ' {0} '.format(traceback.format_exc()))

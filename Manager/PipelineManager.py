@@ -1,5 +1,6 @@
 __author__ = 'sulantha'
 import os
+from multiprocessing import Pool
 from Recursor.Recursor import Recursor
 from Utils.DbUtils import DBUtils
 from Config import StudyConfig as sc
@@ -10,6 +11,7 @@ from Manager.SQLTables.Sorting import Sorting
 from Manager.SQLTables.SortingObject import SortingObject
 from Manager.SQLTables.Conversion import Conversion
 from Converters.Raw2MINCConverter import Raw2MINCConverter
+from Manager.QSubJobHanlder import QSubJobHandler
 
 
 class PipelineManager:
@@ -29,6 +31,9 @@ class PipelineManager:
         self.conversionTable = Conversion()
 
         self.raw2mincConverter = Raw2MINCConverter()
+        self.pool = Pool(processes=12)
+        self.qsubJobHandler = QSubJobHandler()
+        self.qsubJobHandler.start()
 
     # This method will return a list of Recursor Objects based on the study list provided.
     def _getRecursorList(self, studyList):
@@ -81,8 +86,13 @@ class PipelineManager:
                 PipelineLogger.log('manager', 'exception', '')
                 return 0
         for study in self.studyList:
+            totalToMove = len(self.moveSortingObjListDict[study])
+            PipelineLogger.log('manager', 'info', 'Moving started for study {0} - Total to be moved : {1}'.format(study, totalToMove))
+            count = 1
             for sortingObj in self.moveSortingObjListDict[study]:
+                PipelineLogger.log('manager', 'info', 'Moving {0}/{1} - {2}'.format(count, totalToMove, sortingObj.download_folder))
                 copied = copyFile(sortingObj.download_folder, sortingObj.raw_folder)
+                count += 1
                 if copied:
                     self.conversionTable.insertFromSortingObj(sortingObj, self.version)
                     self.sortingTable.setMovedTrue(sortingObj)
@@ -94,12 +104,21 @@ class PipelineManager:
             self.toConvertObjListDict[study] = self.conversionTable.gettoBeConvertedPerStudy(study)
 
     def convertRawData(self):
+
+        def addTODB(result):
+            if result['converted']:
+                #### Add to correspoing table
+                #self.conversionTable.insertFromConvertionObj(convertionObj, self.version)
+                self.conversionTable.setConvertedTrue(result['obj'])
+            else:
+                PipelineLogger.log('manager', 'error', 'File conversion Error : {0} -> {1}. Moving to next...'.format(result['obj'].raw_folder, result['obj'].converted_folder))
+
         for study in self.studyList:
-            for convertionObj in self.toConvertObjListDict[study]:
-                converted = self.raw2mincConverter.convert2minc(convertionObj)
-                if converted:
-                    #### Add to correspoing table
-                    #self.conversionTable.insertFromConvertionObj(convertionObj, self.version)
-                    self.conversionTable.setConvertedTrue(convertionObj)
-                else:
-                    PipelineLogger.log('manager', 'error', 'File conversion Error : {0} -> {1}. Moving to next...'.format(convertionObj.raw_folder, convertionObj.converted_folder))
+            totalToConv = len(self.toConvertObjListDict[study])
+            PipelineLogger.log('manager', 'info', 'Convertion started for study {0} - Total to be converted : {1}'.format(study, totalToConv))
+            results = []
+            for convObj in self.toConvertObjListDict[study]:
+                convertedResult = self.pool.apply_async(self.raw2mincConverter.convert2minc, args=(convObj,), callback=addTODB)
+                results.append(convertedResult)
+            for r in results:
+                r.wait()

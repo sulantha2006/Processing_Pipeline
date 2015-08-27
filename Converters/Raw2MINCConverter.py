@@ -52,7 +52,8 @@ class Raw2MINCConverter:
         version = convertionObj.version
 
         converted = self.convertionScriptsDict[study][scan_type][version][file_type](convertionObj)
-        return converted
+
+        return dict(converted=converted, obj=convertionObj)
 
     def get_scanType_forConversion(self, conversionObj):
         if conversionObj.scan_type not in cc.studyTypeForConvertionDict[conversionObj.study]:
