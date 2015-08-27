@@ -63,6 +63,8 @@ def main():
         PipelineLogger.log('root', 'info', 'Converting to MINC started ...')
         pipeline.convertRawData()
         PipelineLogger.log('root', 'info', 'Converting to MINC done ...############')
+        pipeline.getConvertedList()
+        pipeline.refreshModalityTables()
 
 
 

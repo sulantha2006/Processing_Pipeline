@@ -42,3 +42,7 @@ class Conversion:
 
     def saveObj(self, convertionObj):
         self.DBClient.executeNoResult(self.sqlBuilder.getSQL_saveObjConversionTable(convertionObj))
+
+    def getConvertedListPerStudy(self, study):
+        convertedList = self.DBClient.executeAllResults(self.sqlBuilder.getSQL_getAllConvertedFromConvertionTable(study))
+        return [self.getObjectFromTuple(t) for t in convertedList]

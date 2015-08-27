@@ -50,3 +50,9 @@ class SQLBuilder:
 
     def getSQL_getToBeConvertedFileFromConversionTable(self, studyID):
         return "SELECT * FROM Conversion WHERE STUDY='{0}' AND NOT (CONVERTED OR SKIP)".format(studyID.upper())
+
+    def getSQL_getAllConvertedFromConvertionTable(self, studyID):
+        return "SELECT * FROM Conversion WHERE STUDY='{0}' AND CONVERTED".format(studyID.upper())
+
+    def getSQL_AddNewEntryToModalTable(self, values, tableName):
+        return "INSERT IGNORE INTO {0} VALUES ({1}) ".format(tableName, values)

@@ -40,7 +40,7 @@ class QSubJobHandler(threading.Thread):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.bind((socket.gethostname(), 50500))
-            self.sock.settimeout(5)
+            self.sock.settimeout(300)
             self.sock.listen(10)
         except:
             PipelineLogger.log('manager', 'error','Cannot create QSubJobHandler... Will not listen to on jobs. ')

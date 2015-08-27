@@ -12,6 +12,10 @@ from Manager.SQLTables.SortingObject import SortingObject
 from Manager.SQLTables.Conversion import Conversion
 from Converters.Raw2MINCConverter import Raw2MINCConverter
 from Manager.QSubJobHanlder import QSubJobHandler
+from Manager.SQLTables.T1 import T1
+from Manager.SQLTables.AV45 import AV45
+from Manager.SQLTables.FDG import FDG
+from Manager.SQLTables.FMRI import FMRI
 
 
 class PipelineManager:
@@ -34,6 +38,13 @@ class PipelineManager:
         self.pool = Pool(processes=12)
         self.qsubJobHandler = QSubJobHandler()
         self.qsubJobHandler.start()
+
+        self.convertedListDict = {}
+
+        self.T1Table = T1()
+        self.AV45Table = AV45()
+        self.FDGTable = FDG()
+        self.FMRITable = FMRI()
 
     # This method will return a list of Recursor Objects based on the study list provided.
     def _getRecursorList(self, studyList):
@@ -122,3 +133,21 @@ class PipelineManager:
                 results.append(convertedResult)
             for r in results:
                 r.wait()
+
+    def getConvertedList(self):
+        for study in self.studyList:
+            self.convertedListDict[study] = self.conversionTable.getConvertedListPerStudy(study)
+
+    def refreshModalityTables(self):
+
+        tableDict = {'T1':self.T1Table.insertFromConvertionObj,
+                     'AV45':self.AV45Table.insertFromConvertionObj,
+                     'FDG':self.FDGTable.insertFromConvertionObj,
+                     'FMRI':self.FMRITable.insertFromConvertionObj}
+
+        for study in self.studyList:
+            for convertionObj in self.convertedListDict[study]:
+                tableDict[sc.ProcessingModalityAndPipelineTypePerStudy[study][convertionObj.scan_type]](convertionObj)
+
+
+
