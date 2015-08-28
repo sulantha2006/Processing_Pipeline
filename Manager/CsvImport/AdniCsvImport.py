@@ -1,17 +1,20 @@
 __author__ = 'wang'
 
-import Manager.CsvImport as CsvImport
-from Utils.DbUtils import DBUtils
+from Manager.CsvImport.csvToDatabase import csvToDatabase
+from Utils.DbUtils import DbUtils
+import glob
+import os
 
 class AdniCsvImport:
     def __init__(self, inputFolder):
         # Initiate Database Client
-        self.DBClient = DBUtils()
+        self.DbClient = DbUtils(database='Study_Data.ADNI')
 
         # For each csv file, import it into the SQL database
-        for csvFile in inputFolder:
-            sqlLocation = 'Study_Data.ADNI/' + csvFile.replace('.csv', '')
-            CsvImport(self.DBClient, csvFile, sqlLocation)
+        for file in glob.glob(inputFolder + '/*.csv'):
+            sqlLocation = os.path.basename(file).replace('.csv', '')
+            with open(file, 'r') as csvFile:
+                csvToDatabase(self.DbClient, csvFile, sqlLocation)
 
         #  Close the connection to the database
-        self.DBClient.close()
+        self.DbClient.close()

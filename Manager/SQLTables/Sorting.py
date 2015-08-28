@@ -1,5 +1,5 @@
 __author__ = 'sulantha'
-from Utils.DbUtils import DBUtils
+from Utils.DbUtils import DbUtils
 from Manager.SQL.SQLBuilder import SQLBuilder
 from Config import StudyConfig as sc
 from Manager.SQLTables.SortingObject import SortingObject
@@ -7,7 +7,7 @@ from Manager.SQLTables.SortingObject import SortingObject
 class Sorting:
     def __init__(self):
         self.tableName = 'Sorting'
-        self.DBClient = DBUtils()
+        self.DBClient = DbUtils()
         self.sqlBuilder = SQLBuilder()
 
     def getObjectFromTuple(self, tuple):

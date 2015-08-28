@@ -2,7 +2,7 @@ __author__ = 'sulantha'
 import os
 from multiprocessing import Pool
 from Recursor.Recursor import Recursor
-from Utils.DbUtils import DBUtils
+from Utils.DbUtils import DbUtils
 from Config import StudyConfig as sc
 from Manager.SQL.SQLBuilder import SQLBuilder
 import distutils.dir_util
@@ -22,7 +22,7 @@ from Manager.SQLTables.Processing import Processing
 
 class PipelineManager:
     def __init__(self, studyList, version):
-        self.DBClient = DBUtils()
+        self.DBClient = DbUtils()
         self.studyList = [i.upper() for i in studyList]
         self.version = version
         self.recursorList = []
