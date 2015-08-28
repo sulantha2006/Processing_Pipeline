@@ -23,7 +23,7 @@ class Conversion:
 
     def insertFromSortingObj(self, sortingObj, versionDict):
         sortingValues = sortingObj.getValuesDict()
-        version = versionDict[sortingObj.scan_type] if sortingObj.scan_type in versionDict else 'V1'
+        version = versionDict[sc.ProcessingModalityAndPipelineTypePerStudy[sortingObj.study][sortingObj.scan_type]] if sc.ProcessingModalityAndPipelineTypePerStudy[sortingObj.study][sortingObj.scan_type] in versionDict else 'V1'
         sortingValues['converted_folder'] = '{0}/{1}/{2}/{3}/{4}_{5}_{6}/{7}/converted/final'.format(sc.studyDatabaseRootDict[sortingObj.study],
                                                                         sortingObj.study, sortingObj.scan_type, sortingObj.rid,
                                                                         sortingObj.scan_date, sortingObj.s_identifier, sortingObj.i_identifier, version)

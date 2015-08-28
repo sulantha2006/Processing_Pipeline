@@ -1,15 +1,11 @@
 __author__ = 'sulantha'
-import subprocess
+
 import os
-import fnmatch
-import distutils.dir_util
-import distutils.file_util
-import shutil
-from Utils.PipelineLogger import PipelineLogger
 import Config.ConverterConfig as cc
 from Converters.ConversionScripts.ADNI_V1_T1 import ADNI_V1_T1
 from Converters.ConversionScripts.ADNI_V1_PET import ADNI_V1_PET
 from Converters.ConversionScripts.ADNI_V1_Fmri import ADNI_V1_Fmri
+from Config import StudyConfig as sc
 import Config.LIB_PATH as libpath
 
 class Raw2MINCConverter:
@@ -27,11 +23,7 @@ class Raw2MINCConverter:
                                             'dicom': self.adni_v1_t1_dicom,
                                             'v': self.adni_v1_t1_v,
                                             'minc': self.adni_v1_t1_minc}},
-                              'rsfmri': {'V1': {'nifti': self.adni_v1_rsfmri_nii,
-                                            'dicom': self.adni_v1_rsfmri_dicom,
-                                            'v': self.adni_v1_rsfmri_v,
-                                            'minc': self.adni_v1_rsfmri_minc}},
-                              'ext-rsfmri': {'V1': {'nifti': self.adni_v1_rsfmri_nii,
+                              'FMRI': {'V1': {'nifti': self.adni_v1_rsfmri_nii,
                                             'dicom': self.adni_v1_rsfmri_dicom,
                                             'v': self.adni_v1_rsfmri_v,
                                             'minc': self.adni_v1_rsfmri_minc}}
@@ -47,7 +39,8 @@ class Raw2MINCConverter:
         os.environ['LD_LIBRARYN32_PATH'] = ':'.join(libpath.LD_LIBRARYN32_PATH)
         os.environ['PERL5LIB'] = ':'.join(libpath.PERL5LIB)
         study = convertionObj.study
-        scan_type = self.get_scanType_forConversion(convertionObj) # PET Conversion is done differently in ADNI
+        scan_type = sc.ProcessingModalityAndPipelineTypePerStudy[study][convertionObj.scan_type]
+        #scan_type = self.get_scanType_forConversion(convertionObj) # PET Conversion is done differently in ADNI
         file_type = convertionObj.file_type
         version = convertionObj.version
 

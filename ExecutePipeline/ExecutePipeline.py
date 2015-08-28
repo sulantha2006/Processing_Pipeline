@@ -65,6 +65,9 @@ def main():
         PipelineLogger.log('root', 'info', 'Converting to MINC done ...############')
         pipeline.getConvertedList()
         pipeline.refreshModalityTables()
+        pipeline.getProcessList()
+        for modality in modalities:
+            pipeline.processModality(modality)
 
 
 

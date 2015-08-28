@@ -54,5 +54,8 @@ class SQLBuilder:
     def getSQL_getAllConvertedFromConvertionTable(self, studyID):
         return "SELECT * FROM Conversion WHERE STUDY='{0}' AND CONVERTED".format(studyID.upper())
 
-    def getSQL_AddNewEntryToModalTable(self, values, tableName):
-        return "INSERT IGNORE INTO {0} VALUES ({1}) ".format(tableName, values)
+    def getSQL_AddNewEntryToProcessingTable(self, values):
+        return "INSERT IGNORE INTO Processing VALUES ({0}) ".format(values)
+
+    def getSQL_getToBeProcessedFromProcessingTable(self, studyID):
+        return "SELECT * FROM Processing WHERE STUDY='{0}' AND NOT (PROCESSED OR SKIP)".format(studyID.upper())

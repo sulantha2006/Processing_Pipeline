@@ -12,10 +12,12 @@ from Manager.SQLTables.SortingObject import SortingObject
 from Manager.SQLTables.Conversion import Conversion
 from Converters.Raw2MINCConverter import Raw2MINCConverter
 from Manager.QSubJobHanlder import QSubJobHandler
-from Manager.SQLTables.T1 import T1
-from Manager.SQLTables.AV45 import AV45
-from Manager.SQLTables.FDG import FDG
-from Manager.SQLTables.FMRI import FMRI
+from Pipelines.ADNI_T1.ADNI_V1_T1 import ADNI_V1_T1
+from Pipelines.ADNI_AV45.ADNI_V1_AV45 import ADNI_V1_AV45
+from Pipelines.ADNI_FDG.ADNI_V1_FDG import ADNI_V1_FDG
+from Pipelines.ADNI_Fmri.ADNI_V1_FMRI import ADNI_V1_FMRI
+
+from Manager.SQLTables.Processing import Processing
 
 
 class PipelineManager:
@@ -41,10 +43,9 @@ class PipelineManager:
 
         self.convertedListDict = {}
 
-        self.T1Table = T1()
-        self.AV45Table = AV45()
-        self.FDGTable = FDG()
-        self.FMRITable = FMRI()
+        self.processingTable = Processing()
+
+        self.toProcessListDict = {}
 
     # This method will return a list of Recursor Objects based on the study list provided.
     def _getRecursorList(self, studyList):
@@ -139,15 +140,24 @@ class PipelineManager:
             self.convertedListDict[study] = self.conversionTable.getConvertedListPerStudy(study)
 
     def refreshModalityTables(self):
-
-        tableDict = {'T1':self.T1Table.insertFromConvertionObj,
-                     'AV45':self.AV45Table.insertFromConvertionObj,
-                     'FDG':self.FDGTable.insertFromConvertionObj,
-                     'FMRI':self.FMRITable.insertFromConvertionObj}
-
         for study in self.studyList:
             for convertionObj in self.convertedListDict[study]:
-                tableDict[sc.ProcessingModalityAndPipelineTypePerStudy[study][convertionObj.scan_type]](convertionObj)
+                self.processingTable.insertFromConvertionObj(convertionObj)
+
+    def getProcessList(self):
+        for study in self.studyList:
+            self.toProcessListDict[study] = self.processingTable.getToProcessListPerStudy(study)
+
+    def processModality(self, modality):
+        processingPPDict = {'ADNI':{'V1':{'T1':ADNI_V1_T1('ADNI', 'V1'), 'FMRI':ADNI_V1_FMRI('ADNI', 'V1'), 'AV45':ADNI_V1_AV45('ADNI', 'V1'), 'FDG':ADNI_V1_FDG('ADNI', 'V1')}}}
+        for study in self.studyList:
+            processingPPDict[study][self.version[modality]][modality].processNewData()
+            totalToProcess = len(self.toProcessListDict)
+            PipelineLogger.log('manager', 'info', 'Processing started for study {0} - Total to be processed : {1}'.format(study, totalToProcess))
+            for processObj in self.toProcessListDict:
+                pass
+
+
 
 
 

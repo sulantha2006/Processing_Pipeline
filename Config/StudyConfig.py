@@ -3,7 +3,7 @@ __author__ = 'Sulantha'
 AllowedStudyList = ['ADNI', 'ADNI_OLD']
 AllowedStepsList = ['Sort', 'Move', 'T1Beast', 'T1Process', 'ProcessAV45', 'ProcessFDG', 'ProcessFMRI', 'ProcessDTI']
 AllowedVersions = ['1', '2', '3']
-AllowedModalityList = ['T1', 'AV45', 'FDG', 'MT1__GradWarp__N3m', 'MT1__N3m']
+AllowedModalityList = ['T1', 'AV45', 'FDG', 'FMRI']
 
 
 ProcessingModalityAndPipelineTypePerStudy = dict(ADNI={'AV45':'AV45',
@@ -39,8 +39,7 @@ ProcessingModalityAndPipelineTypePerStudy = dict(ADNI={'AV45':'AV45',
                                                 })
 
 #This versioning dict should have an entry if the default processing version is not V1 - Still in test.
-defaultVersioningForStudy = dict(ADNI={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'MT1_G_N3m': 'V1', 'MT1_N3m': 'V1',
-                                       'rsfmri': 'V1', 'ext-rsfmri': 'V1'})
+defaultVersioningForStudy = dict(ADNI={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1'})
 
 ADNIDownloadRoot = '/data/backup-data02/ADNI/downloads/New2'
 ADNIOLDDownloadRoot = '/data/backup-data02/ADNI/new_raw/EMCI'
