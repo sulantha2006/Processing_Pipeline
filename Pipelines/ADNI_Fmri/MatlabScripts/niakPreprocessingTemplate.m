@@ -98,8 +98,8 @@ opt.corsica.threshold                = 0.15;  % This threshold has been calibrat
 opt.corsica.flag_skip                = 1;     % Skip CORSICA (0: don't skip, 1 : skip). Even if it is skipped, ICA results will be generated for quality-control purposes. The method is not currently considered to be stable enough for production unless it is manually supervised.
 
 % Spatial smoothing (niak_brick_smooth_vol)
-opt.smooth_vol.fwhm      = %{fwhm};  % Full-width at maximum (FWHM) of the Gaussian blurring kernel, in mm.
-opt.smooth_vol.flag_skip = 0;  % Skip spatial smoothing (0: don't skip, 1 : skip)
+opt.smooth_vol.fwhm      = 6;  % Full-width at maximum (FWHM) of the Gaussian blurring kernel, in mm.
+opt.smooth_vol.flag_skip = 1;  % Skip spatial smoothing (0: don't skip, 1 : skip)
 
 % how to specify a different parameter for two subjects (here subject1 and subject2)
 %opt.tune(1).subject = 'subject1';

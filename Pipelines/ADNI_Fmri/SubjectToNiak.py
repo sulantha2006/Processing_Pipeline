@@ -18,7 +18,6 @@ class SubjectToNiak():
         replacing_dict = {'%{patient_information}': self.patientInfo,
                           '%{opt.folder_out}': outputFolder,
                           '%{niak_location}': config.niak_location,
-                          '%{fwhm}': config.fwhm_smoothing
                           }
         templateFileWithInformation = self.replaceString(templateFileWithInformation, replacing_dict)
 

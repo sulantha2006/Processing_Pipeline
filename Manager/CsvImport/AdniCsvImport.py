@@ -11,9 +11,9 @@ class AdniCsvImport:
         self.DbClient = DbUtils(database='Study_Data.ADNI')
 
         # For each csv file, import it into the SQL database
-        for file in glob.glob(inputFolder + '/*.csv'):
-            sqlLocation = os.path.basename(file).replace('.csv', '')
-            with open(file, 'r') as csvFile:
+        for inputFile in glob.glob(inputFolder + '/*.csv'):
+            sqlLocation = os.path.basename(inputFile).replace('.csv', '')
+            with open(inputFile, 'r') as csvFile:
                 csvToDatabase(self.DbClient, csvFile, sqlLocation)
 
         #  Close the connection to the database
