@@ -1,6 +1,6 @@
 __author__ = 'wang'
 
-import fileinput, subprocess
+import subprocess, os
 import Config.FmriConfig as config
 
 class SubjectToNiak():
@@ -20,6 +20,10 @@ class SubjectToNiak():
                           '%{niak_location}': config.niak_location,
                           }
         templateFileWithInformation = self.replaceString(templateFileWithInformation, replacing_dict)
+
+        # Delete PIPE.lock file, if is exists
+        if os.path.isfile("%s/preprocessing/logs/PIPE.lock" % outputFolder):
+            os.remove("%s/preprocessing/logs/PIPE.lock" % outputFolder)
 
         # Execute script
         command = '%s %s' % (config.matlab_call, templateFileWithInformation)

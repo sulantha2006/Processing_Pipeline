@@ -112,3 +112,5 @@ opt.smooth_vol.flag_skip = 1;  % Skip spatial smoothing (0: don't skip, 1 : skip
 %% Run the fmri_preprocess pipeline  %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [pipeline,opt] = niak_pipeline_fmri_preprocess(files_in,opt);
+
+exit;
