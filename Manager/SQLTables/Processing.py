@@ -1,5 +1,5 @@
 __author__ = 'sulantha'
-from Utils.DbUtils import DBUtils
+from Utils.DbUtils import DbUtils
 from Manager.SQL.SQLBuilder import SQLBuilder
 from Manager.SQLTables.ProcessingObject import ProcessingObject
 
@@ -7,7 +7,7 @@ from Config import StudyConfig as sc
 
 class Processing:
     def __init__(self):
-        self.DBClient = DBUtils()
+        self.DBClient = DbUtils()
         self.sqlBuilder = SQLBuilder()
 
     def getObjectFromTuple(self, tuple):

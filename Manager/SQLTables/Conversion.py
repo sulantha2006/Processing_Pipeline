@@ -1,12 +1,12 @@
 __author__ = 'sulantha'
-from Utils.DbUtils import DBUtils
+from Utils.DbUtils import DbUtils
 from Manager.SQL.SQLBuilder import SQLBuilder
 from Config import StudyConfig as sc
 from Manager.SQLTables.ConversionObject import ConversionObject
 class Conversion:
     def __init__(self):
         self.tableName = 'Conversion'
-        self.DBClient = DBUtils()
+        self.DBClient = DbUtils()
         self.sqlBuilder = SQLBuilder()
 
     def getObjectFromTuple(self, tuple):

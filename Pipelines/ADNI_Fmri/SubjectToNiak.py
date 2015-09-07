@@ -1,6 +1,6 @@
 __author__ = 'wang'
 
-import fileinput, subprocess
+import subprocess, os
 import Config.FmriConfig as config
 
 class SubjectToNiak():
@@ -18,9 +18,12 @@ class SubjectToNiak():
         replacing_dict = {'%{patient_information}': self.patientInfo,
                           '%{opt.folder_out}': outputFolder,
                           '%{niak_location}': config.niak_location,
-                          '%{fwhm}': config.fwhm_smoothing
                           }
         templateFileWithInformation = self.replaceString(templateFileWithInformation, replacing_dict)
+
+        # Delete PIPE.lock file, if is exists
+        if os.path.isfile("%s/preprocessing/logs/PIPE.lock" % outputFolder):
+            os.remove("%s/preprocessing/logs/PIPE.lock" % outputFolder)
 
         # Execute script
         command = '%s %s' % (config.matlab_call, templateFileWithInformation)

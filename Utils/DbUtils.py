@@ -8,7 +8,7 @@ Manage the Database interaction (Initiate connection, read, write, update)
 """
 
 
-class DBUtils:
+class DbUtils:
     """
     def __init__(self):
         pass
