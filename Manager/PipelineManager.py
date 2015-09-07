@@ -149,9 +149,8 @@ class PipelineManager:
             self.toProcessListDict[study] = self.processingTable.getToProcessListPerStudy(study)
 
     def processModality(self, modality):
-        processingPPDict = {'ADNI':{'V1':{'T1':ADNI_V1_T1('ADNI', 'V1'), 'FMRI':ADNI_V1_FMRI('ADNI', 'V1'), 'AV45':ADNI_V1_AV45('ADNI', 'V1'), 'FDG':ADNI_V1_FDG('ADNI', 'V1')}}}
+
         for study in self.studyList:
-            processingPPDict[study][self.version[modality]][modality].processNewData()
             totalToProcess = len(self.toProcessListDict)
             PipelineLogger.log('manager', 'info', 'Processing started for study {0} - Total to be processed : {1}'.format(study, totalToProcess))
             for processObj in self.toProcessListDict:
