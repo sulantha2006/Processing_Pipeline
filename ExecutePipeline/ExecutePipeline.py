@@ -66,6 +66,7 @@ def main():
         pipeline.getConvertedList()
         pipeline.refreshModalityTables()
         pipeline.getProcessList()
+        pipeline.fillPipelineTables()
         for modality in modalities:
             pipeline.processModality(modality)
 

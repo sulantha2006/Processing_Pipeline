@@ -12,11 +12,7 @@ from Manager.SQLTables.SortingObject import SortingObject
 from Manager.SQLTables.Conversion import Conversion
 from Converters.Raw2MINCConverter import Raw2MINCConverter
 from Manager.QSubJobHanlder import QSubJobHandler
-from Pipelines.ADNI_T1.ADNI_V1_T1 import ADNI_V1_T1
-from Pipelines.ADNI_AV45.ADNI_V1_AV45 import ADNI_V1_AV45
-from Pipelines.ADNI_FDG.ADNI_V1_FDG import ADNI_V1_FDG
-from Pipelines.ADNI_Fmri.ADNI_V1_FMRI import ADNI_V1_FMRI
-
+from Pipelines.PipelineHanlder import PipelineHandler
 from Manager.SQLTables.Processing import Processing
 
 
@@ -46,6 +42,7 @@ class PipelineManager:
         self.processingTable = Processing()
 
         self.toProcessListDict = {}
+        self.pipelineHanlder = PipelineHandler()
 
     # This method will return a list of Recursor Objects based on the study list provided.
     def _getRecursorList(self, studyList):
@@ -148,13 +145,16 @@ class PipelineManager:
         for study in self.studyList:
             self.toProcessListDict[study] = self.processingTable.getToProcessListPerStudy(study)
 
-    def processModality(self, modality):
-
+    def fillPipelineTables(self):
         for study in self.studyList:
-            totalToProcess = len(self.toProcessListDict)
-            PipelineLogger.log('manager', 'info', 'Processing started for study {0} - Total to be processed : {1}'.format(study, totalToProcess))
-            for processObj in self.toProcessListDict:
-                pass
+            for processingObj in self.toProcessListDict[study]:
+                self.pipelineHanlder.addToPipelineTable(processingObj)
+
+    def processModality(self, modality):
+        PipelineLogger.log('manager', 'info', 'File processing started ... ###########')
+        for study in self.studyList:
+            self.pipelineHanlder.process(study, modality)
+
 
 
 
