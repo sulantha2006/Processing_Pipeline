@@ -2,7 +2,7 @@ __author__ = 'wang'
 import Config.FmriConfig as config
 import subprocess
 
-class NiakToFmrilm():
+class Fmrilm():
     def __init__(self, sqlObject):
         self.input_file, self.output_file, self.unsmoothed_image, self.output_folder = self.parseSql(sqlObject)
         self.execute(self.input_file, self.output_file, self.unsmoothed_image, self.output_folder)

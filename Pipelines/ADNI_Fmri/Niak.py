@@ -3,7 +3,7 @@ __author__ = 'wang'
 import subprocess, os
 import Config.FmriConfig as config
 
-class SubjectToNiak():
+class Niak():
     def __init__(self, sqlObject, outputFolder):
 
         self.niakTemplateFile = 'Pipelines/ADNI_Fmri/MatlabScripts/niakPreprocessingTemplate.m'
