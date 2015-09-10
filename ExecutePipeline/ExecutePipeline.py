@@ -70,7 +70,7 @@ def main():
         for modality in modalities:
             pipeline.processModality(modality)
 
-
+        QSubJobHandler.submittedJobs['xxxx'].Fin = True
 
         #### End
         if not QSubJobHandler.submittedJobs:
