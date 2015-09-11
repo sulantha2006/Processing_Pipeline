@@ -1,5 +1,8 @@
 __author__ = 'wang'
 
+import subprocess
+import Config.PipelineConfig as config
+
 class FmrilmToCombinedRuns():
 
     
