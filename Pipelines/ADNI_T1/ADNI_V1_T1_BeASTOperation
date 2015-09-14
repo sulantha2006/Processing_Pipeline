@@ -1,0 +1,31 @@
+#!/bin/sh
+#export PATH=$PATH:/opt/minc-toolkit/bin:/opt/minc-toolkit/pipeline:/opt/minc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/minc/lib:/opt/minc-toolkit/lib:/opt/minc-toolkit/lib/InsightToolkit
+#export LD_LIBRARYN32_PATH=$LD_LIBRARYN32_PATH:/opt/CIVET-Mar-08-2011/lib:/usr/local/lib
+#export PERL5LIB=$PERL5LIB:/opt/minc-toolkit/perl:/opt/minc-toolkit/pipeline:/opt/minc/perl:/opt/minc/lib/mni_autoreg:/opt/minc-toolkit/perl:/opt/minc-toolkit/pipeline
+
+#### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
+echo #1_Start | nc -w 0 $5 $6
+
+mkdir -p $3/final
+mkdir -p $3/mask
+mkdir -p $3/xfm
+
+BASE=`/usr/bin/basename $2 .mnc`
+
+echo "/data/data01/scripts/beast_normalize $2 $3/final/${BASE}_tal_lin.mnc $3/xfm/${BASE}_tal_lin.xfm -modeldir /data/data01/database/human/public/quarantine/beast-library-1.0/ -intensity_norm 1"
+/data/data01/scripts/beast_normalize $2 $3/final/${BASE}_tal_lin.mnc $3/xfm/${BASE}_tal_lin.xfm -modeldir /data/data01/database/human/public/quarantine/beast-library-1.0/ -intensity_norm 1
+
+echo "/home/jrowley/bin/mincbeast-1.15_x86_64/mincbeast /data/data01/database/human/public/quarantine/beast-library-1.0 $3/final/${BASE}_tal_lin.mnc $3/mask/${BASE}_tal_lin_skull_mask.mnc -conf /data/data01/database/human/public/quarantine/beast-library-1.0/default.2mm.conf -same_res -median -fill"
+/home/jrowley/bin/mincbeast-1.15_x86_64/mincbeast /data/data01/database/human/public/quarantine/beast-library-1.0 $3/final/${BASE}_tal_lin.mnc $3/mask/${BASE}_tal_lin_skull_mask.mnc -conf /data/data01/database/human/public/quarantine/beast-library-1.0/default.2mm.conf -same_res -median -fill
+
+echo "mincresample -clobber -like $2 -transform $3/xfm/${BASE}_tal_lin.xfm -invert_transformation -nearest $3/mask/${BASE}_tal_lin_skull_mask.mnc $3/mask/${BASE}_skull_mask_native.mnc"
+mincresample -clobber -like $2 -transform $3/xfm/${BASE}_tal_lin.xfm -invert_transformation -nearest $3/mask/${BASE}_tal_lin_skull_mask.mnc $3/mask/${BASE}_skull_mask_native.mnc
+
+#### SEND MESSAGE TO QSUB JOB HANDLER IN PIPELINE MANAGER
+if [ -a $3/mask/${BASE}_skull_mask_native.mnc ]
+ then
+    echo $1_Success | nc -w 0 $5 $6
+ else
+    echo $1_Fail | nc -w 0 $5 $6
+fi

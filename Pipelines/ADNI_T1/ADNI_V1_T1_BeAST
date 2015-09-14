@@ -10,31 +10,4 @@
 
 source /home/vfonov/quarantine/init.sh
 queue=heavy.q
-qsub -j y -o $4/BEAST_LOG_$1.log -V -cwd -q $queue -N BEAST_$1 <<END
-#!/bin/sh
-
-#### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
- echo #1_Start
-
-mkdir -p $3/final
-mkdir -p $3/mask
-mkdir -p $3/xfm
-base=$(basename $2 .mnc)
-echo "/data/data01/scripts/beast_normalize $2 $3/final/${base}_tal_lin.mnc $3/xfm/${base}_tal_lin.xfm -modeldir /data/data01/database/human/public/quarantine/beast-library-1.0/ -intensity_norm 1"
-/data/data01/scripts/beast_normalize $2 $3/final/${base}_tal_lin.mnc $3/xfm/${base}_tal_lin.xfm -modeldir /data/data01/database/human/public/quarantine/beast-library-1.0/ -intensity_norm 1
-
-echo "/home/jrowley/bin/mincbeast-1.15_x86_64/mincbeast /data/data01/database/human/public/quarantine/beast-library-1.0 $3/final/${base}_tal_lin.mnc $3/mask/${base}_tal_lin_skull_mask.mnc -conf /data/data01/database/human/public/quarantine/beast-library-1.0/default.2mm.conf -same_res -median -fill"
-/home/jrowley/bin/mincbeast-1.15_x86_64/mincbeast /data/data01/database/human/public/quarantine/beast-library-1.0 $3/final/${base}_tal_lin.mnc $3/mask/${base}_tal_lin_skull_mask.mnc -conf /data/data01/database/human/public/quarantine/beast-library-1.0/default.2mm.conf -same_res -median -fill
-
-echo "mincresample -clobber -like $2 -transform $3/xfm/${base}_tal_lin.xfm -invert_transformation -nearest $3/mask/${base}_tal_lin_skull_mask.mnc $3/mask/${base}_skull_mask_native.mnc"
-mincresample -clobber -like $2 -transform $3/xfm/${base}_tal_lin.xfm -invert_transformation -nearest $3/mask/${base}_tal_lin_skull_mask.mnc $3/mask/${base}_skull_mask_native.mnc
-
-#### SEND MESSAGE TO QSUB JOB HANDLER IN PIPELINE MANAGER
-if [ -a $3/mask/${base}_skull_mask_native.mnc ]
- then
-    echo $1_Success | nc -w 0 $5 $6
- else
-    echo $1_Fail | nc -w 0 $5 $6
-fi
-
-END
+qsub -j y -o $4/BEAST_LOG_$1.log -V -cwd -q $queue -N BEAST_$1 Pipelines/ADNI_T1/ADNI_V1_T1_BeASTOperation $1 $2 $3 $4 $5 $6

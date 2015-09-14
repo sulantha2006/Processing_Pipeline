@@ -15,7 +15,7 @@ LD_LIBRARY_PATH=['/opt/minc/lib',
         '/opt/minc-toolkit/lib/InsightToolkit']
 
 LD_LIBRARYN32_PATH=['/opt/CIVET-Mar-08-2011/lib',
-        '/usr/local/lib/']
+        '/usr/local/lib']
 
 PERL5LIB=['/opt/minc-toolkit/perl',
         '/opt/minc-toolkit/pipeline',
