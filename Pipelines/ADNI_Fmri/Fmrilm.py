@@ -1,5 +1,5 @@
 __author__ = 'wang'
-import Config.FmriConfig as config
+import Config.PipelineConfig as config
 import subprocess
 
 class Fmrilm():

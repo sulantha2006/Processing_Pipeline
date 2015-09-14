@@ -1,7 +1,7 @@
 __author__ = 'wang'
 
 import subprocess, os
-import Config.FmriConfig as config
+import Config.PipelineConfig as config
 
 class Niak():
     def __init__(self, sqlObject, outputFolder):

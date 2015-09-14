@@ -12,7 +12,7 @@ from Manager.SQLTables.SortingObject import SortingObject
 from Manager.SQLTables.Conversion import Conversion
 from Converters.Raw2MINCConverter import Raw2MINCConverter
 from Manager.QSubJobHanlder import QSubJobHandler
-from Pipelines.PipelineHanlder import PipelineHandler
+from Pipelines.PipelineHandler import PipelineHandler
 from Manager.SQLTables.Processing import Processing
 
 
