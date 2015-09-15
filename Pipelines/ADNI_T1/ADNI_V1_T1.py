@@ -160,8 +160,8 @@ class ADNI_V1_T1:
                 else:
                     PipelineLogger.log('manager', 'error', 'Unknown mask status - {0} Entry : Processing ID - {1}, Table ID - {3}'.format(maskStatus, processingItemObj.processing_rid, processingItemObj.table_id))
 
-                addExternalJobSQL = "INSERT INTO externalWaitingJobs VALUES ('{0}', '{1}','{2}', NULL, NULL, NULL)".format(jobId, '{0}_{1}_Pipeline'.format(processingItemObj.study, processingItemObj.modality), 'CIVET')
-                self.DBClient.executeNoResults(addExternalJobSQL)
+                addExternalJobSQL = "INSERT INTO externalWaitingJobs VALUES ('{0}', '{1}', '{2}', NULL, NULL, NULL)".format(jobId, '{0}_{1}_Pipeline'.format(processingItemObj.study, processingItemObj.modality), 'CIVET')
+                self.DBClient.executeNoResult(addExternalJobSQL)
             except Exception as e:
                 PipelineLogger.log('manager', 'error', 'Error copying for CIVET input. Rolling back... - Processing Table ID -> {0} Table ID -> {1}'.format( processingItemObj.processing_rid, processingItemObj.table_id))
                 PipelineLogger.log('manager', 'exception', e)
