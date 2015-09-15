@@ -78,7 +78,7 @@ opt.resample_vol.flag_skip     = 0;           % Skip resampling (data will stay 
 
 % Linear and non-linear fit of the anatomical image in the stereotaxic
 % space (niak_brick_t1_preprocess)
-opt.t1_preprocess.nu_correct.arg = '-distance 50'; % Parameter for non-uniformity correction. 200 is a suggested value for 1.5T images, 75 for 3T images. If you find that this stage did not work well, this parameter is usually critical to improve the results.
+opt.t1_preprocess.nu_correct.arg = '-distance %{nu_correct}'; % Parameter for non-uniformity correction. 200 is a suggested value for 1.5T images, 75 for 3T images. If you find that this stage did not work well, this parameter is usually critical to improve the results.
 
 % Temporal filtering (niak_brick_time_filter)
 opt.time_filter.hp = 0.01; % Cut-off frequency for high-pass filtering, or removal of low frequencies (in Hz). A cut-off of -Inf will result in no high-pass filtering.
