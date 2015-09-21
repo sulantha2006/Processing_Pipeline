@@ -12,7 +12,7 @@ class csvToDatabase:
             if header:  # For first row of headers
                 if not self.checkIfTableExists(sqlDatabase, sqlTable):
                     # Create Table if it doesn't exist already
-                    row=[i.replace('/', '').replace(' ', '') for i in row]
+                    row=[self.simplifyString(i) for i in row]
                     sqlCommand = 'CREATE TABLE %s (%s varchar(128))' % (sqlTable, ' varchar(128), '.join(row))
                     sqlDatabase.executeNoResult(sqlCommand)
 
@@ -35,9 +35,12 @@ class csvToDatabase:
         else:
             return True
 
+    def simplifyString(self, string):
+        return string.lower().replace(' ','').replace('/', '')
+
     def uniqueColumns(self, headerRow):
         uniqueColumns = []
         for header in headerRow:
-            if header.lower().replace(' ','') in config.uniqueHeaders:
+            if header in config.uniqueHeaders:
                 uniqueColumns.append(header)
         return uniqueColumns
