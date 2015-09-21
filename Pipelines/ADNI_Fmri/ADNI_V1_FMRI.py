@@ -2,7 +2,8 @@ __author__ = 'wang'
 
 from Utils.DbUtils import DbUtils
 import ast
-import Pipelines.Niak
+import Pipelines.ADNI_Fmri.Niak as niak
+import Pipelines.ADNI_Fmri.SmoothFmriFile as smoothing
 from Utils.PipelineLogger import PipelineLogger
 
 class ProcessingItemObj:
@@ -33,14 +34,19 @@ class ADNI_V1_FMRI:
 
     def process(self, processingItem):
         processingItemObj = ProcessingItemObj(processingItem)
+        self.runNiak(processingItemObj)
 
+
+    def runNiak(self, processingItemObj):
         # Run Niak
         if not processingItemObj.skip:
-            Pipelines.Niak.process(processingItemObj)
+            niak.process(processingItemObj)
         elif processingItemObj.skip:
             pass
         else:
-            PipelineLogger.log('manager', 'error', 'Error handling obj for processing - {0}'.format(processingItem))
+            PipelineLogger.log('manager', 'error', 'Error handling obj for processing - {0}'.format(processingItemObj))
             return 0
 
-        # Run NiakOutput
+    def runSmoothing(self, processingItemObj):
+        if not processingItemObj.skip and processingItemObj.finished:
+            smoothing.execute(processingItemObj)

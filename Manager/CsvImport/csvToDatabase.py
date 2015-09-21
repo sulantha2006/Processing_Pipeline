@@ -10,15 +10,16 @@ class csvToDatabase:
         for row in csv.reader(line.replace('\0', '') for line in csvFile):
             if header:  # For first row of headers
                 if not self.checkIfTableExists(sqlDatabase, sqlTable):
-                    # Create Table
+                    # Create Table if it doesn't exist already
                     row=[i.replace('/', '').replace(' ', '') for i in row]
-                    sqlCommand = 'CREATE TABLE %s (%s varchar(32))' % (sqlTable, ' varchar(32), '.join(row))
+                    sqlCommand = 'CREATE TABLE %s (%s varchar(128))' % (sqlTable, ' varchar(128), '.join(row))
                     sqlDatabase.executeNoResult(sqlCommand)
 
                     # Setting unique indexes
                     uniqueList = self.uniqueColumns(row)
                     sqlCommand = 'ALTER TABLE %s ADD UNIQUE (%s)' % (sqlTable, ', '.join(uniqueList))
                     sqlDatabase.executeNoResult(sqlCommand)
+
                 header = 0
                 continue
 
