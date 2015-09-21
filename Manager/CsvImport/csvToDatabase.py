@@ -2,6 +2,7 @@ __author__ = 'wang'
 
 import csv
 import Config.CsvImportConfig as config
+import sys
 
 class csvToDatabase:
     def __init__(self, sqlDatabase, csvFile, sqlTable):
@@ -37,6 +38,6 @@ class csvToDatabase:
     def uniqueColumns(self, headerRow):
         uniqueColumns = []
         for header in headerRow:
-            if header.lower() in config.uniqueHeaders:
+            if header.lower().replace(' ','') in config.uniqueHeaders:
                 uniqueColumns.append(header)
         return uniqueColumns
