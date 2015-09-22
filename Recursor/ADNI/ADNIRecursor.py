@@ -27,18 +27,22 @@ class ADNIRecursor():
     def createNewScanSession(self,down_most_folder, filelist):
         # Return parts of the folder path, the ones of interest
         folder = down_most_folder.replace(self.root_folder,"")
-        folder_parts = folder.split("/")  # List containing each parts/folders of the full path
-        filename_parts = filelist[0].split("_")  # Takes the first filename and create a list of its parts
+        try:
+            folder_parts = folder.split("/")  # List containing each parts/folders of the full path
+            filename_parts = filelist[0].split("_")  # Takes the first filename and create a list of its parts
 
-        rid = folder_parts[1][-4:]  # Get the last 4 characters
-        scan_type = self.determineScanType(folder_parts[-3])
-        scan_date = folder_parts[-2].split('_')[0]
-        scan_time = folder_parts[-2].split('_', 1)[-1].replace("_", ":")
-        s_identifier = filename_parts[-2]
-        i_identifier = filename_parts[-1].split('.', 1)[0]
-        file_type = self.determineExtension(filename_parts)
-        download_folder = down_most_folder
-        raw_folder = '{0}/{1}/{2}/{3}/{4}_{5}_{6}/raw'.format(sc.studyDatabaseRootDict[self.study], self.study, scan_type, rid, scan_date, s_identifier, i_identifier)
+            rid = folder_parts[1][-4:]  # Get the last 4 characters
+            scan_type = self.determineScanType(folder_parts[-3])
+            scan_date = folder_parts[-2].split('_')[0]
+            scan_time = folder_parts[-2].split('_', 1)[-1].replace("_", ":")
+            s_identifier = filename_parts[-2]
+            i_identifier = filename_parts[-1].split('.', 1)[0]
+            file_type = self.determineExtension(filename_parts)
+            download_folder = down_most_folder
+            raw_folder = '{0}/{1}/{2}/{3}/{4}_{5}_{6}/raw'.format(sc.studyDatabaseRootDict[self.study], self.study, scan_type, rid, scan_date, s_identifier, i_identifier)
+        except:
+            PipelineLogger.log('root', 'exception', 'File recurse error on Folder - {0}, \n Filelist - {1}'.format(folder, filelist))
+            return None
 
         newScanSession = ScanSession\
             (self.study, rid, scan_type, scan_date, scan_time,
