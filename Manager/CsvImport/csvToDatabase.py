@@ -13,7 +13,7 @@ class csvToDatabase:
                 if not self.checkIfTableExists(sqlDatabase, sqlTable):
                     # Create Table if it doesn't exist already
                     row=[self.simplifyString(i) for i in row]
-                    sqlCommand = 'CREATE TABLE %s (%s varchar(128))' % (sqlTable, ' varchar(128), '.join(row))
+                    sqlCommand = 'CREATE TABLE %s (%s varchar(64))' % (sqlTable, ' varchar(64), '.join(row))
                     sqlDatabase.executeNoResult(sqlCommand)
 
                     # Setting unique indexes
@@ -36,7 +36,7 @@ class csvToDatabase:
             return True
 
     def simplifyString(self, string):
-        return string.lower().replace(' ','').replace('/', '')
+        return string.lower().replace(' ', '').replace('/', '').replace('.', '')
 
     def uniqueColumns(self, headerRow):
         uniqueColumns = []

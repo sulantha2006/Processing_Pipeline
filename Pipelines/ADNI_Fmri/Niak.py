@@ -1,6 +1,7 @@
 __author__ = 'wang'
 
 import subprocess, os
+from Utils.DbUtils import DbUtils
 import Config.PipelineConfig as config
 import distutils.dir_util
 import shutil
@@ -9,7 +10,10 @@ from Manager.QSubJobHanlder import QSubJobHandler
 from Utils.PipelineLogger import PipelineLogger
 import socket
 
-class Niak():
+class Niak:
+    def __init__(self):
+        self.DBClient = DbUtils()
+
     def getScanType(self, processingItemObj):
         r = self.DBClient.executeAllResults("SELECT SCAN_TYPE FROM Conversion WHERE STUDY = '{0}' AND RID = '{1}' "
                                         "AND SCAN_DATE = '{2}' AND S_IDENTIFIER = '{3}' "
@@ -55,7 +59,7 @@ class Niak():
         replacing_dict = {'%{patient_information}': patientInfo,
                           '%{opt.folder_out}': niakFolder,
                           '%{niak_location}': config.niak_location,
-                          '%{nu_correct}': processingItemObj.parameters('nu_correct')
+                          '%{nu_correct}': processingItemObj.parameters['nu_correct']
                           }
         templateFileWithInformation = self.replaceString(templateFileWithInformation, replacing_dict)
 
@@ -65,7 +69,7 @@ class Niak():
         pass
 
     def replaceString(self, text, replacing_dict):
-        for query, replacedInto in replacing_dict:
+        for query, replacedInto in replacing_dict.iteritems():
             text = text.replace(query, replacedInto)
         return text
 
