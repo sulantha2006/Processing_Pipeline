@@ -19,8 +19,10 @@ class SmoothFmriFile:
         self.checkFileExists(outputFile)
 
     def execute(self, command):
-        outputStd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
-        return outputStd
+        pass
+        # Need do implement execution code
+        # outputStd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
+        # return outputStd
 
     def setCommand(self, input_file, output_file, output_folder):
         command = "%s smoothFmri('%s', '%s', '%s', '%s', '%s')" %\
