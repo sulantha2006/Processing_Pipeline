@@ -1,8 +1,12 @@
 #!/bin/sh
-#export PATH=$PATH:/opt/minc-toolkit/bin:/opt/minc-toolkit/pipeline:/opt/minc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/minc/lib:/opt/minc-toolkit/lib:/opt/minc-toolkit/lib/InsightToolkit
-#export LD_LIBRARYN32_PATH=$LD_LIBRARYN32_PATH:/opt/CIVET-Mar-08-2011/lib:/usr/local/lib
-#export PERL5LIB=$PERL5LIB:/opt/minc-toolkit/perl:/opt/minc-toolkit/pipeline:/opt/minc/perl:/opt/minc/lib/mni_autoreg:/opt/minc-toolkit/perl:/opt/minc-toolkit/pipeline
+
+#$1 -> ID
+#$2 -> INPUT MNC
+#$3 -> OUTPUT BEAST PATH
+#$4 -> LOG DIR
+#### FOR SEND MESSAGE TO HANDLER
+#$5 -> HOST
+#$6 -> PORT
 
 #### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
 echo #1_Start | nc -w 0 $5 $6

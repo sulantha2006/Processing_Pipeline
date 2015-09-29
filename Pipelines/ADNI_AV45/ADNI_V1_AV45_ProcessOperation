@@ -1,0 +1,202 @@
+#!/bin/bash
+#$1 -> ID
+#$2 -> INPUT MNC
+#$3 -> OUTPUT PATH
+#$4 -> SUBJECT T1 PATH
+#$5 -> MANUAL XFM
+#$6 -> LOG DIR
+#$7 -> PARAMETER STRING
+#### FOR SEND MESSAGE TO HANDLER
+#$8 -> HOST
+#$9 -> PORT
+
+#### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
+echo #1_Start | nc -w 0 $7 $8
+
+mkdir -p $3/transforms
+mkdir -p $3/t1
+mkdir -p $3/temp
+mkdir -p $3/intermediate
+mkdir -p $3/native
+mkdir -p $3/pvc
+mkdir -p $3/mask
+mkdir -p $3/final
+
+cp $5 $3/transforms/
+cp $4/civet/transforms/linear/*t1_tal.xfm $3/transforms/
+cp $4/civet/transforms/nonlinear/*nlfit_It.xfm $3/transforms/
+
+cp $4/civet/native/*t1.mnc $3/t1/
+cp $4/civet/final/*t1_final.mnc $3/t1/
+cp $4/civet/final/*t1_tal.mnc $3/t1/
+cp $4/civet/mask/*skull_mask.mnc $3/t1/
+cp $4/civet/mask/*pve_exactgm.mnc $3/t1/
+cp $4/civet/mask/*pve_exactwm.mnc $3/t1/
+cp $4/civet/mask/*pve_exactcsf.mnc $3/t1/
+
+cp $2 $3/native/
+
+declare -A parameters=$7
+
+t1fileSubID=$(basename $3/t1/*final.mnc _final.mnc)
+
+echo "mincresample -like $3/t1/*final.mnc -tricubic -transform $3/transforms/*nlfit_It.xfm $3/t1/*final.mnc $3/t1/${t1fileSubID}_final_nl.mnc"
+mincresample -short -like $3/t1/*final.mnc -tricubic -transform $3/transforms/*nlfit_It.xfm $3/t1/*final.mnc $3/t1/${t1fileSubID}_final_nl.mnc
+
+#### STX SEGEMENT> DIRECT IMPROT FROM OLD JARED SCRIPTS> ####
+echo "STX SEGEMENTING STARTING"
+classify_clean -clean_tags $3/t1/*t1_final.mnc -mask $3/t1/*skull_mask.mnc -mask_source $3/t1/${t1fileSubID}_t1_tal_classified.mnc
+Pipelines/ADNI_AV45/stx_segment -symmetric_atlas $3/transforms/*nlfit_It.xfm /home/jrowley/bin/identify.xfm $3/t1/${t1fileSubID}_t1_tal_classified.mnc $3/t1/${t1fileSubID}_t1_tal_segmented.mnc
+echo "STX SEGEMENTING Done"
+#### STX SEGEMENT Done. ####
+
+#### Semi automatic registration
+echo "Registration STARTING"
+petfileSubID=$(basename $2 .mnc)
+blurV=${parameters["blur"]}
+mincblur -clobber -fwhm $blurV $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_${blurV}mm
+nu_correct $3/t1/*t1.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
+nu_correct $3/intermediate/${t1fileSubID}_t1_nu.mnc $3/intermediate/${t1fileSubID}_t1_nu2.mnc
+mv $3/intermediate/${t1fileSubID}_t1_nu2.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
+
+xfmconcat $5 $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+mincresample -short -nearest -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/*t1_tal.xfm -invert_transformation /data/data01/database/human/public/quarantine/skull_mask.mnc $3/temp/skull_mask_mrispace.mnc
+mincresample -short -invert_transform -nearest -like $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm /data/data01/database/human/public/quarantine/skull_mask.mnc $3/temp/skull_mask_petspace.mnc
+
+ponsV=$(mincstats -mean -mask $3/temp/skull_mask_petspace.mnc -mask_floor .9 $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc)
+echo "PonsV - $ponsV"
+pons=$(echo $ponsV | sed 's/Mean:\ \([0-9].*\).*/\1/')
+num=$(echo "$pons" | sed 's/e/*10^/g;s/ /*/' | bc)
+compare_result=$(echo "$num < 0.5" | bc)
+echo "Compare Res - $compare_result"
+
+if [ $compare_result -eq 1 ]; then
+cp $3/native/${petfileSubID}.mnc $3/native/temp_${petfileSubID}.mnc
+mincmath -short -clob -mult -const 100000000 $3/native/temp_${petfileSubID}.mnc $3/native/${petfileSubID}.mnc
+mincblur -clob -fwhm ${blurV} $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_${blurV}mm
+rm $3/native/temp_${petfileSubID}.mnc
+fi
+
+pet_minV=$(mincstats -floor 0 -min -mask $3/temp/skull_mask_petspace.mnc -mask_binvalue 1 $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc)
+pet_min=$(echo $pet_minV | sed 's/Min:\ \([0-9].*\).*/\1/')
+mri_thresholdV=$(mincstats -max -mask $3/t1/*skull_mask.mnc -mask_binvalue 1 $3/intermediate/${t1fileSubID}_t1_nu.mnc)
+mri_threshold_t=$(echo $mri_thresholdV | sed 's/Max:\ \([0-9].*\).*/\1/')
+temp_var=$(echo $mri_threshold_t|awk '{print int($1+0.5)}')
+nlin_num=25
+mri_threshold=$(expr $temp_var / $nlin_num)
+
+minctracc -transformation $5 -mi $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} $3/transforms/temp_${petfileSubID}_pet2mri.xfm -simplex 5 -est_center
+minctracc -mi $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold}  -transformation $3/transforms/temp_${petfileSubID}_pet2mri.xfm -simplex 1 -step 2 2 2 $3/transforms/${petfileSubID}_pet2mri.xfm -est_center
+
+mincresample -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_pet_t1space.mnc
+xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+
+######## Copied fron old Jared scripts.
+######## If there was an error, try creating an xfm on the basis that the image needed a big rotation.
+if [ -f $3/transforms/${petfileSubID}_pet2tal_nlin.xfm ]; then
+mincresample -tfm_input_sampling -clob -transform $5 $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc
+mincresample -like $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc -transform $5 $3/temp/skull_mask_petspace.mnc $3/temp/skull_mask_petspace_rsl.mnc
+
+minctracc -identity -mi $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} -simplex 1 -step 2 2 2 $3/transforms/${petfileSubID}_pet2mri.xfm -est_center -source_mask $3/temp/skull_mask_petspace_rsl.mnc -model_mask $3/t1/*skull_mask.mnc
+xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+fi
+
+echo "Registration Finished"
+########
+######## Partial Volume Correction
+gm_basename=$(basename $3/t1/*pve_exactgm.mnc .mnc)
+wm_basename=$(basename $3/t1/*pve_exactwm.mnc .mnc)
+csf_basename=$(basename $3/t1/*pve_exactcsf.mnc .mnc)
+mincresample -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm -invert_transform $3/t1/*pve_exactgm.mnc $3/pvc/${gm_basename}_petspace.mnc
+mincresample -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm -invert_transform $3/t1/*pve_exactwm.mnc $3/pvc/${wm_basename}_petspace.mnc
+mincresample -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm -invert_transform $3/t1/*pve_exactcsf.mnc $3/pvc/${csf_basename}_petspace.mnc
+
+mincmath -ge -const 0.70 $3/pvc/${gm_basename}_petspace.mnc $3/pvc/${gm_basename}_petspace_mask.mnc
+mincmath -ge -const 0.70 $3/pvc/${wm_basename}_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc
+mincmath -ge -const 0.70 $3/pvc/${csf_basename}_petspace.mnc $3/pvc/${csf_basename}_petspace_mask.mnc
+wm_val=$(mincstats -quiet -floor 0 -mean -mask $3/pvc/${wm_basename}_petspace_mask.mnc -mask_binvalue 1 $3/native/${petfileSubID}.mnc)
+csf_val=$(mincstats -quiet -floor 0 -mean -mask $3/pvc/${csf_basename}_petspace_mask.mnc -mask_binvalue 1 $3/native/${petfileSubID}.mnc)
+
+mincmath -mult -const $wm_val $3/pvc/${wm_basename}_petspace_mask.mnc $3/pvc/${wm_basename}_petspace_avgValued.mnc
+mincmath -mult -const $csf_val $3/pvc/${csf_basename}_petspace_mask.mnc $3/pvc/${csf_basename}_petspace_avgValued.mnc
+
+mincmath -add $3/pvc/${wm_basename}_petspace_avgValued.mnc $3/pvc/${csf_basename}_petspace_avgValued.mnc $3/pvc/${petfileSubID}_wmcsf_avgValued.mnc
+
+mincblur -clob -fwhm ${blurV} $3/pvc/${wm_basename}_petspace_avgValued.mnc $3/pvc/${wm_basename}_petspace_avgValued_${blurV}mm
+mincblur -clob -fwhm ${blurV} $3/pvc/${petfileSubID}_wmcsf_avgValued.mnc $3/pvc/${petfileSubID}_wmcsf_avgValued_${blurV}mm
+
+mincmath -sub $3/native/${petfileSubID}.mnc $3/pvc/${wm_basename}_petspace_avgValued_${blurV}mm_blur.mnc $3/pvc/${petfileSubID}_Igm_subWMOnly.mnc
+mincmath -sub $3/native/${petfileSubID}.mnc $3/pvc/${csf_basename}_petspace_avgValued_${blurV}mm_blur.mnc $3/pvc/${petfileSubID}_Igm_subWMandCSF.mnc
+
+mincblur -clob -fwhm ${blurV} $3/t1/${gm_basename}_petspace.mnc $3/t1/${gm_basename}_petspace_${blurV}mm
+
+mincmath -div $3/native/${petfileSubID}.mnc $3/t1/${gm_basename}_petspace_${blurV}mm_blur.mnc $3/pvc/${petfileSubID}_pvcd.mnc
+
+######## End PVC
+
+######## Start mask builing
+mincmath -gt -const 0.1 $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${petfileSubID}_valid_mask_petspace.mnc
+
+### CER GM
+mincresample -nearest -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm -invert_transformation /data/data03/quarantine/cerebellum_mask_rsl_8mm_blur_075.mnc $3/mask/cerebellum_mask_rsl_8mm_blur_075_petspace.mnc
+### FULL CER
+mincresample -nearest -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm -invert_transformation /data/data03/quarantine/cerebellum_full_mask_8mm_blur_075.mnc $3/mask/cerebellum_full_mask_8mm_blur_075_petspace.mnc
+### PONS
+mincresample -nearest -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm -invert_transformation /data/data03/quarantine/pons_mask_rsl_8mm_blur_050.mnc $3/mask/pons_mask_rsl_8mm_blur_050_petspace.mnc
+### FULL CER + WM COMPOSITE MASK
+mincmath -or $3/mask/cerebellum_full_mask_8mm_blur_075_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc $3/mask/cerm_full_WM_composite_mask_petspace.mnc
+### CER GM + WM COMPOSITE MASK
+mincmath -or $3/mask/cerebellum_mask_rsl_8mm_blur_075_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc $3/mask/cerm_gm_WM_composite_mask_petspace.mnc
+
+#####
+## JACK MASK - SUBJECT WISE IF NEEDED SHOULD GO HERE>
+
+######
+##PET MAIN PROCESING
+##BRANCH 1 - MNI SPACE MASKS - NORM - CER GM
+mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_lin.mnc
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc
+maskVal=$(mincstats -quiet -floor 0 -mean -mask /data/data03/quarantine/cerebellum_mask_rsl_8mm_blur_075.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_cerGM.mnc
+normalize_pet -mask /data/data03/quarantine/mni_icbm152_wm_tal_nlin_sym_09a_wmmask_085.mnc -normalized_mean 1.8 $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_cerGM.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_cerGM_wmnorm_085.mnc
+
+##BRANCH  2 - MNI SPACE MASKS - NO NORM, COMPOSITE MASK - FULL CER + WM
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/mask/cerm_full_WM_composite_mask_petspace.mnc $3/mask/cerm_full_WM_composite_mask_talspace.mnc
+maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/cerm_full_WM_composite_mask_talspace.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_compFullCerandBWM.mnc
+
+##BRANCH  3 - MNI SPACE MASKS - NO NORM, COMPOSITE MASK - CER GM + WM
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/mask/cerm_gm_WM_composite_mask_petspace.mnc $3/mask/cerm_gm_WM_composite_mask_talspace.mnc
+maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/cerm_gm_WM_composite_mask_talspace.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_compCerGMandBWM.mnc
+
+##BRANCH  4 - MNI SPACE MASKS - NO NORM, FULL CER
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/mask/cerebellum_full_mask_8mm_blur_075_petspace.mnc $3/mask/cerebellum_full_mask_8mm_blur_075_talspace.mnc
+maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/cerebellum_full_mask_8mm_blur_075_talspace.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_fullCer.mnc
+
+##BRANCH 5 - PET SPACE - NO NORM, CER GM
+maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/cerebellum_mask_rsl_8mm_blur_075_petspace.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_cerGM.mnc
+mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_cerGM.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_cerGM_tal_lin.mnc
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_cerGM.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_cerGM_tal_nlin.mnc
+
+##BRANCH 5 - PET SPACE - NO NORM, COMPOSITE MASK - CER GM + WM
+maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/cerm_gm_WM_composite_mask_petspace.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compCerGMandBWM.mnc
+mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compCerGMandBWM.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compCerGMandBWM_tal_lin.mnc
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compCerGMandBWM.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compCerGMandBWM_tal_nlin.mnc
+
+##BRANCH 5 - PET SPACE - NO NORM, COMPOSITE MASK - FULL CER + WM
+maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/cerm_full_WM_composite_mask_petspace.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compFullCerandBWM.mnc
+mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compFullCerandBWM.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compFullCerandBWM_tal_lin.mnc
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compFullCerandBWM.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_compFullCerandBWM_tal_nlin.mnc
+
+##BRANCH 5 - PET SPACE - NO NORM, FULL CER
+maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/cerebellum_full_mask_8mm_blur_075_petspace.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer.mnc
+mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer_tal_lin.mnc
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer_tal_nlin.mnc

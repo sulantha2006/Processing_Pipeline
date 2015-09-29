@@ -70,3 +70,20 @@ class ADNI_T1_Helper:
                 sourtedList = sorted(matchedT1withScanDescriptions, key=lambda x:pc.ADNI_T1_match_scantype_priorityList.index(x[3]))
                 return sourtedList[0]
 
+    def checkProcessed(self, t1Record):
+        subject_id = t1Record[3]
+        version = t1Record[11]
+        s_id = t1Record[6]
+        i_id = t1Record[7]
+        checkProcessedSQL = "SELECT * FROM Processing WHERE STUDY = '{0}' AND VERSION = '{1}' AND S_IDENTIFIER = '{2}' AND I_IDENTIFIER = '{3}'".format(subject_id, version, s_id, i_id)
+        result = self.DBClient.executeAllResults(checkProcessedSQL)
+        if len(result) < 1:
+            PipelineLogger.log('root', 'error', 'Matched T1 is not added to the processing table. {0} - {1} - {2}'.format(subject_id, s_id, i_id))
+            return False
+        else:
+            if result[12] == 1 and result[13] == 1:
+                PipelineLogger.log('root', 'info', 'Matched T1 is processed and QC passed. {0} - {1} - {2}'.format(subject_id, s_id, i_id))
+                return result[8]
+            else:
+                PipelineLogger.log('root', 'error', 'Matched T1 is not process or QC failed. {0} - {1} - {2}'.format(subject_id, s_id, i_id))
+                return False
