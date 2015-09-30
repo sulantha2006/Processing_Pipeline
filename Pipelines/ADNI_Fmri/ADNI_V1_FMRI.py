@@ -37,7 +37,6 @@ class ADNI_V1_FMRI:
         processingItemObj = ProcessingItemObj(processingItem)
         self.runNiak(processingItemObj)
 
-
     def runNiak(self, processingItemObj):
         # Run Niak
         if not processingItemObj.skip:

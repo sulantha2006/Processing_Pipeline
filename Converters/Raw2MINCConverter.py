@@ -81,11 +81,11 @@ class Raw2MINCConverter:
     def adni_v1_rsfmri_v(self, convertionObj):
         return self.adni_v1_fmri.convert_v(convertionObj)
 
+    def adni_v1_rsfmri_minc(self, conversionObj):
+        return self.adni_v1_fmri.convertMinc(conversionObj)
+
     def adni_v1_pet_minc(self, conversionObj):
         return self.adni_v1_pet.convertMinc(conversionObj)
 
     def adni_v1_t1_minc(self, conversionObj):
         return self.adni_v1_t1.convertMinc(conversionObj)
-
-    def adni_v1_rsfmri_minc(self, conversionObj):
-        return self.adni_v1_fmri.convertMinc(conversionObj)

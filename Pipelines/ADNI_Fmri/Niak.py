@@ -42,10 +42,10 @@ class Niak:
 
         anat = self.findCorrespondingMRI(processingItemObj)
         orig_ScanType = self.getScanType(processingItemObj)
-        fmri = '{0}/{1}_{2}{3}{4}{5}_{6}.mnc'.format(processingItemObj.converted_folder, processingItemObj.study,
+        fmri = '{0}/{1}_{2}{3}{4}{5}_{6}_run1.mnc'.format(processingItemObj.converted_folder, processingItemObj.study,
                                                         processingItemObj.subject_rid, processingItemObj.scan_date.replace('-', ''),
                                                         processingItemObj.s_identifier, processingItemObj.i_identifier,
-                                                        orig_ScanType)
+                                                        orig_ScanType) #### Have to consider multiple runs
 
         patientInfo = "files_in.subject1.anat = '%s';\n files_in.subject1.fmri.session1{1} = '%s'" % (anat, fmri)
 
@@ -67,9 +67,10 @@ class Niak:
 
     def findCorrespondingMRI(self, processingItemObj):
         pass
+        #### Needs to be created
 
     def replaceString(self, text, replacing_dict):
-        for query, replacedInto in replacing_dict.iteritems():
+        for query, replacedInto in replacing_dict.items():
             text = text.replace(query, replacedInto)
         return text
 
