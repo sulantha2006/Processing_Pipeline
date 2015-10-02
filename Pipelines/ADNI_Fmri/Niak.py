@@ -129,7 +129,7 @@ class Niak:
             PipelineLogger.log('manager', 'error', 'Error in creating NIAK folder. \n {0}'.format(e))
             return 0
 
-        # Run command, cross fingers
+        # Run converter command
         PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(command))
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
         out, err = p.communicate()
@@ -141,7 +141,15 @@ class Niak:
 
     def combiningRuns(self, processingItemObj):
         #### Needs to improve it a lot more
-        command = "%s combiningRuns('%s', '%s', inputFolder, subjectID, sessionID)" %\
-                  (config.matlab_call, config.fmristat_location, config.emma_tools_location,)
-        outputStd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
-        return outputStd
+        command = "%s combiningRuns('%s', '%s', %s, %s, %s)" %\
+                  (config.matlab_call, config.fmristat_location, config.emma_tools_location,
+                   processingItemObj.root_folder, processingItemObj.subject_rid, '1')
+
+        # Run matlab command
+        PipelineLogger.log('processing', 'debug', 'Command : {0}'.format(command))
+        p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
+        out, err = p.communicate()
+        PipelineLogger.log('processing', 'debug', 'combiningRuns Log Output : \n{0}'.format(out))
+        PipelineLogger.log('processing', 'debug', 'combiningRuns Log Err : \n{0}'.format(err))
+
+        return out
