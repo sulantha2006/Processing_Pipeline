@@ -103,4 +103,5 @@ scanTypeDict = {
                 'Spatially_Normalized,_Masked_and_N3_corrected_T2_image': 'T2-SNMN3C',
                 'Extended_Resting_State_fMRI_CLEAR': 'ext-rsfmri',
                 'epi_2s_resting_state': 'rsfmri',
+                'MPRAGE': 'MPRAGE'
                 }

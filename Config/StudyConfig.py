@@ -33,16 +33,17 @@ ProcessingModalityAndPipelineTypePerStudy = dict(ADNI={'AV45':'AV45',
                                             'S_IR-FSPGR':'T1',
                                             'IR-FSPGR':'T1',
                                             'IR-FSPGR_Rep':'T1',
+                                            'MPRAGE':'T1',
                                             'ext-rsfmri':'FMRI',
                                             'rsfmri':'FMRI',
                                             'A_rsfmri_EO':'FMRI'
                                                 })
 
 #This versioning dict should have an entry if the default processing version is not V1 - Still in test.
-defaultVersioningForStudy = dict(ADNI={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1'})
+defaultVersioningForStudy = dict(ADNI={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1'}, ADNI_OLD={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1'})
 
-ADNIDownloadRoot = '/data/backup-data02/ADNI/downloads/New2'
-ADNIOLDDownloadRoot = '/data/backup-data02/ADNI/new_raw/EMCI'
+ADNIDownloadRoot = '/data/data03/sulantha/Downloads/ADNI/ADNI'
+ADNIOLDDownloadRoot = '/data/data02/ADNI/raw/AD'
 
 
 studyDatabaseRootDict = dict(ADNI='/data/data03/Database', ADNI_OLD='/data/data03/Database')

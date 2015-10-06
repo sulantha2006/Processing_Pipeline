@@ -49,10 +49,10 @@ ADNI_T1_match_accepted_scantypes = ['MPR-R_B1_N3', 'MPR_B1_N3S', 'MPR_B1_N3', 'M
                                     'MPR-R_N3', 'MPR_N3S', 'MPR-R_N3S', 'MPR-R_N3S', 'MPR-R_B1', 'MPR-R_B1_N3S',
                                     'MPR-R_B1_N3S', 'MT1_G_N3m', 'MT1_N3m', 'T1-SNMN3C', 'MPR-R__N3', 'MPR__N3S',
                                     'MPR__N3S', 'MPR__N3', 'MPR_N3S', 'S_IR-SPGR', 'AS_IR-SPGR', 'AS_IR-FSPGR',
-                                    'S_IR-FSPGR', 'AS_IR-SPGR', 'IR-FSPGR', 'IR-FSPGR_Rep', 'MPR__M', 'MPR-R__M', ]
+                                    'S_IR-FSPGR', 'AS_IR-SPGR', 'IR-FSPGR', 'IR-FSPGR_Rep', 'MPR__M', 'MPR-R__M', 'MPRAGE']
 
-ADNI_T1_match_scantype_priorityList = ['MPR-R_B1_N3', 'MPR_B1_N3S', 'MPR_B1_N3', 'MPR_B1', 'MPR_N3', 'MPR', 'MPR-R',
-                                    'MPR-R_N3', 'MPR_N3S', 'MPR-R_N3S', 'MPR-R_N3S', 'MPR-R_B1', 'MPR-R_B1_N3S',
-                                    'MPR-R_B1_N3S', 'MT1_G_N3m', 'MT1_N3m', 'T1-SNMN3C', 'MPR-R__N3', 'MPR__N3S',
-                                    'MPR__N3S', 'MPR__N3', 'MPR_N3S', 'S_IR-SPGR', 'AS_IR-SPGR', 'AS_IR-FSPGR',
-                                    'S_IR-FSPGR', 'AS_IR-SPGR', 'IR-FSPGR', 'IR-FSPGR_Rep', 'MPR__M', 'MPR-R__M', ]
+ADNI_T1_match_scantype_priorityList = ['MPR-R_B1_N3', 'MPR_B1_N3S', 'MPR_B1_N3', 'MT1_G_N3m', 'MPR-R_B1_N3S', 'MPR-R_B1_N3S', 'MPR-R_N3S',
+                                       'MPR-R_B1',  'MPR-R_N3', 'MPR-R__N3', 'MPR__N3S', 'AS_IR-SPGR', 'AS_IR-FSPGR', 'T1-SNMN3C',
+                                    'S_IR-FSPGR', 'AS_IR-SPGR', 'IR-FSPGR',
+                                       'MT1_N3m', 'MPR_B1', 'MPR_N3', 'MPR', 'MPR-R',
+                                    'MPR_N3S', 'MPR__N3', 'MPR_N3S', 'S_IR-SPGR',  'IR-FSPGR_Rep', 'MPR__M', 'MPR-R__M', 'MPRAGE']
