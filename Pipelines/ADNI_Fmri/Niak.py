@@ -9,6 +9,8 @@ from Manager.QSubJob import QSubJob
 from Manager.QSubJobHanlder import QSubJobHandler
 from Utils.PipelineLogger import PipelineLogger
 import socket
+from Pipelines.ADNI_T1.ADNI_T1_Helper import ADNI_T1_Helper
+import glob
 
 class Niak:
     def __init__(self):
@@ -32,7 +34,15 @@ class Niak:
         if os.path.isfile("%s/preprocessing/logs/PIPE.lock" % niakFolder):
             os.remove("%s/preprocessing/logs/PIPE.lock" % niakFolder)
 
-        self.executeScript(processingItemObj, matlabScript, niakFolder)
+        success = self.executeScript(processingItemObj, matlabScript, niakFolder)
+
+        #### After, if Niak succeeded, concatenate all runs together using combiningRuns
+        if False:
+            if success:
+                self.combiningRuns(processingItemObj)
+            else:
+                PipelineLogger.log()
+                #### Report error
 
     def readTemplateFile(self, processingItemObj):
         niakTemplateFile = 'Pipelines/ADNI_Fmri/MatlabScripts/niakPreprocessingTemplate.m'
@@ -40,17 +50,16 @@ class Niak:
         niakFolder = '{0}/niak'.format(processingItemObj.root_folder)
         logDir = '{0}/logs'.format(processingItemObj.root_folder)
 
-        anat = self.findCorrespondingMRI(processingItemObj)
-        orig_ScanType = self.getScanType(processingItemObj)
-        fmri = '{0}/{1}_{2}{3}{4}{5}_{6}.mnc'.format(processingItemObj.converted_folder, processingItemObj.study,
-                                                        processingItemObj.subject_rid, processingItemObj.scan_date.replace('-', ''),
-                                                        processingItemObj.s_identifier, processingItemObj.i_identifier,
-                                                        orig_ScanType)
+        # Get the corresponding subject-space MRI path
+        anat = self.findCorrespondingMRI(processingItemObj) + '/civet/native/*t1.mnc'
 
-        patientInfo = "files_in.subject1.anat = '%s';\n files_in.subject1.fmri.session1{1} = '%s'" % (anat, fmri)
+        # Get all subjects
+        patientInfo = "files_in.subject1.anat = '%s';"
+        for fmri in glob.glob(processingItemObj.converted_folder + '/*.mnc*'):
+            iteration = fmri[fmri.rindex('_run') + 4 : fmri.rindex('.mnc')]
+            patientInfo = patientInfo + "\n files_in.subject1.fmri.session1{%s} = '%s'" % (iteration, fmri)
 
         # Read templateFileWithInformation
-        templateFileWithInformation = None
         with open(niakTemplateFile, 'r') as templateFile:
             templateFileWithInformation = templateFile.read()
             templateFile.close()
@@ -66,10 +75,16 @@ class Niak:
         return templateFileWithInformation, fmri, niakFolder
 
     def findCorrespondingMRI(self, processingItemObj):
-        pass
+        matching_t1 = ADNI_T1_Helper().getMatchingT1(processingItemObj)
+        processed = ADNI_T1_Helper().checkProcessed(matching_t1)
+        if not processed:
+            PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed.')
+            return 0
+        else:
+            return matching_t1
 
     def replaceString(self, text, replacing_dict):
-        for query, replacedInto in replacing_dict.iteritems():
+        for query, replacedInto in replacing_dict.items():
             text = text.replace(query, replacedInto)
         return text
 
@@ -114,7 +129,7 @@ class Niak:
             PipelineLogger.log('manager', 'error', 'Error in creating NIAK folder. \n {0}'.format(e))
             return 0
 
-        # Run command, cross fingers
+        # Run converter command
         PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(command))
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
         out, err = p.communicate()
@@ -123,3 +138,18 @@ class Niak:
 
         QSubJobHandler.submittedJobs[id] = QSubJob(id, '01:00:00', processingItemObj, 'niak')
         return 1
+
+    def combiningRuns(self, processingItemObj):
+        #### Needs to improve it a lot more
+        command = "%s combiningRuns('%s', '%s', %s, %s, %s)" %\
+                  (config.matlab_call, config.fmristat_location, config.emma_tools_location,
+                   processingItemObj.root_folder, processingItemObj.subject_rid, '1')
+
+        # Run matlab command
+        PipelineLogger.log('processing', 'debug', 'Command : {0}'.format(command))
+        p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
+        out, err = p.communicate()
+        PipelineLogger.log('processing', 'debug', 'combiningRuns Log Output : \n{0}'.format(out))
+        PipelineLogger.log('processing', 'debug', 'combiningRuns Log Err : \n{0}'.format(err))
+
+        return out
