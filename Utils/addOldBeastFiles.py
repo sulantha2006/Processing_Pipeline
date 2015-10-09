@@ -9,7 +9,7 @@ def recurseBeastFolder():
     fileList = []
     for name in glob.glob('/data/data03/ADNI/BEAST/adni_*/t1/beast/*'):
         mainFolder = name
-        nativeFile = os.path.realpath(glob.glob('/data/data03/ADNI/BEAST/adni_102395/t1/beast/10239502/native/*t1.mnc')[0])
+        nativeFile = os.path.realpath(glob.glob('{0}/native/*t1.mnc'.format(mainFolder))[0])
         if '\xef\xbb\xbf' in nativeFile:
             nativeFile = nativeFile.split('\xef\xbb\xbf')[1]
         if mainFolder and nativeFile:
