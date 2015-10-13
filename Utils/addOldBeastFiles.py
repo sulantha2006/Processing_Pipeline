@@ -51,6 +51,8 @@ def copyBeast(item, proc_entry):
     oldId = mainFolder.split('/')[-1]
 
     if os.path.exists('{0}/final/adni_{1}_t1_tal_lin.mnc'.format(mainFolder, oldId)) and os.path.exists('{0}/mask/adni_{1}_t1_skull_mask_native.mnc'.format(mainFolder, oldId) and os.path.exists('{0}/mask/adni_{1}_t1_tal_lin_skull_mask.mnc'.format(mainFolder, oldId))):
+        if proc_entry[17] == 'OLD_PROC':
+            return 1
         new_path = proc_entry[8]
         newId = '{0}_{1}{2}{3}{4}'.format('ADNI', proc_entry[2], proc_entry[4].strftime('%Y-%m-%d').replace('-', ''), proc_entry[6], proc_entry[7])
         newBeaseFolder = '{0}/beast'.format(new_path)
@@ -77,7 +79,13 @@ def copyBeast(item, proc_entry):
                     newFilFolder = '{0}{1}'.format(newBeaseFolder,rootFolder)
                     print('Copying - {0} -> {1}'.format('{0}/{1}'.format(root, file), '{0}/{1}'.format(newFilFolder, os.path.basename(file).replace('adni_{0}'.format(oldId), newId))))
                     file_util.copy_file('{0}/{1}'.format(root, file), '{0}/{1}'.format(newFilFolder, os.path.basename(file).replace('adni_{0}'.format(oldId), newId)))
-
+        return 1
+    else:
+        print('Removing False entry : - {0}'.format(proc_entry))
+        new_path = proc_entry[8]
+        newBeaseFolder = '{0}/beast'.format(new_path)
+        os.removedirs(newBeaseFolder)
+        return 0
 
 
 
@@ -99,12 +107,11 @@ if __name__ == '__main__':
                     rid_list.append(rid)
 
             continue
-        if proc_entry[17] == 'OLD_PROC':
-            continue
+        #if proc_entry[17] == 'OLD_PROC':
+            #continue
 
-        copyBeast(item, proc_entry)
-
-        addToModalTable(proc_entry)
+        if copyBeast(item, proc_entry):
+            addToModalTable(proc_entry)
 
     print(rid_list)
 
