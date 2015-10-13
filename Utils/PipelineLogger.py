@@ -11,6 +11,7 @@ class PipelineLogger:
 
     @staticmethod
     def log(moduleName, level, message):
+        level = level.lower()
         logging.getLogger(moduleName)
         PipelineLogger.logFunctions[level](message)
 

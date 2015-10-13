@@ -55,19 +55,23 @@ class QSubJobHandler(threading.Thread):
     def run(self):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.sock.bind((socket.gethostname(), 50500))
             self.sock.settimeout(300)
             self.sock.listen(1000)
-        except:
+            PipelineLogger.log('manager', 'info',' ++++++++ QSub Job Handler started.')
+            PipelineLogger.log('manager', 'info',' ++++++++ QSub Job Handler listening in Host : {0} at Port : {1}.'.format(socket.gethostname(), 50500))
+            while not self.QUIT and self.checkJobs():
+                try:
+                    conn = self.sock.accept()[0]
+                    thread = threading.Thread(target=self.doWork, args=(conn, ))
+                    thread.start()
+                except socket.timeout:
+                    continue
+        except Exception as e:
+            PipelineLogger.log('manager', 'exception',e)
             PipelineLogger.log('manager', 'error','Cannot create QSubJobHandler... Will not listen to on jobs. ')
             del self.sock
 
-        PipelineLogger.log('manager', 'info',' ++++++++ QSub Job Handler started.')
-        PipelineLogger.log('manager', 'info',' ++++++++ QSub Job Handler listening in Host : {0} at Port : {1}.'.format(socket.gethostname(), 50500))
-        while not self.QUIT and self.checkJobs():
-            try:
-                conn = self.sock.accept()[0]
-                thread = threading.Thread(target=self.doWork, args=(conn, ))
-                thread.start()
-            except socket.timeout:
-                continue
+
+

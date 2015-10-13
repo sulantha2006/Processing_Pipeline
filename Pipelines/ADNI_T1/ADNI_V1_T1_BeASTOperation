@@ -9,7 +9,7 @@
 #$6 -> PORT
 
 #### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
-echo #1_Start | nc -w 0 $5 $6
+echo $1_Start | nc -w 0 $5 $6
 
 mkdir -p $3/final
 mkdir -p $3/mask

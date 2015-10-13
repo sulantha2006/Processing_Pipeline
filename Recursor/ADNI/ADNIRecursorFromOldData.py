@@ -5,6 +5,7 @@ from Recursor.ADNI.ScanSession import ScanSession
 import Config.ADNI_RecurserConfig as arc
 import Config.StudyConfig as sc
 from Utils.PipelineLogger import PipelineLogger
+import re
 
 """
 Parse ADNI Data Structure from Monica Download and return a list of instances with scans' information
@@ -32,6 +33,11 @@ class ADNIRecursorFromOldData():
             filename_parts = filelist[0].split("_")  # Takes the first filename and create a list of its parts
 
             rid = folder_parts[1][-4:]  # Get the last 4 characters
+            if re.search('[a-zA-Z]', rid) is not None:
+                rid = filename_parts[3]
+                if re.search('[a-zA-Z]', rid) is not None:
+                    PipelineLogger.log('root', 'error', 'File recurse error on Folder RID cannot be identified. - {0}, \n Filelist - {1}'.format(folder, filelist))
+                    return None
             scan_type = self.determineScanType(folder_parts[-3])
 
             scan_date = folder_parts[-2].split('_')[0]
@@ -68,6 +74,9 @@ class ADNIRecursorFromOldData():
             if 'AV45' in scanTypeRaw:
                 PipelineLogger.log('root', 'error', 'Scan Type not defined : {0} -> Close match AV45...'.format(scanTypeRaw))
                 return 'AV45'
+            if 'MPRAGE' in scanTypeRaw.upper():
+                PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match MPRAGE...'.format(scanTypeRaw))
+                return 'MPRAGE'
             else:
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> No match...'.format(scanTypeRaw))
                 return 'unknown'

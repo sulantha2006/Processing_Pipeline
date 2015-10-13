@@ -92,7 +92,7 @@ class PipelineManager:
             except Exception as exc:
                 PipelineLogger.log('manager', 'error',
                                    'Raw Data Move Error : {0} -> {1}'.format(sourceFolder, destFolder))
-                PipelineLogger.log('manager', 'exception', '')
+                PipelineLogger.log('manager', 'exception', exc)
                 return 0
         for study in self.studyList:
             totalToMove = len(self.moveSortingObjListDict[study])
@@ -121,6 +121,7 @@ class PipelineManager:
                 self.conversionTable.setConvertedTrue(result['obj'])
             else:
                 PipelineLogger.log('manager', 'error', 'File conversion Error : {0} -> {1}. Moving to next...'.format(result['obj'].raw_folder, result['obj'].converted_folder))
+                self.conversionTable.setConvertedFailed(result['obj'])
 
         for study in self.studyList:
             totalToConv = len(self.toConvertObjListDict[study])

@@ -162,15 +162,15 @@ class ADNI_V1_PET:
                                    convertionObj.scan_type))
             return 0
         elif len(mncList) == 1:
-            PipelineLogger.log('converter', 'Error',
-                               'PET Conversion MINC file as INPUT. Only 1 MINC found. Checking for time dimension ')
+            PipelineLogger.log('converter', 'error',
+                               'PET Conversion MINC file as INPUT. Only 1 MINC found. Checking for time dimension  - {0} - {1} - {2} - {3}'.format(convertionObj.study, convertionObj.rid, convertionObj.scan_date, convertionObj.scan_type))
             checkTimeDimCmd = '/opt/minc-toolkit/bin/mincinfo {0} | grep time'.format(mncList[0])
             p_t = subprocess.Popen(checkTimeDimCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out_t, err_t = p_t.communicate()
             PipelineLogger.log('converter', 'debug', 'Check time dim Output : \n{0}'.format(out_t))
             PipelineLogger.log('converter', 'debug', 'Check time dim Err : \n{0}'.format(err_t))
-            if 'time' in out_t or 'time' in err_t:
-                PipelineLogger.log('converter', 'Info',
+            if 'time' in out_t.decode("utf-8")  or 'time' in err_t.decode("utf-8") :
+                PipelineLogger.log('converter', 'info',
                                'PET Conversion MINC file as INPUT. Only 1 MINC found. Time dimension found. Mincaverage on time. ')
                 if self.avgTime(mncList[0], outFile):
                     PipelineLogger.log('converter', 'info',

@@ -35,7 +35,7 @@ class ADNIRecursor():
             rid = folder_parts[1][-4:]  # Get the last 4 characters
             if re.search('[a-zA-Z]', rid) is not None:
                 rid = filename_parts[3]
-                if re.search('[a-zA-Z]', rid) is None:
+                if re.search('[a-zA-Z]', rid) is not None:
                     PipelineLogger.log('root', 'error', 'File recurse error on Folder RID cannot be identified. - {0}, \n Filelist - {1}'.format(folder, filelist))
                     return None
             scan_type = self.determineScanType(folder_parts[-3])
@@ -68,9 +68,12 @@ class ADNIRecursor():
             if 'FDG' in scanTypeRaw:
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match FDG...'.format(scanTypeRaw))
                 return 'FDG'
-            if 'AV45' in scanTypeRaw:
+            if 'AV45' in scanTypeRaw or 'AV-45' in scanTypeRaw or 'AV_45' in scanTypeRaw:
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match AV45...'.format(scanTypeRaw))
                 return 'AV45'
+            if 'MPRAGE' in scanTypeRaw.upper():
+                PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match MPRAGE...'.format(scanTypeRaw))
+                return 'MPRAGE'
             else:
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> No match...'.format(scanTypeRaw))
                 return 'unknown'

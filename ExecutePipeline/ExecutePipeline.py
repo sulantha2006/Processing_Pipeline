@@ -63,11 +63,14 @@ def main():
         PipelineLogger.log('root', 'info', 'Converting to MINC started ...')
         pipeline.convertRawData()
         PipelineLogger.log('root', 'info', 'Converting to MINC done ...############')
+        PipelineLogger.log('root', 'info', 'Modifying processing pipeline table. This may take a while. Please wait....############')
         pipeline.getConvertedList()
         pipeline.refreshModalityTables()
         pipeline.getProcessList()
         pipeline.fillPipelineTables()
         for modality in modalities:
+            if modality == 'BLUFF':
+                break
             pipeline.processModality(modality)
 
         QSubJobHandler.submittedJobs['xxxx'].Fin = True

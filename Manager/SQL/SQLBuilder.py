@@ -24,9 +24,10 @@ class SQLBuilder:
                                                           sortingObj.record_id)
 
     def getSQL_saveObjConversionTable(self, conversionObj):
+
         return "UPDATE Conversion SET STUDY='{0}', RID='{1}', SCAN_TYPE='{2}', SCAN_DATE='{3}', SCAN_TIME='{4}', " \
                "S_IDENTIFIER='{5}', I_IDENTIFIER='{6}', FILE_TYPE='{7}', RAW_FOLDER='{8}', CONVERTED_FOLDER='{9}', " \
-               "VERSION='{10}', CONVERTED={11} WHERE RECORD_ID={12}".format(conversionObj.study, conversionObj.rid,
+               "VERSION='{10}', CONVERTED={11}, SKIP = {12} WHERE RECORD_ID={13}".format(conversionObj.study, conversionObj.rid,
                                                                               conversionObj.scan_type,
                                                                               conversionObj.scan_date,
                                                                               conversionObj.scan_time,
@@ -37,6 +38,7 @@ class SQLBuilder:
                                                                               conversionObj.converted_folder,
                                                                               conversionObj.version,
                                                                               conversionObj.converted,
+                                                                              conversionObj.skip if hasattr(conversionObj, 'skip') else 0,
                                                                               conversionObj.record_id)
 
     def getSQL_getRecordIDFromSorting(self, sortingObj):

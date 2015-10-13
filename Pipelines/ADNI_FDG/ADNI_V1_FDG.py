@@ -42,6 +42,8 @@ class ADNI_V1_FDG:
             PipelineLogger.log('root', 'error', 'PET cannot be processed .. Manual XFM not found. {0} - {1} - {2} - {3} - {4}'.format(processingItemObj.subject_rid, processingItemObj.modality, processingItemObj.scan_date, processingItemObj.s_identifier, processingItemObj.i_identifier))
             return 0
         matching_t1 = ADNI_T1_Helper().getMatchingT1(processingItemObj)
+        if not matching_t1:
+            return 0
 
         processed = ADNI_T1_Helper().checkProcessed(matching_t1)
         if not processed:

@@ -40,6 +40,10 @@ class Conversion:
         convertionObj.converted = 1
         self.saveObj(convertionObj)
 
+    def setConvertedFailed(self, convertionObj):
+        convertionObj.skip = 1
+        self.saveObj(convertionObj)
+
     def saveObj(self, convertionObj):
         self.DBClient.executeNoResult(self.sqlBuilder.getSQL_saveObjConversionTable(convertionObj))
 

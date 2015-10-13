@@ -11,7 +11,7 @@
 #$9 -> PORT
 
 #### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
-echo #1_Start | nc -w 0 $7 $8
+echo $1_Start | nc -w 0 $7 $8
 
 mkdir -p $3/transforms
 mkdir -p $3/t1
