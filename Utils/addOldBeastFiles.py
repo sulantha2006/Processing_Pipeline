@@ -85,6 +85,8 @@ def copyBeast(item, proc_entry):
         new_path = proc_entry[8]
         newBeaseFolder = '{0}/beast'.format(new_path)
         os.removedirs(newBeaseFolder)
+        sql = "UPDATE ADNI_T1_Pipeline SET BEAST_MASK = 0, BEAST_SKIP = 0, BEAST_QC = 0, ADDITIONAL_1 = NULL WHERE PROCESSING_TID = {0}".format(proc_entry[0])
+        DBClient.executeNoResult(sql)
         return 0
 
 
