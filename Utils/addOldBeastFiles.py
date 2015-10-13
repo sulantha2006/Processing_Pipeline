@@ -36,7 +36,7 @@ def getSandIIDs(item):
 
 
 def getProcessingEntry(s_id, i_id):
-    sql = "SELECT * FROM Processing WHERE S_IDENTIFIER = '{0}' AND I_IDENTIFIER = '{1}'".format(s_id, i_id)
+    sql = "SELECT TMP.*, ADNI_T1_Pipeline.ADDITIONAL_1 FROM (SELECT * FROM Processing WHERE S_IDENTIFIER = '{0}' AND I_IDENTIFIER = '{1}') as TMP INNER JOIN ADNI_T1_Pipeline ON TMP.RECORD_ID= ADNI_T1_Pipeline.PROCESSING_TID".format(s_id, i_id)
     res = DBClient.executeAllResults(sql)
     if len(res) == 0:
         return None
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                     rid_list.append(rid)
 
             continue
-        if proc_entry[14] == 'OLD_PROC':
+        if proc_entry[17] == 'OLD_PROC':
             continue
 
         copyBeast(item, proc_entry)
