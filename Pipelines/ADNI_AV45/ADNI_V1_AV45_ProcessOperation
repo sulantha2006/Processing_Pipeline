@@ -11,7 +11,7 @@
 #$9 -> PORT
 
 #### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
-echo $1_Start | nc -w 0 $7 $8
+echo $1_Start | nc -w 0 $8 $9
 
 mkdir -p $3/transforms
 mkdir -p $3/t1
@@ -30,9 +30,9 @@ cp $4/civet/native/*t1.mnc $3/t1/
 cp $4/civet/final/*t1_final.mnc $3/t1/
 cp $4/civet/final/*t1_tal.mnc $3/t1/
 cp $4/civet/mask/*skull_mask.mnc $3/t1/
-cp $4/civet/mask/*pve_exactgm.mnc $3/t1/
-cp $4/civet/mask/*pve_exactwm.mnc $3/t1/
-cp $4/civet/mask/*pve_exactcsf.mnc $3/t1/
+cp $4/civet/classify/*pve_exactgm.mnc $3/t1/
+cp $4/civet/classify/*pve_exactwm.mnc $3/t1/
+cp $4/civet/classify/*pve_exactcsf.mnc $3/t1/
 
 cp $2 $3/native/
 
