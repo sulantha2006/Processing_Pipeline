@@ -47,9 +47,11 @@ class ADNI_V1_FDG:
 
         processed = ADNI_T1_Helper().checkProcessed(matching_t1)
         if not processed:
-            PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed.')
+            PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             return 0
         else:
+            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+            return 0
             self.processPET(processingItemObj, processed)
 
     def getScanType(self, processingItemObj):

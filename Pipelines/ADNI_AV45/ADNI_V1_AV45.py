@@ -50,6 +50,8 @@ class ADNI_V1_AV45:
             PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed.')
             return 0
         else:
+            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+            return 0
             self.processPET(processingItemObj, processed)
 
     def getScanType(self, processingItemObj):
