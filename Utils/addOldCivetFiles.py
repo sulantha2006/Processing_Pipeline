@@ -40,11 +40,11 @@ def getProcessingEntry(s_id, i_id):
 def copyCivet(item, proc_entry):
     mainFolder = item[0]
     nativeFile = item[1]
-    oldId = mainFolder.split('/')[-1]
+    oldId = mainFolder.split('/')[-2]
 
     if os.path.exists('{0}/final/adni_{1}_t1_final.mnc'.format(mainFolder, oldId)):
-        if proc_entry[17] == 'OLD_PROC':
-            return 1
+        #if proc_entry[17] == 'OLD_PROC':
+            #return 1
         new_path = proc_entry[8]
         newId = '{0}_{1}{2}{3}{4}'.format('ADNI', proc_entry[2], proc_entry[4].strftime('%Y-%m-%d').replace('-', ''), proc_entry[6], proc_entry[7])
         newCivetFolder = '{0}/civet'.format(new_path)
@@ -61,7 +61,7 @@ def copyCivet(item, proc_entry):
                 if not os.path.exists('{0}/{1}'.format(newCivetFolder,rootFolder)):
                     os.makedirs('{0}/{1}'.format(newCivetFolder,rootFolder))
                 for file in files:
-                    newFilFolder = '{0}{1}'.format(newCivetFolder,rootFolder)
+                    newFilFolder = '{0}/{1}'.format(newCivetFolder,rootFolder)
                     print('Copying - {0} -> {1}'.format('{0}/{1}'.format(root, file), '{0}/{1}'.format(newFilFolder, os.path.basename(file).replace('adni_{0}'.format(oldId), newId))))
                     file_util.copy_file('{0}/{1}'.format(root, file), '{0}/{1}'.format(newFilFolder, os.path.basename(file).replace('adni_{0}'.format(oldId), newId)))
         return 1
@@ -75,20 +75,26 @@ def copyCivet(item, proc_entry):
         return 0
 
 def addToModalTable(proc_entry):
-    sql = "UPDATE ADNI_T1_Pipeline SET BEAST_MASK = 1, BEAST_SKIP = 0, BEAST_QC = 1, ADDITIONAL_1 = 'OLD_PROC' WHERE PROCESSING_TID = {0}".format(proc_entry[0])
+    sql = "UPDATE ADNI_T1_Pipeline SET CIVET = 1, CIVET_QC = 1, FINISHED = 1, ADDITIONAL_1 = 'OLD_PROC' WHERE PROCESSING_TID = {0}".format(proc_entry[0])
     DBClient.executeNoResult(sql)
 
 if __name__ == '__main__':
     rid_list= []
     folderWithnativeList = recurseCivetFolder()
+    total = len(folderWithnativeList)
+    count = 1
     for item in folderWithnativeList:
-        s_id, i_id = getSandIIDs(item)
+        print('Processing - {0}/{1}'.format(count, total))
+        try:
+            s_id, i_id = getSandIIDs(item)
+        except:
+            print('S and I Numbers not in native file - {0}'.format(item[0]))
+            continue
         proc_entry = getProcessingEntry(s_id, i_id)
         if proc_entry == None:
-            if item[1].split('/')[5] != 'SMC':
-                rid = item[1].split('/')[6].split('_')[1]
-                if rid not in rid_list:
-                    rid_list.append(rid)
+            rid = item[0].split('/')[-2][2:6]
+            if rid not in rid_list:
+                rid_list.append(rid)
 
             continue
         #if proc_entry[17] == 'OLD_PROC':
@@ -96,5 +102,7 @@ if __name__ == '__main__':
 
         if copyCivet(item, proc_entry):
             addToModalTable(proc_entry)
+
+        count += 1
 
     print(rid_list)
