@@ -74,7 +74,7 @@ def main():
             pipeline.processModality(modality)
 
         QSubJobHandler.submittedJobs['xxxx'].Fin = True
-
+        PipelineLogger.log('root', 'info', 'Pipeline reached end. Waiting on submitted jobs. ')
         #### End
         if not QSubJobHandler.submittedJobs:
             PipelineLogger.log('root', 'info', 'No QSUB Jobs in waiting ...############')

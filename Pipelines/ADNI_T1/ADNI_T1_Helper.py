@@ -63,7 +63,7 @@ class ADNI_T1_Helper:
 
             matchedT1withScanDescriptions = []
             for rec in matchedT1Recs:
-                getScanFromConversionSQL = "SELECT * FROM Conversion WHERE STUDY = '{0}' AND VERSION = '{1}' AND S_IDENTIFIER = '{2}' AND I_IDENTIFIER = '{3}'".format(processingItemObj.study, processingItemObj.version, 'S{0}'.format(rec[7]), 'I{0}'.format(rec[8]))
+                getScanFromConversionSQL = "SELECT * FROM Conversion WHERE STUDY = '{0}' AND VERSION = '{1}' AND S_IDENTIFIER = '{2}' AND I_IDENTIFIER = '{3}' AND SKIP = 0".format(processingItemObj.study, processingItemObj.version, 'S{0}'.format(rec[7]), 'I{0}'.format(rec[8]))
                 t1_conversion = self.DBClient.executeAllResults(getScanFromConversionSQL)
                 if len(t1_conversion) > 0 :
                     matchedT1withScanDescriptions.append(t1_conversion[0])
@@ -85,26 +85,27 @@ class ADNI_T1_Helper:
 
                 else:
                     #### MORE THAN ONE FOUND. SELECT ONE BASED ON SCAN TYPE PRIORITY
-                    sortedList = sorted(matchedT1withScanDescriptions, key=lambda x:pc.ADNI_T1_match_scantype_priorityList.index(x[3]))
+                    sortedList = sorted(matchedT1withScanDescriptions, key=lambda x: (pc.ADNI_T1_match_scantype_priorityList.index(x[3]), -x[5]))
                     self.addToMatchT1Table(processingItemObj, modalityID, sortedList[0])
                     return sortedList[0]
 
     def checkProcessed(self, t1Record):
-        subject_id = t1Record[3]
+        subject_id = t1Record[2]
         version = t1Record[11]
         s_id = t1Record[6]
         i_id = t1Record[7]
-        checkProcessedSQL = "SELECT * FROM Processing WHERE STUDY = '{0}' AND VERSION = '{1}' AND S_IDENTIFIER = '{2}' AND I_IDENTIFIER = '{3}'".format(subject_id, version, s_id, i_id)
-        result = self.DBClient.executeAllResults(checkProcessedSQL)
+        checkProcessedSQL = "SELECT * FROM Processing WHERE RID = '{0}' AND VERSION = '{1}' AND S_IDENTIFIER = '{2}' AND I_IDENTIFIER = '{3}'".format(subject_id, version, s_id, i_id)
+        result = self.DBClient.executeAllResults(checkProcessedSQL)[0]
         if len(result) < 1:
             PipelineLogger.log('root', 'error', 'Matched T1 is not added to the processing table. {0} - {1} - {2}'.format(subject_id, s_id, i_id))
             return False
         else:
             if result[12] == 1 and result[13] == 1:
-                PipelineLogger.log('root', 'info', 'Matched T1 is processed and QC passed. {0} - {1} - {2}'.format(subject_id, s_id, i_id))
+                PipelineLogger.log('root', 'debug', 'Matched T1 is processed and QC passed. {0} - {1} - {2}'.format(subject_id, s_id, i_id))
                 return result[8]
             else:
                 PipelineLogger.log('root', 'error', 'Matched T1 is not process or QC failed. {0} - {1} - {2}'.format(subject_id, s_id, i_id))
+                self.startProcessOFT1(result)
                 return False
 
     def addToMatchT1Table(self, processingItemObj, modalityID, t1Record):
@@ -114,4 +115,10 @@ class ADNI_T1_Helper:
         t1ID = '{0}{1}{2}_x_{3}_x_{4}{5}{6}'.format(t1Record[1], t1Record[11], t1Record[2], t1Record[3], t1Record[4].strftime('%Y-%m-%d').replace('-', ''), t1Record[6], t1Record[7])
         conversionID = t1Record[0]
         sql = "INSERT IGNORE INTO MatchT1 VALUES (Null, '{0}', '{1}', '{2}', {3})".format(modalityID, t1ID, conversionID, date_diff.days)
+        self.DBClient.executeNoResult(sql)
+
+    def startProcessOFT1(self, processTableEntry):
+        recordId = processTableEntry[0]
+        study = processTableEntry[1]
+        sql = "UPDATE {0}_T1_Pipeline SET SKIP = 0 WHERE PROCESSING_TID = {1}".format(study, recordId)
         self.DBClient.executeNoResult(sql)

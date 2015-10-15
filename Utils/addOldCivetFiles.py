@@ -10,7 +10,7 @@ DBClient = DbUtils()
 def recurseCivetFolder():
     # Recurse through the main folder
     fileList = []
-    for mainFolder in glob.glob('/data/data03/ADNI/CBRAIN/civet_out/*/'):
+    for mainFolder in glob.glob('/data/data02/ADNI/CBRAIN/?????*/'):
         nativeFile = os.path.realpath(glob.glob(mainFolder + '/native/*t1.mnc')[0])
         if mainFolder and nativeFile:
             fileList.append((mainFolder, nativeFile))
@@ -41,6 +41,8 @@ def copyCivet(item, proc_entry):
     mainFolder = item[0]
     nativeFile = item[1]
     oldId = mainFolder.split('/')[-2]
+    if '-' in oldId:
+        oldId = oldId.split('-')[0]
 
     if os.path.exists('{0}/final/adni_{1}_t1_final.mnc'.format(mainFolder, oldId)):
         #if proc_entry[17] == 'OLD_PROC':
@@ -49,7 +51,9 @@ def copyCivet(item, proc_entry):
         newId = '{0}_{1}{2}{3}{4}'.format('ADNI', proc_entry[2], proc_entry[4].strftime('%Y-%m-%d').replace('-', ''), proc_entry[6], proc_entry[7])
         newCivetFolder = '{0}/civet'.format(new_path)
 
-        if os.path.exists(newCivetFolder):
+        if os.path.exists(newCivetFolder) and os.path.exists('{0}/civetNewPipes_bkp'.format(new_path)):
+            shutil.rmtree(newCivetFolder)
+        elif os.path.exists(newCivetFolder):
             try:
                 shutil.move(newCivetFolder, '{0}/civetNewPipes_bkp'.format(new_path))
             except:
@@ -60,10 +64,13 @@ def copyCivet(item, proc_entry):
                 rootFolder = root.replace(mainFolder, '')
                 if not os.path.exists('{0}/{1}'.format(newCivetFolder,rootFolder)):
                     os.makedirs('{0}/{1}'.format(newCivetFolder,rootFolder))
+                totalF = len(files)
+                countF = 1
                 for file in files:
                     newFilFolder = '{0}/{1}'.format(newCivetFolder,rootFolder)
-                    print('Copying - {0} -> {1}'.format('{0}/{1}'.format(root, file), '{0}/{1}'.format(newFilFolder, os.path.basename(file).replace('adni_{0}'.format(oldId), newId))))
+                    print('{2}/{3} - Copying - {0} -> {1}'.format('{0}/{1}'.format(root, file), '{0}/{1}'.format(newFilFolder, os.path.basename(file).replace('adni_{0}'.format(oldId), newId)), countF, totalF))
                     file_util.copy_file('{0}/{1}'.format(root, file), '{0}/{1}'.format(newFilFolder, os.path.basename(file).replace('adni_{0}'.format(oldId), newId)))
+                    countF += 1
         return 1
     else:
         print('Removing False entry : - {0}'.format(proc_entry))

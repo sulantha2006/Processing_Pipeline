@@ -1,12 +1,12 @@
 #!/bin/sh
 
-#$1 -> ID
-#$2 -> INPUT MNC
-#$3 -> OUTPUT BEAST PATH
-#$4 -> LOG DIR
+###1 -> ID
+###2 -> INPUT MNC
+###3 -> OUTPUT BEAST PATH
+###4 -> LOG DIR
 #### FOR SEND MESSAGE TO HANDLER
-#$5 -> HOST
-#$6 -> PORT
+###5 -> HOST
+###6 -> PORT
 
 #### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
 echo $1_Start | nc -w 0 $5 $6

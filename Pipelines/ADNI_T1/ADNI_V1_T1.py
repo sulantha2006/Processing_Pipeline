@@ -49,7 +49,7 @@ class ADNI_V1_T1:
         elif processingItemObj.beast_mask == 0 and not processingItemObj.beast_skip and not processingItemObj.beast_qc and not processingItemObj.manual_mask:
             self.runBeast(processingItemObj)
         elif processingItemObj.beast_skip and not processingItemObj.manual_mask and not processingItemObj.manual_skip:
-            #Request Manual Mask
+            PipelineLogger.log('manager', 'error', '$$$$$$$$$$$$$$$$$ Manual Mask Requested $$$$$$$$$$$$$$$$$$ - {0}'.format(processingItem))
             pass
         elif processingItemObj.beast_mask == 1 and not processingItemObj.beast_skip and processingItemObj.beast_qc and not processingItemObj.manual_mask:
             self.runCivet(processingItemObj, 'B')
@@ -118,10 +118,10 @@ class ADNI_V1_T1:
         PipelineLogger.log('manager', 'debug', 'Command : {0}'.format(beastCMD))
         p = subprocess.Popen(beastCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
         out, err = p.communicate()
-        PipelineLogger.log('manager', 'debug', 'Conversion Log Output : \n{0}'.format(out))
-        PipelineLogger.log('manager', 'debug', 'Conversion Log Err : \n{0}'.format(err))
+        PipelineLogger.log('manager', 'debug', 'Beast Log Output : \n{0}'.format(out.decode("utf-8")))
+        PipelineLogger.log('manager', 'debug', 'Beast Log Err : \n{0}'.format(err.decode("utf-8")))
 
-        QSubJobHandler.submittedJobs[id] = QSubJob(id, '00:20:00', processingItemObj, 'beast')
+        QSubJobHandler.submittedJobs[id] = QSubJob(id, '02:00:00', processingItemObj, 'beast')
         return 1
 
     def runCivet(self, processingItemObj, maskStatus):
