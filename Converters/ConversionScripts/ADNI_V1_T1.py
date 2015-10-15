@@ -177,11 +177,26 @@ class ADNI_V1_T1:
                                'T1 Conversion MINC file as INPUT. Only 1 MINC found. Time dimension found. Conversion failed ')
                 return 0
             else:
+                try:
+                    os.remove(outFile)
+                except:
+                    pass
+                try:
+                    distutils.dir_util.mkpath(convertionObj.converted_folder)
+                except:
+                    pass
                 copyMIncCmd = '/opt/minc-toolkit/bin/mincaverage -short {0} {1}'.format(mncList[0], outFile)
                 p_t = subprocess.Popen(copyMIncCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out_t, err_t = p_t.communicate()
-                PipelineLogger.log('converter', 'debug', 'Mincncopy Output : \n{0}'.format(out_t))
-                PipelineLogger.log('converter', 'debug', 'Mincncopy Err : \n{0}'.format(err_t))
+                PipelineLogger.log('converter', 'debug', 'Mincncopy Output : \n{0}'.format(out_t.decode("utf-8")))
+                PipelineLogger.log('converter', 'debug', 'Mincncopy Err : \n{0}'.format(err_t.decode("utf-8")))
+                if err_t.decode("utf-8") != '':
+                    PipelineLogger.log('converter', 'error',
+                                   '$$$$$ MINC Conversion failed : {0} - {1} - {2} - {3} - {4}'.format(convertionObj.study,
+                                                                                            convertionObj.rid,
+                                                                                            convertionObj.scan_date,
+                                                                                            convertionObj.scan_type, err_t.decode("utf-8")))
+                    return 0
                 PipelineLogger.log('converter', 'info',
                                    'MINC Conversion success : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                             convertionObj.rid,
