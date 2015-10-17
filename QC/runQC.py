@@ -15,16 +15,18 @@ parser.add_argument('--createUser', help=argparse.SUPPRESS)
 args = parser.parse_args()
 
 DBClient = DbUtils()
+currentRec = None
 
-
-def runCIVETQC():
+def runCIVETQC(username):
     while 1:
         getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = 'civet' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1"
         res = DBClient.executeSomeResults(getEntrySql, 1)[0]
         if len(res) < 1:
             break
         recID = res[0]
-        setStartSql = "UPDATE QC SET START = 1 WHERE RECORD_ID = '{0}'".format(recID)
+        global currentRec
+        currentRec = recID
+        setStartSql = "UPDATE QC SET START = 1, USER = '{1}' WHERE RECORD_ID = '{0}'".format(recID, username)
         DBClient.executeNoResult(setStartSql)
 
 
@@ -102,7 +104,7 @@ if __name__ == '__main__':
             if len(res) > 0:
                 if args.type == 'civet':
                     print('Starting {0} QC. '.format(args.type.upper()))
-                    runCIVETQC()
+                    runCIVETQC(args.user)
                     print('{0} QC finished '.format(args.type.upper()))
             else:
                 print('Username/password incorrect.. ')
@@ -111,6 +113,9 @@ if __name__ == '__main__':
         else:
             parser.error('Please specify QC type and username')
     except KeyboardInterrupt:
+        if currentRec:
+            resetSql = "UPDATE QC SET START = 0, USER = Null WHERE RECORD_ID = '{0}'".format(currentRec)
+            DBClient.executeNoResult(resetSql)
         print('\nThank you for doing QC. Your input is very valuable. See you next time. :-)')
         os.killpg(0, signal.SIGTERM)
 
