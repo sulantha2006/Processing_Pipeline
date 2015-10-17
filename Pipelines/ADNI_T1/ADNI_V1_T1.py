@@ -11,6 +11,7 @@ import socket
 import Config.PipelineConfig as pc
 import os
 import distutils.file_util
+from QC.QCHandler import QCHandler
 
 class ProcessingItemObj:
     def __init__(self, processingItem):
@@ -38,6 +39,7 @@ class ProcessingItemObj:
 class ADNI_V1_T1:
     def __init__(self):
         self.DBClient = DbUtils()
+        self.QCHandler = QCHandler
 
     def process(self, processingItem):
         processingItemObj = ProcessingItemObj(processingItem)
@@ -175,8 +177,8 @@ class ADNI_V1_T1:
         qcFieldDict = dict(civet='CIVET_QC', beast='BEAST_QC')
         qcFolderDict = { 'civet' : '{0}/civet'.format(processingItemObj.root_folder),
                          'beast' : '{0}/beast'.format(processingItemObj.root_folder)}
-        qcsql = "INSERT IGNORE INTO QC VALUES (Null, '{0}', '{1}', '{2}', '{3}', '{4}', 0, 0, 0, 0)".format('{0}_{1}_Pipeline'.format(processingItemObj.study, processingItemObj.modality), processingItemObj.table_id, qcFieldDict[qctype], qctype, qcFolderDict[qctype])
-
-        self.DBClient.executeNoResult(qcsql)
+        self.QCHandler.requestQC(processingItemObj.study, '{0}_{1}_Pipeline'.format(processingItemObj.study,
+                                                                                    processingItemObj.modality),
+                                 processingItemObj.table_id, qcFieldDict[qctype], qctype, qcFolderDict[qctype])
 
 
