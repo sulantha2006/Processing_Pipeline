@@ -10,6 +10,7 @@ import getpass
 import hashlib
 
 parser = argparse.ArgumentParser()
+parser.add_argument('-s','--study', help='Study name. ', choices=['adni'])
 parser.add_argument('-t','--type', help='The type of qc. ', choices=['civet', 'av45', 'beast', 'fdg', 'fmri'])
 parser.add_argument('-u','--user', help='Username ')
 parser.add_argument('--createUser', help=argparse.SUPPRESS)
@@ -18,11 +19,12 @@ args = parser.parse_args()
 DBClient = DbUtils()
 currentRec = None
 
-def runCIVETQC(username):
+def runCIVETQC(study, username):
     while 1:
-        getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = 'civet' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1"
+        getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = 'civet' AND STUDY = '{0}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(study)
         res = DBClient.executeSomeResults(getEntrySql, 1)[0]
         if len(res) < 1:
+            print('No files to QC. ')
             break
         recID = res[0]
         global currentRec
@@ -52,12 +54,12 @@ def runCIVETQC(username):
 
         proc.kill()
 
-
-def runBEASTQC(username):
+def runBEASTQC(study, username):
     while 1:
-        getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = 'beast' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1"
+        getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = 'beast' AND STUDY = '{0}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(study)
         res = DBClient.executeSomeResults(getEntrySql, 1)[0]
         if len(res) < 1:
+            print('No files to QC. ')
             break
         recID = res[0]
         global currentRec
@@ -87,11 +89,12 @@ def runBEASTQC(username):
 
         proc.kill()
 
-def runPETQC(type, username):
+def runPETQC(study, type, username):
     while 1:
-        getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = '{0}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(type.lower())
+        getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = '{0}' AND STUDY = '{1}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(type.lower(), study)
         res = DBClient.executeSomeResults(getEntrySql, 1)[0]
         if len(res) < 1:
+            print('No files to QC. ')
             break
         recID = res[0]
         global currentRec
@@ -132,7 +135,7 @@ def runPETQC(type, username):
 if __name__ == '__main__':
     os.setpgrp()
     try:
-        if args.type is None and args.user is None and args.createUser is not None:
+        if args.study is None and args.type is None and args.user is None and args.createUser is not None:
             ## Create User
             user = input('Admin username : ')
             passwd = getpass.getpass('Admin Password : ')
@@ -168,7 +171,7 @@ if __name__ == '__main__':
 
 
 
-        elif args.type is not None and args.user is not None and args.createUser is None:
+        elif args.study is not None and args.type is not None and args.user is not None and args.createUser is None:
 
             passwd = getpass.getpass('Password : ')
             hash_object = hashlib.sha256(passwd.encode('utf-8'))
@@ -180,15 +183,15 @@ if __name__ == '__main__':
             if len(res) > 0:
                 if args.type == 'civet':
                     print('Starting {0} QC. '.format(args.type.upper()))
-                    runCIVETQC(args.user)
+                    runCIVETQC(args.study.upper(), args.user)
                     print('{0} QC finished '.format(args.type.upper()))
                 if args.type == 'beast':
                     print('Starting {0} QC. '.format(args.type.upper()))
-                    runBEASTQC(args.user)
+                    runBEASTQC(args.study.upper(), args.user)
                     print('{0} QC finished '.format(args.type.upper()))
                 if args.type == 'av45' or args.type == 'fdg':
                     print('Starting {0} QC. '.format(args.type.upper()))
-                    runPETQC(args.type, args.user)
+                    runPETQC(args.study.upper(), args.type, args.user)
                     print('{0} QC finished '.format(args.type.upper()))
             else:
                 print('Username/password incorrect.. ')
