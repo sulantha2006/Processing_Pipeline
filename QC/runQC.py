@@ -22,10 +22,11 @@ currentRec = None
 def runCIVETQC(study, username):
     while 1:
         getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = 'civet' AND STUDY = '{0}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(study)
-        res = DBClient.executeSomeResults(getEntrySql, 1)[0]
-        if len(res) < 1:
+        resT = DBClient.executeAllResults(getEntrySql)
+        if len(resT) < 1:
             print('No files to QC. ')
             break
+        res = resT[0]
         recID = res[0]
         global currentRec
         currentRec = recID

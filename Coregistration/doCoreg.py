@@ -30,10 +30,11 @@ tagFile = '1.tag'
 def runCoreg(study, type, username):
     while 1:
         getEntrySql = "SELECT * FROM Coregistration WHERE TYPE = '{0}' AND STUDY = '{1}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(type, study)
-        res = DBClient.executeSomeResults(getEntrySql, 1)[0]
-        if len(res) < 1:
+        resT = DBClient.executeAllResults(getEntrySql)
+        if len(resT) < 1:
             print('No files to coregister. ')
             break
+        res = resT[0]
         recID = res[0]
         global currentRec
         currentRec = recID
