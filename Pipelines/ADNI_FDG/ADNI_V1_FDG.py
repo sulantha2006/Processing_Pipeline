@@ -50,8 +50,11 @@ class ADNI_V1_FDG:
             PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             return 0
         else:
-            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. With check for xfm. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             return 0
+            if processingItemObj.manual_xfm == '':
+                manualXFM = self.PETHelper.getManualXFM(processingItemObj, matching_t1)
+                processingItemObj.manual_xfm = manualXFM
             self.processPET(processingItemObj, processed)
 
     def getScanType(self, processingItemObj):
@@ -99,7 +102,7 @@ class ADNI_V1_FDG:
         PipelineLogger.log('manager', 'debug', 'Conversion Log Output : \n{0}'.format(out))
         PipelineLogger.log('manager', 'debug', 'Conversion Log Err : \n{0}'.format(err))
 
-        QSubJobHandler.submittedJobs[id] = QSubJob(id, '00:20:00', processingItemObj, 'av45')
+        QSubJobHandler.submittedJobs[id] = QSubJob(id, '02:00:00', processingItemObj, 'av45')
         return 1
 
 

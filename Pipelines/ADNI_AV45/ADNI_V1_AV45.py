@@ -12,6 +12,7 @@ from Manager.QSubJob import QSubJob
 from Manager.QSubJobHanlder import QSubJobHandler
 import socket
 import ast
+from Pipelines.Helpers import PETHelper
 
 class ProcessingItemObj:
     def __init__(self, processingItem):
@@ -35,6 +36,7 @@ class ADNI_V1_AV45:
     def __init__(self):
         self.DBClient = DbUtils()
         self.MatchDBClient = DbUtils(database=pc.ADNI_dataMatchDBName)
+        self.PETHelper = PETHelper()
 
     def process(self, processingItem):
         processingItemObj = ProcessingItemObj(processingItem)
@@ -43,15 +45,18 @@ class ADNI_V1_AV45:
             return 0
         matching_t1 = ADNI_T1_Helper().getMatchingT1(processingItemObj)
         if not matching_t1:
+            PipelineLogger.log('root', 'error', 'PET cannot be processed no matching T1 found. - {0} - {1} - {2}.'.format(processingItemObj.subject_rid, processingItemObj.modality, processingItemObj.scan_date))
             return 0
 
         processed = ADNI_T1_Helper().checkProcessed(matching_t1)
         if not processed:
-            PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed.')
+            PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed - {0}'.format(matching_t1))
             return 0
         else:
-            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. With check for xfm. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             return 0
+            if processingItemObj.manual_xfm == '':
+                manualXFM = self.PETHelper.getManualXFM(processingItemObj, matching_t1)
             self.processPET(processingItemObj, processed)
 
     def getScanType(self, processingItemObj):
@@ -99,7 +104,7 @@ class ADNI_V1_AV45:
         PipelineLogger.log('manager', 'debug', 'Conversion Log Output : \n{0}'.format(out))
         PipelineLogger.log('manager', 'debug', 'Conversion Log Err : \n{0}'.format(err))
 
-        QSubJobHandler.submittedJobs[id] = QSubJob(id, '00:20:00', processingItemObj, 'av45')
+        QSubJobHandler.submittedJobs[id] = QSubJob(id, '02:00:00', processingItemObj, 'av45')
         return 1
 
 
