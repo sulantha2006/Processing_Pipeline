@@ -4,6 +4,7 @@ import argparse
 import sys
 sys.path.append('/home/sulantha/PycharmProjects/Processing_Pipeline')
 from Utils.DbUtils import DbUtils
+from Config import QCConfig
 import os, subprocess, signal
 import getpass
 import hashlib
@@ -86,6 +87,47 @@ def runBEASTQC(username):
 
         proc.kill()
 
+def runPETQC(type, username):
+    while 1:
+        getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = '{0}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(type.lower())
+        res = DBClient.executeSomeResults(getEntrySql, 1)[0]
+        if len(res) < 1:
+            break
+        recID = res[0]
+        global currentRec
+        currentRec = recID
+        setStartSql = "UPDATE QC SET START = 1, USER = '{1}' WHERE RECORD_ID = '{0}'".format(recID, username)
+        DBClient.executeNoResult(setStartSql)
+
+
+        petPath = res[5]
+        if type.lower() == 'av45':
+            regCMD1 = 'register {0}/final/*_pbavg_ref_cerGM_wmnorm_085.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
+            regCMD2 = 'register {0}/final/*_pbavg_ref_cerGM_wmnorm_085.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
+        elif type.lower() == 'fdg':
+            regCMD1 = 'register {0}/mask/*_pbavg_ref_pons.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
+            regCMD2 = 'register {0}/mask/*_pbavg_ref_pons.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
+        proc1 = subprocess.Popen(regCMD1, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
+        proc2 = subprocess.Popen(regCMD2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
+
+        qcpass = 'z'
+        while not (qcpass.lower() == 'y' or qcpass.lower() == 'n'):
+                qcpass = input('QC [y/n] : ')
+
+        if qcpass.lower() == 'y':
+            resSQL = "UPDATE {0} SET {1} = 1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            DBClient.executeNoResult(resSQL)
+            finSQL = "UPDATE QC SET END = 1, PASS = 1 WHERE RECORD_ID = {0}".format(recID)
+            DBClient.executeNoResult(finSQL)
+        if qcpass.lower() == 'n':
+            resSQL = "UPDATE {0} SET {1} = -1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            DBClient.executeNoResult(resSQL)
+            finSQL = "UPDATE QC SET END = 1, PASS = 0 WHERE RECORD_ID = {0}".format(recID)
+            DBClient.executeNoResult(finSQL)
+
+        proc1.kill()
+        proc2.kill()
+
 
 if __name__ == '__main__':
     os.setpgrp()
@@ -143,6 +185,10 @@ if __name__ == '__main__':
                 if args.type == 'beast':
                     print('Starting {0} QC. '.format(args.type.upper()))
                     runBEASTQC(args.user)
+                    print('{0} QC finished '.format(args.type.upper()))
+                if args.type == 'av45' or args.type == 'fdg':
+                    print('Starting {0} QC. '.format(args.type.upper()))
+                    runPETQC(args.type, args.user)
                     print('{0} QC finished '.format(args.type.upper()))
             else:
                 print('Username/password incorrect.. ')
