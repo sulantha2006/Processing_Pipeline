@@ -52,6 +52,40 @@ def runCIVETQC(username):
         proc.kill()
 
 
+def runBEASTQC(username):
+    while 1:
+        getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = 'beast' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1"
+        res = DBClient.executeSomeResults(getEntrySql, 1)[0]
+        if len(res) < 1:
+            break
+        recID = res[0]
+        global currentRec
+        currentRec = recID
+        setStartSql = "UPDATE QC SET START = 1, USER = '{1}' WHERE RECORD_ID = '{0}'".format(recID, username)
+        DBClient.executeNoResult(setStartSql)
+
+
+        beastPath = res[5]
+        regCMD = 'register {0}/mask/*_skull_mask_native.mnc {0}/native/*_t1.mnc'.format(beastPath)
+        proc = subprocess.Popen(regCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
+
+        qcpass = 'z'
+        while not (qcpass.lower() == 'y' or qcpass.lower() == 'n'):
+                qcpass = input('QC [y/n] : ')
+
+        if qcpass.lower() == 'y':
+            resSQL = "UPDATE {0} SET {1} = 1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            DBClient.executeNoResult(resSQL)
+            finSQL = "UPDATE QC SET END = 1, PASS = 1 WHERE RECORD_ID = {0}".format(recID)
+            DBClient.executeNoResult(finSQL)
+        if qcpass.lower() == 'n':
+            resSQL = "UPDATE {0} SET {1} = -1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            DBClient.executeNoResult(resSQL)
+            finSQL = "UPDATE QC SET END = 1, PASS = 0 WHERE RECORD_ID = {0}".format(recID)
+            DBClient.executeNoResult(finSQL)
+
+        proc.kill()
+
 
 if __name__ == '__main__':
     os.setpgrp()
@@ -105,6 +139,10 @@ if __name__ == '__main__':
                 if args.type == 'civet':
                     print('Starting {0} QC. '.format(args.type.upper()))
                     runCIVETQC(args.user)
+                    print('{0} QC finished '.format(args.type.upper()))
+                if args.type == 'beast':
+                    print('Starting {0} QC. '.format(args.type.upper()))
+                    runBEASTQC(args.user)
                     print('{0} QC finished '.format(args.type.upper()))
             else:
                 print('Username/password incorrect.. ')
