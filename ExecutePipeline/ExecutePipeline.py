@@ -71,6 +71,10 @@ def main():
         for modality in modalities:
             if modality == 'BLUFF':
                 break
+            pipeline.checkExternalJobs(modality)
+        for modality in modalities:
+            if modality == 'BLUFF':
+                break
             pipeline.processModality(modality)
 
         QSubJobHandler.submittedJobs['xxxx'].Fin = True

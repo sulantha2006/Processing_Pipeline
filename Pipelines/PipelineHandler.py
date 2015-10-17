@@ -7,11 +7,52 @@ from Pipelines.ADNI_FDG.ADNI_V1_FDG import ADNI_V1_FDG
 from Pipelines.ADNI_AV45.ADNI_V1_AV45 import ADNI_V1_AV45
 from Pipelines.ADNI_Fmri.ADNI_V1_FMRI import ADNI_V1_FMRI
 from Config import PipelineConfig
+from Utils.PipelineLogger import PipelineLogger
+import glob
+import shutil
+from distutils import dir_util
 
 class PipelineHandler:
     def __init__(self):
         self.processingPPDict = {'ADNI':{'V1':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V1_AV45(), 'FDG':ADNI_V1_FDG()}}}
         self.DBClient = DbUtils()
+
+    def checkExternalJobs(self, study, modality):
+        getExtJobSql = "SELECT * FROM externalWaitingJobs WHERE JOB_ID LIKE '{0}_{1}_%'".format(study, modality)
+        extJobs = self.DBClient.executeAllResults(getExtJobSql)
+        for job in extJobs:
+            jobType = job[0].split('_')[-1]
+            reportTable = job[1]
+            tableID = job[0].split('_')[2]
+            reportField = job[2]
+            subjectScanID = job[0].split('_')[3]
+            success = 0
+            if jobType == 'CIVETRUN':
+                if glob.glob('{0}/{1}_{2}_*'.format(PipelineConfig.T1TempDirForCIVETDownload, study, subjectScanID)):
+                    getProccessRecSql = "SELECT * FROM Processing WHERE RECORD_ID IN (SELECT PROCESSING_TID FROM {0}_T1_Pipeline WHERE RECORD_ID = {1})".format(study, tableID)
+                    processingEntry = self.DBClient.executeAllResults(getProccessRecSql)[0]
+
+                    civetFolder = '{0}/civet'.format(processingEntry[8])
+
+                    if os.path.exists(civetFolder):
+                        shutil.rmtree(civetFolder)
+                    try:
+                        PipelineLogger.log('manager', 'info', 'Copying - {0} -> {1}'.format(glob.glob('{0}/{1}_{2}_*'.format(PipelineConfig.T1TempDirForCIVETDownload, study, subjectScanID))[0], civetFolder))
+                        dir_util.copy_tree(glob.glob('{0}/{1}_{2}_*'.format(PipelineConfig.T1TempDirForCIVETDownload, study, subjectScanID))[0], civetFolder)
+                        success = 1
+                    except:
+                        success = 0
+                else:
+                    continue
+            else:
+                PipelineLogger.log('manager', 'error', 'Unknown external job type - {}'.format(jobType))
+
+            if success:
+                updateSQL = "UPDATE {0} SET {1} = 1 WHERE RECORD_ID = {2}".format(reportTable, reportField, tableID)
+                self.DBClient.executeNoResult(updateSQL)
+                rmSql = "DELETE FROM externalWaitingJobs WHERE JOB_ID LIKE '{0}_{1}_{2}_{3}_%'".format(study, modality, tableID, subjectScanID)
+                self.DBClient.executeNoResult(rmSql)
+
 
     def process(self, study, modality):
         os.environ['PATH'] = ':'.join(libpath.PATH)

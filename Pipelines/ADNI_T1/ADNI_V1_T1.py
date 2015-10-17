@@ -42,20 +42,21 @@ class ADNI_V1_T1:
     def process(self, processingItem):
         processingItemObj = ProcessingItemObj(processingItem)
 
-        if processingItemObj.beast_skip and processingItemObj.manual_skip:
+        if processingItemObj.beast_skip and processingItemObj.manual_skip and not processingItemObj.civet:
             self.runCivet(processingItemObj, 'N')
-        elif processingItemObj.manual_mask and not processingItemObj.manual_skip:
+        elif processingItemObj.manual_mask and not processingItemObj.manual_skip and not processingItemObj.civet:
             self.runCivet(processingItemObj, 'M')
-        elif processingItemObj.beast_mask == 0 and not processingItemObj.beast_skip and not processingItemObj.beast_qc and not processingItemObj.manual_mask:
+        elif processingItemObj.beast_mask == 0 and not processingItemObj.beast_skip and processingItemObj.beast_qc == 0 and not processingItemObj.manual_mask:
             self.runBeast(processingItemObj)
         elif processingItemObj.beast_skip and not processingItemObj.manual_mask and not processingItemObj.manual_skip:
             PipelineLogger.log('manager', 'error', '$$$$$$$$$$$$$$$$$ Manual Mask Requested $$$$$$$$$$$$$$$$$$ - {0}'.format(processingItem))
             pass
-        elif processingItemObj.beast_mask == 1 and not processingItemObj.beast_skip and processingItemObj.beast_qc and not processingItemObj.manual_mask:
+        elif processingItemObj.beast_mask == 1 and not processingItemObj.beast_skip and processingItemObj.beast_qc == 1 and not processingItemObj.manual_mask and not processingItemObj.civet:
             self.runCivet(processingItemObj, 'B')
-        elif processingItemObj.beast_mask == 1 and not processingItemObj.beast_skip and not processingItemObj.beast_qc and not processingItemObj.manual_mask and not processingItemObj.manual_skip:
-            #Request QC on Beast Mask
-            pass
+        elif processingItemObj.beast_mask == 1 and not processingItemObj.beast_skip and processingItemObj.beast_qc == 0 and not processingItemObj.manual_mask and not processingItemObj.manual_skip:
+            self.requestQC(processingItemObj, 'beast')
+        elif processingItemObj.civet == 1 and processingItemObj.civet_qc == 0:
+            self.requestQC(processingItemObj, 'civet')
         else:
             PipelineLogger.log('manager', 'error', 'Error handling obj for processing - {0}'.format(processingItem))
             return 0
@@ -170,6 +171,12 @@ class ADNI_V1_T1:
                 os.remove(beastMaskName) if os.path.exists(beastMaskName) else None
                 os.remove(manualMaskName) if os.path.exists(manualMaskName) else None
 
+    def requestQC(self, processingItemObj, qctype):
+        qcFieldDict = dict(civet='CIVET_QC', beast='BEAST_QC')
+        qcFolderDict = { 'civet' : '{0}/civet'.format(processingItemObj.root_folder),
+                         'beast' : '{0}/beast'.format(processingItemObj.root_folder)}
+        qcsql = "INSERT IGNORE INTO QC VALUES (Null, '{0}', '{1}', '{2}', '{3}', '{4}', 0, 0, 0, 0)".format('{0}_{1}_Pipeline'.format(processingItemObj.study, processingItemObj.modality), processingItemObj.table_id, qcFieldDict[qctype], qctype, qcFolderDict[qctype])
 
+        self.DBClient.executeNoResult(qcsql)
 
 

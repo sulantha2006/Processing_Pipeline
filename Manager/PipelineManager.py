@@ -151,6 +151,11 @@ class PipelineManager:
             for processingObj in self.toProcessListDict[study]:
                 self.pipelineHanlder.addToPipelineTable(processingObj)
 
+    def checkExternalJobs(self, modality):
+        PipelineLogger.log('manager', 'info', 'Checking on external jobs ... ###########')
+        for study in self.studyList:
+            self.pipelineHanlder.checkExternalJobs(study, modality)
+
     def processModality(self, modality):
         PipelineLogger.log('manager', 'info', 'File processing started ... ###########')
         for study in self.studyList:

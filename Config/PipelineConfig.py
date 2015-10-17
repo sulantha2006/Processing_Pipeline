@@ -16,6 +16,7 @@ matlab_call = '%s -nodisplay << addpath(%s)' % (matlab_location, matlab_scripts)
 sourcing = 'source /opt/minc-toolkit/minc-toolkit-config.sh'
 
 T1TempDirForCIVETProcessing = '/data/data03/CIVETUPLOAD'
+T1TempDirForCIVETDownload = '/data/data03/CIVETDOWNLOAD'
 
 ADNI_dataMatchDBName = 'Study_Data.ADNI'
 ADNI_visitCode_Dict = {
