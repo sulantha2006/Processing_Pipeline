@@ -51,10 +51,10 @@ class ADNI_V1_FDG:
             return 0
         else:
             PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. With check for xfm. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
-            return 0
             if processingItemObj.manual_xfm == '':
                 manualXFM = self.PETHelper.getManualXFM(processingItemObj, matching_t1)
                 processingItemObj.manual_xfm = manualXFM
+            return 0
             self.processPET(processingItemObj, processed)
 
     def getScanType(self, processingItemObj):

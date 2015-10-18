@@ -30,10 +30,20 @@ class PETHelper:
         else:
             PipelineLogger.log('root', 'INFO', '$$$$$$$ Manual XFM not found. Requesting manual XFM. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             pet_folder = processingItemObj.converted_folder
+            pet_scanType = self.getScanType(processingItemObj)
             t1_folder = matchedT1entry[10]
+            t1_scanType = matchedT1entry[3]
             xfmFileName = '{0}_{1}_PET_{2}_{3}_T1_{4}_{5}'
-            self.CoregHand.requestCoreg(study, rid, processingItemObj.modality, pet_folder, t1_folder, xfmFileName)
+            self.CoregHand.requestCoreg(study, rid, processingItemObj.modality, pet_folder, t1_folder, pet_scanType, t1_scanType, xfmFileName)
 
-
+    def getScanType(self, processingItemObj):
+        r = self.DBClient.executeAllResults("SELECT SCAN_TYPE FROM Conversion WHERE STUDY = '{0}' AND RID = '{1}' "
+                                        "AND SCAN_DATE = '{2}' AND S_IDENTIFIER = '{3}' "
+                                        "AND I_IDENTIFIER = '{4}'".format(processingItemObj.study,
+                                                                          processingItemObj.subject_rid,
+                                                                          processingItemObj.scan_date,
+                                                                          processingItemObj.s_identifier,
+                                                                          processingItemObj.i_identifier))
+        return r[0][0]
 
 
