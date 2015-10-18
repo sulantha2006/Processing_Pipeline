@@ -55,7 +55,11 @@ class ADNI_V1_FDG:
                 manualXFM = self.PETHelper.getManualXFM(processingItemObj, matching_t1)
                 processingItemObj.manual_xfm = manualXFM
             return 0
-            self.processPET(processingItemObj, processed)
+            if manualXFM:
+                self.processPET(processingItemObj, processed)
+            else:
+                PipelineLogger.log('root', 'INFO', 'Manual XFM was not found. Request to create one may have added.  - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+                return 0
 
     def getScanType(self, processingItemObj):
         r = self.DBClient.executeAllResults("SELECT SCAN_TYPE FROM Conversion WHERE STUDY = '{0}' AND RID = '{1}' "

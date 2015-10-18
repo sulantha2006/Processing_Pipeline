@@ -46,12 +46,13 @@ def runCoreg(study, type, username):
         petScanType = res[6]
         t1ScanType = res[7]
         regCMD = 'register {0}/*_{2}.mnc {1}/*_{3}.mnc'.format(petPath, t1Path, petScanType, t1ScanType)
-        proc = subprocess.Popen(regCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh').wait()
+        subprocess.Popen(regCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh').wait()
 
         if os.path.exists(xfmFile) and os.path.exists(tagFile):
             xfmName = res[8]
             try:
-                shutil.move(xfmFile, '{0}/{1}.xfm'.format(CoregConfig.MANUAL_XFM_FOLDER, xfmName))
+                invCMD = 'xfminvert {0} {1}/{2}.xfm'.format(xfmFile, CoregConfig.MANUAL_XFM_FOLDER, xfmName)
+                subprocess.Popen(invCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh').wait()
                 shutil.move(tagFile, '{0}/{1}.tag'.format(CoregConfig.MANUAL_TAG_FOLDER, xfmName))
             except:
                 print('File move error. Check for system folder permissions. ')

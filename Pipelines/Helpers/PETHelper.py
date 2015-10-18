@@ -35,6 +35,7 @@ class PETHelper:
             t1_scanType = matchedT1entry[3]
             xfmFileName = '{0}_{1}_PET_{2}_{3}_T1_{4}_{5}'
             self.CoregHand.requestCoreg(study, rid, processingItemObj.modality, pet_folder, t1_folder, pet_scanType, t1_scanType, xfmFileName)
+            return None
 
     def getScanType(self, processingItemObj):
         r = self.DBClient.executeAllResults("SELECT SCAN_TYPE FROM Conversion WHERE STUDY = '{0}' AND RID = '{1}' "
