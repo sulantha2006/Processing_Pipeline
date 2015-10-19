@@ -98,7 +98,7 @@ if __name__ == '__main__':
                     hash_object = hashlib.sha256(newpass1.encode('utf-8'))
                     passHex = hash_object.hexdigest()
 
-                    sqlInsert = "INSERT INTO Auth VALUES ('{0}', 1, '{1}')".format(args.createUser, passHex)
+                    sqlInsert = "INSERT INTO Auth VALUES (Null, '{0}', 1, '{1}')".format(args.createUser, passHex)
                     DBClient.executeNoResult(sqlInsert)
                 else:
                     print('Password mismatch. ')

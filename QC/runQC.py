@@ -34,7 +34,7 @@ def runCIVETQC(study, username):
         DBClient.executeNoResult(setStartSql)
 
 
-        civetpath = res[5]
+        civetpath = res[6]
         displayCMD = 'display {0}/verify/*_verify.png'.format(civetpath)
         proc = subprocess.Popen(displayCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
 
@@ -43,12 +43,12 @@ def runCIVETQC(study, username):
                 qcpass = input('QC [y/n] : ')
 
         if qcpass.lower() == 'y':
-            resSQL = "UPDATE {0} SET {1} = 1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            resSQL = "UPDATE {0} SET {1} = 1 WHERE RECORD_ID = {2}".format(res[2], res[4], res[3])
             DBClient.executeNoResult(resSQL)
             finSQL = "UPDATE QC SET END = 1, PASS = 1 WHERE RECORD_ID = {0}".format(recID)
             DBClient.executeNoResult(finSQL)
         if qcpass.lower() == 'n':
-            resSQL = "UPDATE {0} SET {1} = -1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            resSQL = "UPDATE {0} SET {1} = -1 WHERE RECORD_ID = {2}".format(res[2], res[4], res[3])
             DBClient.executeNoResult(resSQL)
             finSQL = "UPDATE QC SET END = 1, PASS = 0 WHERE RECORD_ID = {0}".format(recID)
             DBClient.executeNoResult(finSQL)
@@ -69,7 +69,7 @@ def runBEASTQC(study, username):
         DBClient.executeNoResult(setStartSql)
 
 
-        beastPath = res[5]
+        beastPath = res[6]
         regCMD = 'register {0}/mask/*_skull_mask_native.mnc {0}/native/*_t1.mnc'.format(beastPath)
         proc = subprocess.Popen(regCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
 
@@ -78,12 +78,12 @@ def runBEASTQC(study, username):
                 qcpass = input('QC [y/n] : ')
 
         if qcpass.lower() == 'y':
-            resSQL = "UPDATE {0} SET {1} = 1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            resSQL = "UPDATE {0} SET {1} = 1 WHERE RECORD_ID = {2}".format(res[2], res[4], res[3])
             DBClient.executeNoResult(resSQL)
             finSQL = "UPDATE QC SET END = 1, PASS = 1 WHERE RECORD_ID = {0}".format(recID)
             DBClient.executeNoResult(finSQL)
         if qcpass.lower() == 'n':
-            resSQL = "UPDATE {0} SET {1} = -1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            resSQL = "UPDATE {0} SET {1} = -1 WHERE RECORD_ID = {2}".format(res[2], res[4], res[3])
             DBClient.executeNoResult(resSQL)
             finSQL = "UPDATE QC SET END = 1, PASS = 0 WHERE RECORD_ID = {0}".format(recID)
             DBClient.executeNoResult(finSQL)
@@ -104,7 +104,7 @@ def runPETQC(study, type, username):
         DBClient.executeNoResult(setStartSql)
 
 
-        petPath = res[5]
+        petPath = res[6]
         if type.lower() == 'av45':
             regCMD1 = 'register {0}/final/*_pbavg_ref_cerGM_wmnorm_085.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
             regCMD2 = 'register {0}/final/*_pbavg_ref_cerGM_wmnorm_085.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
@@ -119,12 +119,12 @@ def runPETQC(study, type, username):
                 qcpass = input('QC [y/n] : ')
 
         if qcpass.lower() == 'y':
-            resSQL = "UPDATE {0} SET {1} = 1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            resSQL = "UPDATE {0} SET {1} = 1 WHERE RECORD_ID = {2}".format(res[2], res[4], res[3])
             DBClient.executeNoResult(resSQL)
             finSQL = "UPDATE QC SET END = 1, PASS = 1 WHERE RECORD_ID = {0}".format(recID)
             DBClient.executeNoResult(finSQL)
         if qcpass.lower() == 'n':
-            resSQL = "UPDATE {0} SET {1} = -1 WHERE RECORD_ID = {2}".format(res[1], res[3], res[2])
+            resSQL = "UPDATE {0} SET {1} = -1 WHERE RECORD_ID = {2}".format(res[2], res[4], res[3])
             DBClient.executeNoResult(resSQL)
             finSQL = "UPDATE QC SET END = 1, PASS = 0 WHERE RECORD_ID = {0}".format(recID)
             DBClient.executeNoResult(finSQL)
@@ -158,7 +158,7 @@ if __name__ == '__main__':
                     hash_object = hashlib.sha256(newpass1.encode('utf-8'))
                     passHex = hash_object.hexdigest()
 
-                    sqlInsert = "INSERT INTO Auth VALUES ('{0}', 1, '{1}')".format(args.createUser, passHex)
+                    sqlInsert = "INSERT INTO Auth VALUES (Null, '{0}', 1, '{1}')".format(args.createUser, passHex)
                     DBClient.executeNoResult(sqlInsert)
                 else:
                     print('Password mismatch. ')
