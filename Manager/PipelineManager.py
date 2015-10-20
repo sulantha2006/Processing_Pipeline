@@ -14,6 +14,7 @@ from Converters.Raw2MINCConverter import Raw2MINCConverter
 from Manager.QSubJobHanlder import QSubJobHandler
 from Pipelines.PipelineHandler import PipelineHandler
 from Manager.SQLTables.Processing import Processing
+from QC.QCHandler import QCHandler
 
 
 class PipelineManager:
@@ -43,6 +44,7 @@ class PipelineManager:
 
         self.toProcessListDict = {}
         self.pipelineHanlder = PipelineHandler()
+        self.QCHandler = QCHandler()
 
     # This method will return a list of Recursor Objects based on the study list provided.
     def _getRecursorList(self, studyList):
@@ -155,6 +157,11 @@ class PipelineManager:
         PipelineLogger.log('manager', 'info', 'Checking on external jobs ... ###########')
         for study in self.studyList:
             self.pipelineHanlder.checkExternalJobs(study, modality)
+
+    def checkOnQCJobs(self, modality):
+        PipelineLogger.log('manager', 'info', 'Checking on QC jobs ... ###########')
+        for study in self.studyList:
+            self.QCHandler.checkQCJobs(study, modality)
 
     def processModality(self, modality):
         PipelineLogger.log('manager', 'info', 'File processing started ... ###########')

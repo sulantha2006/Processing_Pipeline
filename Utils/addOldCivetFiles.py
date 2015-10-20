@@ -82,7 +82,7 @@ def copyCivet(item, proc_entry):
         return 0
 
 def addToModalTable(proc_entry):
-    sql = "UPDATE ADNI_T1_Pipeline SET CIVET = 1, CIVET_QC = 1, FINISHED = 1, ADDITIONAL_1 = 'OLD_PROC' WHERE PROCESSING_TID = {0}".format(proc_entry[0])
+    sql = "UPDATE ADNI_T1_Pipeline SET CIVET = 1, QC = 1, FINISHED = 1, ADDITIONAL_1 = 'OLD_PROC' WHERE PROCESSING_TID = {0}".format(proc_entry[0])
     DBClient.executeNoResult(sql)
 
 if __name__ == '__main__':

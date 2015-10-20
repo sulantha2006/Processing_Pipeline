@@ -60,6 +60,8 @@ class ADNI_V1_T1:
         elif processingItemObj.civet == 1 and processingItemObj.civet_qc == 0:
             self.requestQC(processingItemObj, 'civet')
         else:
+            if processingItemObj.civet_qc == -1:
+                PipelineLogger.log('manager', 'error', 'Civet QC failed. Skipping. - {0}'.format(processingItem))
             PipelineLogger.log('manager', 'error', 'Error handling obj for processing - {0}'.format(processingItem))
             return 0
 
@@ -174,7 +176,7 @@ class ADNI_V1_T1:
                 os.remove(manualMaskName) if os.path.exists(manualMaskName) else None
 
     def requestQC(self, processingItemObj, qctype):
-        qcFieldDict = dict(civet='CIVET_QC', beast='BEAST_QC')
+        qcFieldDict = dict(civet='QC', beast='BEAST_QC')
         qcFolderDict = { 'civet' : '{0}/civet'.format(processingItemObj.root_folder),
                          'beast' : '{0}/beast'.format(processingItemObj.root_folder)}
         self.QCHandler.requestQC(processingItemObj.study, '{0}_{1}_Pipeline'.format(processingItemObj.study,

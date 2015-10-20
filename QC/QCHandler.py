@@ -12,3 +12,15 @@ class QCHandler:
                                                                                                                          qctype, qcFolder)
 
         self.DBClient.executeNoResult(qcsql)
+
+    def checkQCJobs(self, study, modality):
+        sql = "SELECT * FROM {0}_{1}_Pipeline WHERE QC = 1 AND FINISHED = 1".format(study, modality)
+        res = self.DBClient.executeAllResults(sql)
+        if len(res) < 1:
+            return 0
+        else:
+            for result in res:
+                proc_id = result[1]
+                setProcessedSQL = "UPDATE Processing SET PROCESSED = 1, QCPASSED = 1 WHERE RECORD_ID = {0}".format(proc_id)
+                self.DBClient.executeNoResult(setProcessedSQL)
+

@@ -12,7 +12,7 @@ from Manager.QSubJob import QSubJob
 from Manager.QSubJobHanlder import QSubJobHandler
 import socket
 import ast
-from Pipelines.Helpers import PETHelper
+from Pipelines.Helpers.PETHelper import PETHelper
 
 class ProcessingItemObj:
     def __init__(self, processingItem):
@@ -40,9 +40,6 @@ class ADNI_V1_AV45:
 
     def process(self, processingItem):
         processingItemObj = ProcessingItemObj(processingItem)
-        if processingItemObj.manual_xfm == '':
-            PipelineLogger.log('root', 'error', 'PET cannot be processed .. Manual XFM not found. {0} - {1} - {2} - {3} - {4}'.format(processingItemObj.subject_rid, processingItemObj.modality, processingItemObj.scan_date, processingItemObj.s_identifier, processingItemObj.i_identifier))
-            return 0
         matching_t1 = ADNI_T1_Helper().getMatchingT1(processingItemObj)
         if not matching_t1:
             PipelineLogger.log('root', 'error', 'PET cannot be processed no matching T1 found. - {0} - {1} - {2}.'.format(processingItemObj.subject_rid, processingItemObj.modality, processingItemObj.scan_date))
@@ -53,10 +50,10 @@ class ADNI_V1_AV45:
             PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed - {0}'.format(matching_t1))
             return 0
         else:
-            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. With check for xfm. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. Will check for xfm. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             if processingItemObj.manual_xfm == '':
                 manualXFM = self.PETHelper.getManualXFM(processingItemObj, matching_t1)
-            return 0
+                processingItemObj.manual_xfm = manualXFM
             if manualXFM:
                 self.processPET(processingItemObj, processed)
             else:
@@ -89,9 +86,9 @@ class ADNI_V1_AV45:
 
         id = '{0}{1}{2}{3}'.format(processingItemObj.subject_rid, processingItemObj.scan_date.replace('-', ''), processingItemObj.s_identifier, processingItemObj.i_identifier)
         paramStrd = ast.literal_eval(processingItemObj.parameters)
-        paramStrt = ' '.join(['[\"{0}\"]=\"{1}\"'.format(k, v) for k,v in paramStrd.iteritems()])
+        paramStrt = ' '.join(['[\"{0}\"]=\"{1}\"'.format(k, v) for k,v in paramStrd.items()])
         paramStr = '({0})'.format(paramStrt)
-        petCMD = 'source /opt/minc-toolkit/minc-toolkit-config.sh; Pipelines/ADNI_AV45/ADNI_V1_AV45_Process {0} {1} {2} {3} {4} {5} {6} {7} {8}'.format(id, petFileName, processedFolder, matchT1Path, processingItemObj.manual_xfm, logDir, paramStr,socket.gethostname(), 50500)
+        petCMD = "source /opt/minc-toolkit/minc-toolkit-config.sh; Pipelines/ADNI_AV45/ADNI_V1_AV45_Process {0} {1} {2} {3} {4} {5} '{6}' {7} {8}".format(id, petFileName, processedFolder, matchT1Path, processingItemObj.manual_xfm, logDir, paramStr,socket.gethostname(), 50500)
         try:
             shutil.rmtree(processedFolder)
         except:
@@ -105,8 +102,8 @@ class ADNI_V1_AV45:
         PipelineLogger.log('manager', 'debug', 'Command : {0}'.format(petCMD))
         p = subprocess.Popen(petCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
         out, err = p.communicate()
-        PipelineLogger.log('manager', 'debug', 'Conversion Log Output : \n{0}'.format(out))
-        PipelineLogger.log('manager', 'debug', 'Conversion Log Err : \n{0}'.format(err))
+        PipelineLogger.log('manager', 'debug', 'Process Log Output : \n{0}'.format(out))
+        PipelineLogger.log('manager', 'debug', 'Process Log Err : \n{0}'.format(err))
 
         QSubJobHandler.submittedJobs[id] = QSubJob(id, '02:00:00', processingItemObj, 'av45')
         return 1

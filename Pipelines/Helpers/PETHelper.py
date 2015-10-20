@@ -33,7 +33,7 @@ class PETHelper:
             pet_scanType = self.getScanType(processingItemObj)
             t1_folder = matchedT1entry[10]
             t1_scanType = matchedT1entry[3]
-            xfmFileName = '{0}_{1}_PET_{2}_{3}_T1_{4}_{5}'
+            xfmFileName = '{0}_{1}_PET_{2}_{3}_T1_{4}_{5}'.format(study, rid, pet_sid, pet_iid, t1_sid, t1_iid)
             self.CoregHand.requestCoreg(study, rid, processingItemObj.modality, pet_folder, t1_folder, pet_scanType, t1_scanType, xfmFileName)
             return None
 

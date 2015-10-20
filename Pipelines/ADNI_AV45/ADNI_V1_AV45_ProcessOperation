@@ -25,6 +25,7 @@ mkdir -p $3/final
 cp $5 $3/transforms/
 cp $4/civet/transforms/linear/*t1_tal.xfm $3/transforms/
 cp $4/civet/transforms/nonlinear/*nlfit_It.xfm $3/transforms/
+cp $4/civet/transforms/nonlinear/*nlfit_It_grid_0.mnc $3/transforms/
 
 cp $4/civet/native/*t1.mnc $3/t1/
 cp $4/civet/final/*t1_final.mnc $3/t1/
@@ -202,3 +203,12 @@ maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/cerebellum_full_mask_8mm
 mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer.mnc
 mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer_tal_lin.mnc
 mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_fullCer_tal_nlin.mnc
+
+
+#### SEND MESSAGE TO QSUB JOB HANDLER IN PIPELINE MANAGER
+if [[ -f $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_cerGM_wmnorm_085.mnc  && -f $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final_pbavg_ref_cerGM_wmnorm_085.mnc ]]
+ then
+    echo $1_Success | nc -w 0 $8 $9
+ else
+    echo $1_Fail | nc -w 0 $8 $9
+fi

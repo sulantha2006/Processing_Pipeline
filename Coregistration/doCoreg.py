@@ -68,7 +68,7 @@ def runCoreg(study, type, username):
             DBClient.executeNoResult(finSQL)
         else:
             if currentRec:
-                resetSql = "UPDATE QC SET START = 0, USER = Null WHERE RECORD_ID = '{0}'".format(currentRec)
+                resetSql = "UPDATE Coregistration SET START = 0, USER = Null WHERE RECORD_ID = '{0}'".format(currentRec)
                 DBClient.executeNoResult(resetSql)
                 continue
 
@@ -143,7 +143,7 @@ if __name__ == '__main__':
             parser.error('Please specify QC type and username')
     except KeyboardInterrupt:
         if currentRec:
-            resetSql = "UPDATE QC SET START = 0, USER = Null WHERE RECORD_ID = '{0}'".format(currentRec)
+            resetSql = "UPDATE Coregistration SET START = 0, USER = Null WHERE RECORD_ID = '{0}'".format(currentRec)
             DBClient.executeNoResult(resetSql)
         print('\nThank you for doing QC. Your input is very valuable. See you next time. :-)')
         os.killpg(0, signal.SIGTERM)
