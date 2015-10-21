@@ -21,6 +21,7 @@ mkdir -p $3/native
 mkdir -p $3/pvc
 mkdir -p $3/mask
 mkdir -p $3/final
+mkdir -p $3/verify
 
 cp $5 $3/transforms/
 cp $4/civet/transforms/linear/*t1_tal.xfm $3/transforms/
@@ -96,7 +97,7 @@ xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.
 
 ######## Copied fron old Jared scripts.
 ######## If there was an error, try creating an xfm on the basis that the image needed a big rotation.
-if [ -f $3/transforms/${petfileSubID}_pet2tal_nlin.xfm ]; then
+if [ ! -f $3/transforms/${petfileSubID}_pet2tal_nlin.xfm ]; then
 mincresample -tfm_input_sampling -clob -transform $5 $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc
 mincresample -like $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc -transform $5 $3/temp/skull_mask_petspace.mnc $3/temp/skull_mask_petspace_rsl.mnc
 
@@ -108,14 +109,27 @@ fi
 echo "Registration Finished"
 ########
 ######## Partial Volume Correction Masks
-classify_basename = $(basename $3/t1/*pve_classify.mnc .mnc)
+echo "############## PVC MASK STARTING #####################"
+wm_basename=$(basename $3/t1/*pve_exactwm.mnc .mnc)
+gm_basename=$(basename $3/t1/*pve_exactgm.mnc .mnc)
+classify_basename=$(basename $3/t1/*pve_classify.mnc .mnc)
+
+mincresample -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm -invert_transform $3/t1/*pve_exactgm.mnc $3/pvc/${gm_basename}_petspace.mnc
+mincresample -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm -invert_transform $3/t1/*pve_exactwm.mnc $3/pvc/${wm_basename}_petspace.mnc
+mincmath -ge -const 0.70 $3/pvc/${gm_basename}_petspace.mnc $3/pvc/${gm_basename}_petspace_mask.mnc
+mincmath -ge -const 0.70 $3/pvc/${wm_basename}_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc
+
 mincmask $3/t1/*pve_classify.mnc $3/t1/*skull_mask.mnc $3/pvc/${classify_basename}_mask.mnc
 mincmath -ge -const 2 $3/pvc/${classify_basename}_mask.mnc $3/pvc/${classify_basename}_parenchyma.mnc
-mincblur -clob -fwhm ${blurV} $3/pvc/${classify_basename}_parenchyma.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm
-
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc  $3/pvc/${classify_basename}_parenchyma.mnc $3/pvc/${classify_basename}_parenchyma_t.mnc
+mincblur -clob -fwhm ${blurV} $3/pvc/${classify_basename}_parenchyma_t.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm
+mv $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur_t.mnc
+mincmath -clamp -const2 0 1 $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur_t.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc
+echo "############## PVC END #####################"
 ######## End PVC
 
 ######## Start mask builing
+echo "############## MASK BUILD STARTING #####################"
 mincmath -gt -const 0.1 $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${petfileSubID}_valid_mask_petspace.mnc
 
 ### CER GM
@@ -128,37 +142,48 @@ mincresample -nearest -like $3/native/${petfileSubID}.mnc -transform $3/transfor
 mincmath -or $3/mask/cerebellum_full_mask_8mm_blur_075_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc $3/mask/cerm_full_WM_composite_mask_petspace.mnc
 ### CER GM + WM COMPOSITE MASK
 mincmath -or $3/mask/cerebellum_mask_rsl_8mm_blur_075_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc $3/mask/cerm_gm_WM_composite_mask_petspace.mnc
-
+echo "############## MASK BUILD END #####################"
 #####
 ## JACK MASK - SUBJECT WISE IF NEEDED SHOULD GO HERE>
-
+################## Removing NEGATIVE SIDE FROM BLURRED ORIG IMAGE.
+mv $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${petfileSubID}_${blurV}mm_blur_t.mnc
+minccalc -short -expression "if (A[0]>0) result=A[0] else result=0" $3/intermediate/${petfileSubID}_${blurV}mm_blur_t.mnc $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc
 ######
+echo "############## MAIN PET START #####################"
 ##PET MAIN PROCESING
 mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_lin.mnc
 mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc
 
 ######## Partial Volume Correction
-mincmath -short -div $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd.mnc
-mincmask $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd.mnc $3/pvc/${classify_basename}_parenchyma.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final.mnc
+minccalc -float -expression "if (A[0]>0) result=A[1]/A[2] else result=0" /data/data03/quarantine/mni_icbm152_t1_tal_nlin_sym_09a_mask.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final.mnc
 ######## END PVC
 
 ##BRANCH 1 - MNI SPACE MASKS - NORM - PONS
+echo "############## B1 #####################"
 maskVal=$(mincstats -quiet -floor 0 -mean -mask /data/data03/quarantine/pons_mask_rsl_8mm_blur_050.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc)
 mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_pons.mnc
 normalize_pet -mask /data/data03/quarantine/icbm_avg_152_t1_tal_nlin_symmetric_VI_mask_rsl.mnc -normalized_mean 1.25 $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_pons.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_pons_norm.mnc
 
 ### NOW WITH PVCD IMAGES
+echo "############## B1 PVC #####################"
 maskVal=$(mincstats -quiet -floor 0 -mean -mask /data/data03/quarantine/pons_mask_rsl_8mm_blur_050.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final.mnc)
-mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final_pbavg_ref_pons.mnc
+mincmath -short  -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final_pbavg_ref_pons.mnc
 normalize_pet -mask /data/data03/quarantine/icbm_avg_152_t1_tal_nlin_symmetric_VI_mask_rsl.mnc -normalized_mean 1.25 $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final_pbavg_ref_pons.mnc $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final_pbavg_ref_pons_norm.mnc
 
 
 ##BRANCH 2 - SUBJECT MASKS - NO NORM, PONS
+echo "############## B2 #####################"
+cp $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/final/
+###########################################
+
 maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/pons_mask_rsl_8mm_blur_050_petspace.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_blur.mnc)
 mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_pons.mnc
 mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_pons.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_pons_tal_lin.mnc
 mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_pons.mnc $3/final/${petfileSubID}_${blurV}mm_blur_pbavg_ref_pons_tal_nlin.mnc
 
+
+############################# Link to verify file ##################
+ln -s $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_pons.mnc $3/verify/${petfileSubID}_final_qcVerify.mnc
 
 #### SEND MESSAGE TO QSUB JOB HANDLER IN PIPELINE MANAGER
 if [[ -f $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_pons_norm.mnc  && -f $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final_pbavg_ref_pons_norm.mnc ]]

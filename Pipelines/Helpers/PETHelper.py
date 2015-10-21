@@ -24,7 +24,7 @@ class PETHelper:
         if len(res) > 0:
             PipelineLogger.log('root', 'INFO', '++ Manual XFM found. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             manXFM = res[0][4]
-            updateSQL = "UPDATE {0}_{1}_Pipeline SET MANUAL_XFM = '{2}' WHERE RECORD_ID = {3}".format(study, processingItemObj.modality, manXFM, processingItemObj.processing_rid)
+            updateSQL = "UPDATE {0}_{1}_Pipeline SET MANUAL_XFM = '{2}' WHERE PROCESSING_TID = {3}".format(study, processingItemObj.modality, manXFM, processingItemObj.processing_rid)
             self.DBClient.executeNoResult(updateSQL)
             return manXFM
         else:

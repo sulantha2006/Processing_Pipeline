@@ -10,7 +10,7 @@ import shutil
 import subprocess
 from Manager.QSubJob import QSubJob
 from Manager.QSubJobHanlder import QSubJobHandler
-import socket
+import socket,os
 import ast
 from Pipelines.Helpers.PETHelper import PETHelper
 
@@ -54,6 +54,8 @@ class ADNI_V1_AV45:
             if processingItemObj.manual_xfm == '':
                 manualXFM = self.PETHelper.getManualXFM(processingItemObj, matching_t1)
                 processingItemObj.manual_xfm = manualXFM
+            else:
+                manualXFM = processingItemObj.manual_xfm
             if manualXFM:
                 self.processPET(processingItemObj, processed)
             else:
@@ -90,9 +92,11 @@ class ADNI_V1_AV45:
         paramStr = '({0})'.format(paramStrt)
         petCMD = "source /opt/minc-toolkit/minc-toolkit-config.sh; Pipelines/ADNI_AV45/ADNI_V1_AV45_Process {0} {1} {2} {3} {4} {5} '{6}' {7} {8}".format(id, petFileName, processedFolder, matchT1Path, processingItemObj.manual_xfm, logDir, paramStr,socket.gethostname(), 50500)
         try:
-            shutil.rmtree(processedFolder)
-        except:
-            pass
+            processedFolder_del = '{0}/processed_del'.format(processingItemObj.root_folder)
+            os.rename(processedFolder, processedFolder_del)
+            shutil.rmtree(processedFolder_del)
+        except Exception as e:
+            PipelineLogger.log('manager', 'error', 'Error in deleting old processing folder. \n {0}'.format(e))
         try:
             distutils.dir_util.mkpath(processedFolder)
         except Exception as e:

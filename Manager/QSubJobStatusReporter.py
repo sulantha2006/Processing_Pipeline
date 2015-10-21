@@ -6,7 +6,7 @@ from QC.QCHandler import QCHandler
 class QSubJobStatusReporter:
     def __init__(self):
         self.DBClient = DbUtils()
-        self.QCHandler = QCHandler
+        self.QCHandler = QCHandler()
 
     def setStatus(self, job, status):
         if job.jobType == 'beast':
@@ -26,7 +26,7 @@ class QSubJobStatusReporter:
             table = '{0}_{1}_Pipeline'.format(nestedJob.study, nestedJob.modality)
             table_id = nestedJob.table_id
             if status == 'Success':
-                setSql = 'UPDATE {0} SET FINISHED = 1 WHERE RECORD_ID = {1}'.format(table, table_id)
+                setSql = "UPDATE {0} SET FINISHED = 1, PROC_Failed = Null WHERE RECORD_ID = {1}".format(table, table_id)
                 self.requestQC(nestedJob, 'av45')
             elif status == 'Fail':
                 setSql = "UPDATE {0} SET PROC_Failed = 'Failed' , SKIP = 1 WHERE RECORD_ID = {1}".format(table, table_id)
@@ -39,7 +39,7 @@ class QSubJobStatusReporter:
             table = '{0}_{1}_Pipeline'.format(nestedJob.study, nestedJob.modality)
             table_id = nestedJob.table_id
             if status == 'Success':
-                setSql = 'UPDATE {0} SET FINISHED = 1 WHERE RECORD_ID = {1}'.format(table, table_id)
+                setSql = "UPDATE {0} SET FINISHED = 1, PROC_Failed = Null WHERE RECORD_ID = {1}".format(table, table_id)
                 self.requestQC(nestedJob, 'fdg')
             elif status == 'Fail':
                 setSql = "UPDATE {0} SET PROC_Failed = 'Failed' , SKIP = 1 WHERE RECORD_ID = {1}".format(table, table_id)

@@ -106,11 +106,11 @@ def runPETQC(study, type, username):
 
         petPath = res[6]
         if type.lower() == 'av45':
-            regCMD1 = 'register {0}/final/*_pbavg_ref_cerGM_wmnorm_085.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
-            regCMD2 = 'register {0}/final/*_pbavg_ref_cerGM_wmnorm_085.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
+            regCMD1 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
+            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
         elif type.lower() == 'fdg':
-            regCMD1 = 'register {0}/mask/*_pbavg_ref_pons.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
-            regCMD2 = 'register {0}/mask/*_pbavg_ref_pons.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
+            regCMD1 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
+            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
         proc1 = subprocess.Popen(regCMD1, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
         proc2 = subprocess.Popen(regCMD2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
 

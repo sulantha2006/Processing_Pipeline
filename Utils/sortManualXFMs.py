@@ -1,5 +1,5 @@
 __author__ = 'sulantha'
-xfmList = '/home/sulantha/Desktop/petMatch.csv'
+xfmList = '/home/sulantha/Desktop/petMatchNew.csv'
 outputpath = '/data/data03/MANUAL_XFM'
 from Utils.DbUtils import DbUtils
 import shutil
@@ -23,9 +23,9 @@ with open(xfmList, 'r') as inf:
 
             print(study, rid, uid, sep=', ')
 
-            try:
-                shutil.copyfile(row[0], path)
-            except Exception as e:
-                print('Error copy. {0}'.format(e))
-
-            Dbclient.executeNoResult("INSERT IGNORE INTO MANUAL_XFM VALUES (Null, '{0}', '{1}', '{2}', '{3}')".format(study, rid, uid, path))
+            # try:
+            #     shutil.copyfile(row[0], path)
+            # except Exception as e:
+            #     print('Error copy. {0}'.format(e))
+            #
+            # Dbclient.executeNoResult("INSERT IGNORE INTO MANUAL_XFM VALUES (Null, '{0}', '{1}', '{2}', '{3}')".format(study, rid, uid, path))
