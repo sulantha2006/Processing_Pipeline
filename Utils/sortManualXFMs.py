@@ -1,5 +1,5 @@
 __author__ = 'sulantha'
-xfmList = '/home/sulantha/Desktop/petMatchNew.csv'
+xfmList = '/home/sulantha/Desktop/petMatchNew2.csv'
 outputpath = '/data/data03/MANUAL_XFM'
 from Utils.DbUtils import DbUtils
 import shutil
@@ -20,12 +20,14 @@ with open(xfmList, 'r') as inf:
             t1iid = row[4].split('.')[0].split('_')[-1]
             uid = 'PET_{0}_{1}_T1_{2}_{3}'.format(petsid, petiid, t1sid, t1iid)
             path = '{0}/{1}_{2}_{3}.xfm'.format(outputpath, study, rid, uid)
+            if petiid.startswith('I') and petsid.startswith('S'):
+                print(study, rid, uid, sep=', ')
+            else:
+                print('PET - {0}'.format(row[2]))
 
-            print(study, rid, uid, sep=', ')
+            try:
+                shutil.copyfile(row[0], path)
+            except Exception as e:
+                print('Error copy. {0}'.format(e))
 
-            # try:
-            #     shutil.copyfile(row[0], path)
-            # except Exception as e:
-            #     print('Error copy. {0}'.format(e))
-            #
-            # Dbclient.executeNoResult("INSERT IGNORE INTO MANUAL_XFM VALUES (Null, '{0}', '{1}', '{2}', '{3}')".format(study, rid, uid, path))
+            Dbclient.executeNoResult("INSERT IGNORE INTO MANUAL_XFM VALUES (Null, '{0}', '{1}', '{2}', '{3}')".format(study, rid, uid, path))

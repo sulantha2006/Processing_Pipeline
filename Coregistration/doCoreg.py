@@ -20,8 +20,6 @@ args = parser.parse_args()
 DBClient = DbUtils()
 currentRec = None
 
-DBClient = DbUtils()
-currentRec = None
 
 xfmFile = '1.xfm'
 tagFile = '1.tag'
@@ -54,10 +52,10 @@ def runCoreg(study, type, username):
                 invCMD = 'xfminvert {0} {1}/{2}.xfm'.format(xfmFile, CoregConfig.MANUAL_XFM_FOLDER, xfmName)
                 subprocess.Popen(invCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh').wait()
                 shutil.move(tagFile, '{0}/{1}.tag'.format(CoregConfig.MANUAL_TAG_FOLDER, xfmName))
-            except:
-                print('File move error. Check for system folder permissions. ')
+            except Exception as e:
+                print('File move error. Check for system folder permissions. - {0}'.format(e))
                 if currentRec:
-                    resetSql = "UPDATE QC SET START = 0, USER = Null WHERE RECORD_ID = '{0}'".format(currentRec)
+                    resetSql = "UPDATE Coregistration SET START = 0, USER = Null WHERE RECORD_ID = '{0}'".format(currentRec)
                     DBClient.executeNoResult(resetSql)
                 sys.exit(0)
             rid = res[2]
@@ -140,12 +138,12 @@ if __name__ == '__main__':
                 sys.exit(0)
 
         else:
-            parser.error('Please specify QC type and username')
+            parser.error('Please specify Coregistration type and username')
     except KeyboardInterrupt:
         if currentRec:
             resetSql = "UPDATE Coregistration SET START = 0, USER = Null WHERE RECORD_ID = '{0}'".format(currentRec)
             DBClient.executeNoResult(resetSql)
-        print('\nThank you for doing QC. Your input is very valuable. See you next time. :-)')
+        print('\nThank you for doing Coregistration. Your input is very valuable. See you next time. :-)')
         os.killpg(0, signal.SIGTERM)
 
 
