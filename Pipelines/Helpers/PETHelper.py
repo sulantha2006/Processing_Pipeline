@@ -28,6 +28,28 @@ class PETHelper:
             self.DBClient.executeNoResult(updateSQL)
             return manXFM
         else:
+            PipelineLogger.log('root', 'INFO', '$$$$$$$ Manual XFM not found. Trying to find using uncorrected T1s. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+            mustMatchT1SID = t1_sid
+            mustMatchT1IID = t1_iid
+            xfmApproximation = 'PET_{0}_{1}_T1_%_%'.format(pet_sid, pet_iid)
+            getAllT1s = "SELECT * FROM MANUAL_XFM WHERE STUDY = '{0}' AND RID = '{1}' AND XFM_UNIQUEID LIKE '{2}'".format(study, rid, xfmApproximation)
+            approxRes = self.DBClient.executeAllResults(getAllT1s)
+            getFromProcessingSQL = "SELECT * FROM Processing WHERE (STUDY, RID, SCAN_DATE, SCAN_TIME) = (SELECT `STUDY`, `RID`, `SCAN_DATE`, `SCAN_TIME` FROM `Processing` WHERE MODALITY = 'T1' AND `S_IDENTIFIER` = '{0}' AND `I_IDENTIFIER` = '{1}')".format(mustMatchT1SID, mustMatchT1IID)
+            allT1s = self.DBClient.executeAllResults(getFromProcessingSQL)
+            for t1 in allT1s:
+                t1sid = t1[6]
+                t1iid = t1[7]
+                for appRes in approxRes:
+                    approxResSID = appRes[3].split('_')[4]
+                    approxResIID = appRes[3].split('_')[5]
+                    if t1sid == approxResSID and t1iid == approxResIID:
+                        PipelineLogger.log('root', 'INFO', '++ Manual XFM found from approximate matching. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+                        manXFM = appRes[4]
+                        updateSQL = "UPDATE {0}_{1}_Pipeline SET MANUAL_XFM = '{2}' WHERE PROCESSING_TID = {3}".format(study, processingItemObj.modality, manXFM, processingItemObj.processing_rid)
+                        self.DBClient.executeNoResult(updateSQL)
+                        return manXFM
+
+
             PipelineLogger.log('root', 'INFO', '$$$$$$$ Manual XFM not found. Requesting manual XFM. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             pet_folder = processingItemObj.converted_folder
             pet_scanType = self.getScanType(processingItemObj)
