@@ -54,6 +54,10 @@ class ADNI_V1_AV45:
             if processingItemObj.manual_xfm == '':
                 manualXFM = self.PETHelper.getManualXFM(processingItemObj, matching_t1)
                 processingItemObj.manual_xfm = manualXFM
+            elif processingItemObj.manual_xfm == 'Req_man_reg':
+                self.PETHelper.requestCoreg(processingItemObj, matching_t1)
+                PipelineLogger.log('root', 'INFO', 'Manual XFM was not found. Request to create one may have added.  - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+                return 0
             else:
                 manualXFM = processingItemObj.manual_xfm
             if manualXFM:

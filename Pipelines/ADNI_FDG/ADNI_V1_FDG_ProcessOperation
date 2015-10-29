@@ -1,4 +1,5 @@
 #!/bin/bash
+source /opt/minc-toolkit/minc-toolkit-config.sh
 ##1 -> ID
 ##2 -> INPUT MNC
 ##3 -> OUTPUT PATH
@@ -40,7 +41,7 @@ cp $4/civet/classify/*pve_classify.mnc $3/t1/
 cp $2 $3/native/
 
 declare -A parameters=$7
-
+initXFM=$5
 t1fileSubID=$(basename $3/t1/*final.mnc _final.mnc)
 
 echo "mincresample -like $3/t1/*final.mnc -tricubic -transform $3/transforms/*nlfit_It.xfm $3/t1/*final.mnc $3/t1/${t1fileSubID}_final_nl.mnc"
@@ -62,7 +63,7 @@ nu_correct $3/t1/*t1.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
 nu_correct $3/intermediate/${t1fileSubID}_t1_nu.mnc $3/intermediate/${t1fileSubID}_t1_nu2.mnc
 mv $3/intermediate/${t1fileSubID}_t1_nu2.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
 
-xfmconcat $5 $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+xfmconcat $initXFM $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
 mincresample -short -nearest -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/*t1_tal.xfm -invert_transformation /data/data01/database/human/public/quarantine/skull_mask.mnc $3/temp/skull_mask_mrispace.mnc
 mincresample -short -invert_transform -nearest -like $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm /data/data01/database/human/public/quarantine/skull_mask.mnc $3/temp/skull_mask_petspace.mnc
 
@@ -88,7 +89,7 @@ temp_var=$(echo $mri_threshold_t|awk '{print int($1+0.5)}')
 nlin_num=25
 mri_threshold=$(expr $temp_var / $nlin_num)
 
-minctracc -transformation $5 -mi $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} $3/transforms/temp_${petfileSubID}_pet2mri.xfm -simplex 5 -est_center
+minctracc -transformation $initXFM -mi $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} $3/transforms/temp_${petfileSubID}_pet2mri.xfm -simplex 5 -est_center
 minctracc -mi $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold}  -transformation $3/transforms/temp_${petfileSubID}_pet2mri.xfm -simplex 1 -step 2 2 2 $3/transforms/${petfileSubID}_pet2mri.xfm -est_center
 
 mincresample -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_pet_t1space.mnc
@@ -98,8 +99,8 @@ xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.
 ######## Copied fron old Jared scripts.
 ######## If there was an error, try creating an xfm on the basis that the image needed a big rotation.
 if [ ! -f $3/transforms/${petfileSubID}_pet2tal_nlin.xfm ]; then
-mincresample -tfm_input_sampling -clob -transform $5 $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc
-mincresample -like $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc -transform $5 $3/temp/skull_mask_petspace.mnc $3/temp/skull_mask_petspace_rsl.mnc
+mincresample -tfm_input_sampling -clob -transform $initXFM $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc
+mincresample -like $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc -transform $initXFM $3/temp/skull_mask_petspace.mnc $3/temp/skull_mask_petspace_rsl.mnc
 
 minctracc -identity -mi $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} -simplex 1 -step 2 2 2 $3/transforms/${petfileSubID}_pet2mri.xfm -est_center -source_mask $3/temp/skull_mask_petspace_rsl.mnc -model_mask $3/t1/*skull_mask.mnc
 xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm

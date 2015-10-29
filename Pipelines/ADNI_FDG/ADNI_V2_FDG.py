@@ -32,7 +32,7 @@ class ProcessingItemObj:
         self.manual_xfm = processingItem[20]
         self.qc = processingItem[21]
 
-class ADNI_V1_FDG:
+class ADNI_V2_FDG:
     def __init__(self):
         self.DBClient = DbUtils()
         self.MatchDBClient = DbUtils(database=pc.ADNI_dataMatchDBName)
@@ -49,21 +49,13 @@ class ADNI_V1_FDG:
             PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             return 0
         else:
-            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. Will check for xfm. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
-            if processingItemObj.manual_xfm == '':
-                manualXFM = self.PETHelper.getManualXFM(processingItemObj, matching_t1)
-                processingItemObj.manual_xfm = manualXFM
-            elif processingItemObj.manual_xfm == 'Req_man_reg':
+            PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. Will check for initial xfm. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+            if processingItemObj.manual_xfm == 'Req_man_reg':
                 self.PETHelper.requestCoreg(processingItemObj, matching_t1)
                 PipelineLogger.log('root', 'INFO', 'Manual XFM was not found. Request to create one may have added.  - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
                 return 0
             else:
-                manualXFM = processingItemObj.manual_xfm
-            if manualXFM:
                 self.processPET(processingItemObj, processed)
-            else:
-                PipelineLogger.log('root', 'INFO', 'Manual XFM was not found. Request to create one may have added.  - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
-                return 0
 
     def getScanType(self, processingItemObj):
         r = self.DBClient.executeAllResults("SELECT SCAN_TYPE FROM Conversion WHERE STUDY = '{0}' AND RID = '{1}' "

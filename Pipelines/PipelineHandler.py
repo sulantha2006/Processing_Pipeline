@@ -4,7 +4,9 @@ import Config.LIB_PATH as libpath
 from Utils.DbUtils import DbUtils
 from Pipelines.ADNI_T1.ADNI_V1_T1 import ADNI_V1_T1
 from Pipelines.ADNI_FDG.ADNI_V1_FDG import ADNI_V1_FDG
+from Pipelines.ADNI_FDG.ADNI_V2_FDG import ADNI_V2_FDG
 from Pipelines.ADNI_AV45.ADNI_V1_AV45 import ADNI_V1_AV45
+from Pipelines.ADNI_AV45.ADNI_V2_AV45 import ADNI_V2_AV45
 from Pipelines.ADNI_Fmri.ADNI_V1_FMRI import ADNI_V1_FMRI
 from Config import PipelineConfig
 from Utils.PipelineLogger import PipelineLogger
@@ -14,7 +16,8 @@ from distutils import dir_util
 
 class PipelineHandler:
     def __init__(self):
-        self.processingPPDict = {'ADNI':{'V1':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V1_AV45(), 'FDG':ADNI_V1_FDG()}}}
+        self.processingPPDict = {'ADNI':{'V1':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V1_AV45(), 'FDG':ADNI_V1_FDG()},
+                                         'V2':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V2_AV45(), 'FDG':ADNI_V2_FDG()}}}
         self.DBClient = DbUtils()
 
     def checkExternalJobs(self, study, modality):
@@ -64,6 +67,11 @@ class PipelineHandler:
         os.environ['LD_LIBRARY_PATH'] = ':'.join(libpath.LD_LIBRARY_PATH)
         os.environ['LD_LIBRARYN32_PATH'] = ':'.join(libpath.LD_LIBRARYN32_PATH)
         os.environ['PERL5LIB'] = ':'.join(libpath.PERL5LIB)
+        os.environ['MNI_DATAPATH'] = ':'.join(libpath.MNI_DATAPATH)
+        os.environ['ROOT'] = ';'.join(libpath.ROOT)
+        os.environ['MINC_TOOLKIT_VERSION'] = libpath.MINC_TOOLKIT_VERSION
+        os.environ['MINC_COMPRESS'] = libpath.MINC_COMPRESS
+        os.environ['MINC_FORCE_V2'] = libpath.MINC_FORCE_V2
 
         toProcessinModalityPerStudy = self.DBClient.executeAllResults("SELECT * FROM Processing INNER JOIN (SELECT * FROM {0}_{1}_Pipeline WHERE NOT (FINISHED OR SKIP)) as TMP ON Processing.RECORD_ID=TMP.PROCESSING_TID".format(study, modality))
         for processingItem in toProcessinModalityPerStudy:
@@ -80,8 +88,8 @@ class PipelineHandler:
         r_id = processingObj.record_id
 
         addToTableDict = dict(T1="INSERT IGNORE INTO {0}_T1_Pipeline VALUES (NULL, {1}, \"{2}\", 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultT1config),
-                              AV45="INSERT IGNORE INTO {0}_AV45_Pipeline VALUES (NULL, {1}, \"{2}\", '{3}', 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultAV45config, 'MANUAL_XFM_COMESHERE'),
-                              FDG="INSERT IGNORE INTO {0}_FDG_Pipeline VALUES (NULL, {1}, \"{2}\", '{3}', 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultFDGconfig, 'MANUAL_XFM_COMESHERE'),
+                              AV45="INSERT IGNORE INTO {0}_AV45_Pipeline VALUES (NULL, {1}, \"{2}\", '{3}', 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultAV45config, ''),
+                              FDG="INSERT IGNORE INTO {0}_FDG_Pipeline VALUES (NULL, {1}, \"{2}\", '{3}', 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultFDGconfig, ''),
                               FMRI="INSERT IGNORE INTO {0}_FMRI_Pipeline VALUES (NULL, {1}, \"{2}\", '{3}', 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultFMRIconfig, 'NIAK_STH_COMESHERE'))
 
         self.DBClient.executeNoResult(addToTableDict[modality])

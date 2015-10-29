@@ -2,7 +2,7 @@ __author__ = 'Sulantha'
 
 AllowedStudyList = ['ADNI', 'ADNI_OLD']
 AllowedStepsList = ['Sort', 'Move', 'T1Beast', 'T1Process', 'ProcessAV45', 'ProcessFDG', 'ProcessFMRI', 'ProcessDTI']
-AllowedVersions = ['1', '2', '3']
+AllowedVersions = ['V1', 'V2', 'V3']
 AllowedModalityList = ['T1', 'AV45', 'FDG', 'FMRI', 'BLUFF']
 
 
@@ -43,7 +43,9 @@ ProcessingModalityAndPipelineTypePerStudy = dict(ADNI={'AV45':'AV45',
 #This versioning dict should have an entry if the default processing version is not V1 - Still in test.
 defaultVersioningForStudy = dict(ADNI={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1', 'BLUFF': 'V1'}, ADNI_OLD={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1'})
 
-ADNIDownloadRoot = '/data/data03/sulantha/Downloads/ADNI/T1N/ADNI'
+ADNIDownloadRoot = '/data/data03/sulantha/Downloads/ADNI/PET/EMPTY'
+xmlPath = '/data/data03/sulantha/Downloads/ADNI/PET/xmls'
+
 ADNIOLDDownloadRoot = '/data/data02/ADNI/raw/AD'
 
 

@@ -63,7 +63,7 @@ class ADNI_T1_Helper:
 
             matchedT1withScanDescriptions = []
             for rec in matchedT1Recs:
-                getScanFromConversionSQL = "SELECT * FROM Conversion WHERE STUDY = '{0}' AND VERSION = '{1}' AND S_IDENTIFIER = '{2}' AND I_IDENTIFIER = '{3}' AND SKIP = 0".format(processingItemObj.study, processingItemObj.version, 'S{0}'.format(rec[7]), 'I{0}'.format(rec[8]))
+                getScanFromConversionSQL = "SELECT * FROM Conversion WHERE STUDY = '{0}' AND S_IDENTIFIER = '{1}' AND I_IDENTIFIER = '{2}' AND SKIP = 0".format(processingItemObj.study,'S{0}'.format(rec[7]), 'I{0}'.format(rec[8]))
                 t1_conversion = self.DBClient.executeAllResults(getScanFromConversionSQL)
                 if len(t1_conversion) > 0 :
                     matchedT1withScanDescriptions.append(t1_conversion[0])

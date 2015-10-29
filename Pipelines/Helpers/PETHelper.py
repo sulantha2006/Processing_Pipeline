@@ -50,13 +50,7 @@ class PETHelper:
                         return manXFM
 
 
-            PipelineLogger.log('root', 'INFO', '$$$$$$$ Manual XFM not found. Requesting manual XFM. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
-            pet_folder = processingItemObj.converted_folder
-            pet_scanType = self.getScanType(processingItemObj)
-            t1_folder = matchedT1entry[10]
-            t1_scanType = matchedT1entry[3]
-            xfmFileName = '{0}_{1}_PET_{2}_{3}_T1_{4}_{5}'.format(study, rid, pet_sid, pet_iid, t1_sid, t1_iid)
-            self.CoregHand.requestCoreg(study, rid, processingItemObj.modality, pet_folder, t1_folder, pet_scanType, t1_scanType, xfmFileName)
+            self.requestCoreg(processingItemObj, matchedT1entry)
             return None
 
     def getScanType(self, processingItemObj):
@@ -68,5 +62,20 @@ class PETHelper:
                                                                           processingItemObj.s_identifier,
                                                                           processingItemObj.i_identifier))
         return r[0][0]
+
+    def requestCoreg(self, processingItemObj, matchedT1entry):
+        PipelineLogger.log('root', 'INFO', '$$$$$$$ Manual XFM not found. Requesting manual XFM. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+        study = processingItemObj.study
+        rid = processingItemObj.subject_rid
+        pet_sid = processingItemObj.s_identifier
+        pet_iid = processingItemObj.i_identifier
+        t1_sid = matchedT1entry[6]
+        t1_iid = matchedT1entry[7]
+        pet_folder = processingItemObj.converted_folder
+        pet_scanType = self.getScanType(processingItemObj)
+        t1_folder = matchedT1entry[10]
+        t1_scanType = matchedT1entry[3]
+        xfmFileName = '{0}_{1}_PET_{2}_{3}_T1_{4}_{5}'.format(study, rid, pet_sid, pet_iid, t1_sid, t1_iid)
+        self.CoregHand.requestCoreg(study, rid, processingItemObj.modality, pet_folder, t1_folder, pet_scanType, t1_scanType, xfmFileName)
 
 
