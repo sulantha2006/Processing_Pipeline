@@ -19,7 +19,12 @@ class ADNI_V1_T1:
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
-        cmd = '/opt/minc/bin/nii2mnc -short {0} {1}'.format(rawFile, outFile)
+        outTempFile = '{0}/{1}_{2}{3}{4}{5}_{6}_temp.mnc'.format(convertionObj.converted_folder, convertionObj.study,
+                                                        convertionObj.rid, convertionObj.scan_date.replace('-', ''),
+                                                        convertionObj.s_identifier, convertionObj.i_identifier,
+                                                        convertionObj.scan_type)
+        cmd = '/opt/minc/bin/nii2mnc {0} {1}'.format(rawFile, outTempFile)
+        cmdRes = 'mincresample -short {0} {1}'.format(outTempFile, outFile)
         PipelineLogger.log('converter', 'info',
                            'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                          convertionObj.rid,
@@ -30,6 +35,13 @@ class ADNI_V1_T1:
             os.remove(outFile)
         except:
             pass
+        if os.path.exists(convertionObj.converted_folder):
+            try:
+                convertedFolder_del = '{0}_del'.format(convertionObj.converted_folder)
+                os.rename(convertionObj.converted_folder, convertedFolder_del)
+                shutil.rmtree(convertedFolder_del)
+            except Exception as e:
+                PipelineLogger.log('manager', 'error', 'Error in deleting old converted folder. \n {0}'.format(e))
         try:
             distutils.dir_util.mkpath(convertionObj.converted_folder)
         except:
@@ -38,6 +50,7 @@ class ADNI_V1_T1:
         out, err = p.communicate()
         PipelineLogger.log('converter', 'debug', 'Conversion Log Output : \n{0}'.format(out))
         PipelineLogger.log('converter', 'debug', 'Conversion Log Err : \n{0}'.format(err))
+        subprocess.Popen(cmdRes, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         if os.path.exists(outFile):
             PipelineLogger.log('converter', 'info',
                                'MINC Conversion success : {0} - {1} - {2} - {3}'.format(convertionObj.study,
@@ -58,7 +71,12 @@ class ADNI_V1_T1:
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
-        cmd = '/opt/minc/bin/ecattominc -short {0} {1}'.format(rawFile, outFile)
+        outTempFile = '{0}/{1}_{2}{3}{4}{5}_{6}_temp.mnc'.format(convertionObj.converted_folder, convertionObj.study,
+                                                        convertionObj.rid, convertionObj.scan_date.replace('-', ''),
+                                                        convertionObj.s_identifier, convertionObj.i_identifier,
+                                                        convertionObj.scan_type)
+        cmd = '/opt/minc/bin/ecattomincc {0} {1}'.format(rawFile, outTempFile)
+        cmdRes = 'mincresample -short {0} {1}'.format(outTempFile, outFile)
         PipelineLogger.log('converter', 'info',
                            'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                          convertionObj.rid,
@@ -69,6 +87,13 @@ class ADNI_V1_T1:
             os.remove(outFile)
         except:
             pass
+        if os.path.exists(convertionObj.converted_folder):
+            try:
+                convertedFolder_del = '{0}_del'.format(convertionObj.converted_folder)
+                os.rename(convertionObj.converted_folder, convertedFolder_del)
+                shutil.rmtree(convertedFolder_del)
+            except Exception as e:
+                PipelineLogger.log('manager', 'error', 'Error in deleting old converted folder. \n {0}'.format(e))
         try:
             distutils.dir_util.mkpath(convertionObj.converted_folder)
         except:
@@ -77,6 +102,7 @@ class ADNI_V1_T1:
         out, err = p.communicate()
         PipelineLogger.log('converter', 'debug', 'Conversion Log Output : \n{0}'.format(out))
         PipelineLogger.log('converter', 'debug', 'Conversion Log Err : \n{0}'.format(err))
+        subprocess.Popen(cmdRes, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         if os.path.exists(outFile):
             PipelineLogger.log('converter', 'info',
                                'MINC Conversion success : {0} - {1} - {2} - {3}'.format(convertionObj.study,
@@ -159,6 +185,13 @@ class ADNI_V1_T1:
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
+        if os.path.exists(convertionObj.converted_folder):
+            try:
+                convertedFolder_del = '{0}_del'.format(convertionObj.converted_folder)
+                os.rename(convertionObj.converted_folder, convertedFolder_del)
+                shutil.rmtree(convertedFolder_del)
+            except Exception as e:
+                PipelineLogger.log('manager', 'error', 'Error in deleting old converted folder. \n {0}'.format(e))
         if len(mncList) == 0:
             PipelineLogger.log('converter', 'error',
                                'MINC Conversion unsuccessful : Check log for : {0} - {1} - {2} - {3}'.format(

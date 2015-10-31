@@ -1,5 +1,5 @@
 #!/bin/bash
-source /opt/minc-toolkit/minc-toolkit-config.sh
+source /data/data03/bin/1.9.10/minc-toolkit-config.sh
 ##1 -> ID
 ##2 -> INPUT MNC
 ##3 -> OUTPUT PATH

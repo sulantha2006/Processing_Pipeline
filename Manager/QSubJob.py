@@ -11,4 +11,6 @@ class QSubJob:
         self.jobType = jobType
         self.Start = False
         self.Fin = False
+        self.startTime = None
+
 

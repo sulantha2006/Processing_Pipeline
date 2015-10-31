@@ -18,8 +18,9 @@ class QSubJobHandler(threading.Thread):
             for jobID in list(self.submittedJobs):
                 job = self.submittedJobs[jobID]
                 submitTime = job.submitTime
+                startTime = job.startTime
                 wallTime = job.wallTime
-                if (job.Start and timeNow - submitTime > wallTime) or job.Fin:
+                if (job.startTime and job.Start and timeNow - startTime > wallTime) or job.Fin:
                     self.submittedJobs.pop(jobID)
             return True
 
@@ -40,6 +41,7 @@ class QSubJobHandler(threading.Thread):
             if  status == 'Start':
                 PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
                 self.submittedJobs[jobID].Start = True
+                self.submittedJobs[jobID].startTime = datetime.datetime.now()
             elif status == 'Success':
                 PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
                 self.submittedJobs[jobID].Fin = True
