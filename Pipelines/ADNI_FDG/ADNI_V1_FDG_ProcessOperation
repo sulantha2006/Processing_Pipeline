@@ -131,7 +131,7 @@ mincmath -ge -const 2 $3/pvc/${classify_basename}_mask.mnc $3/pvc/${classify_bas
 mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc  $3/pvc/${classify_basename}_parenchyma.mnc $3/pvc/${classify_basename}_parenchyma_t.mnc
 mincblur -clob -fwhm ${blurV} $3/pvc/${classify_basename}_parenchyma_t.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm
 mv $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur_t.mnc
-mincmath -clamp -const2 0 1 $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur_t.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc
+mincmath -clamp -const2 0.2 1 $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur_t.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc
 echo "############## PVC END #####################"
 ######## End PVC
 
