@@ -101,7 +101,6 @@ class ADNI_T1_Helper:
             return False
         else:
             if result[12] == 1 and result[13] == 1:
-                PipelineLogger.log('root', 'debug', 'Matched T1 is processed and QC passed. {0} - {1} - {2}'.format(subject_id, s_id, i_id))
                 return result[8]
             else:
                 PipelineLogger.log('root', 'error', 'Matched T1 is not process or QC failed. {0} - {1} - {2}'.format(subject_id, s_id, i_id))

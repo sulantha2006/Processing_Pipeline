@@ -92,6 +92,9 @@ class ADNI_V1_T1:
                 shutil.copyfile(converted_file, nativeFileName)
             except Exception as e:
                 PipelineLogger.log('manager', 'error', 'Error in creating folders or copying native file. \n {0}'.format(e))
+                PipelineLogger.log('manager', 'error', 'Setting to restart conversion. \n {0}'.format(e))
+                sql = "UPDATE Conversion SET CONVERTED = 0, SKIP = 0 WHERE S_IDENTIFIER = '{0}' AND I_IDENTIFIER = '{1}'".format(processingItemObj.s_identifier, processingItemObj.i_identifier)
+                self.DBClient.executeNoResult(sql)
                 return None
         return nativeFileName
 

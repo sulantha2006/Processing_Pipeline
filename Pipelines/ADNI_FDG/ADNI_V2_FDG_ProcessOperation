@@ -118,6 +118,12 @@ then
 fi
 echo "Registration Finished"
 ########
+echo "######################################################################################################################"
+echo "###########################Creating subjects own masks##################################"
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc $3/t1/*pve_exactgm.mnc -transform $3/transforms/*nlfit_It.xfm $3/mask/${petfileSubID}_gm_nlinTemp.mnc
+mincmask $3/mask/${petfileSubID}_gm_nlinTemp.mnc /data/data03/quarantine/icbm_segmented_masked_jackmask_res_8mm_blur_050.mnc $3/mask/${petfileSubID}_jackmask.mnc
+echo "###########################Finished subjects own masks##################################"
+########
 ######## Partial Volume Correction Masks
 echo "############## PVC MASK STARTING #####################"
 wm_basename=$(basename $3/t1/*pve_exactwm.mnc .mnc)
