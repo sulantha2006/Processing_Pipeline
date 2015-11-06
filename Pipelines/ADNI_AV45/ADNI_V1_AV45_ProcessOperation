@@ -247,6 +247,9 @@ mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc 
 
 ############################# Link to verify file ##################
 ln -s $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_cerGM.mnc $3/verify/${petfileSubID}_final_qcVerify.mnc
+mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+minc_qc.pl /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc --mask $3/verify/${petfileSubID}_final_qcVerify.mnc --spectral-mask $3/verify/${petfileSubID}_MNI152Template.jpg --big
+minc_qc.pl /data/data03/quarantine/mni_adni_t1w_tal_nlin_asym.mnc --mask $3/verify/${petfileSubID}_final_qcVerify.mnc --spectral-mask $3/verify/${petfileSubID}_ADNITemplate.jpg --big
 
 #### SEND MESSAGE TO QSUB JOB HANDLER IN PIPELINE MANAGER
 if [[ -f $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pbavg_ref_cerGM_wmnorm_085.mnc  && -f $3/final/${petfileSubID}_${blurV}mm_blur_tal_nlin_pvcd_final_pbavg_ref_cerGM_wmnorm_085.mnc ]]
