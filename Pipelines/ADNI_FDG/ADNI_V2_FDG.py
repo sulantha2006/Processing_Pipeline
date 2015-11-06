@@ -51,9 +51,16 @@ class ADNI_V2_FDG:
         else:
             PipelineLogger.log('root', 'INFO', '+++++++++ PET ready to be processed. Will check for initial xfm. - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
             if processingItemObj.manual_xfm == 'Req_man_reg':
-                self.PETHelper.requestCoreg(processingItemObj, matching_t1)
-                PipelineLogger.log('root', 'INFO', 'Manual XFM was not found. Request to create one may have added.  - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
-                return 0
+                coregDone = self.PETHelper.checkIfAlreadyDone(processingItemObj, matching_t1)
+                if coregDone:
+                    manualXFM = coregDone
+                    setPPTableSQL = "UPDATE {0}_{1}_Pipeline SET MANUAL_XFM = '{2}' WHERE RECORD_ID = {3}".format(processingItemObj.study, processingItemObj.modality, manualXFM, processingItemObj.table_id)
+                    self.DBClient.executeNoResult(setPPTableSQL)
+                    self.processPET(processingItemObj, processed)
+                else:
+                    self.PETHelper.requestCoreg(processingItemObj, matching_t1)
+                    PipelineLogger.log('root', 'INFO', 'Manual XFM was not found. Request to create one may have added.  - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+                    return 0
             else:
                 self.processPET(processingItemObj, processed)
 

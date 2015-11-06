@@ -56,7 +56,7 @@ class PipelineHandler:
 
                 if jobType == 'CIVETRUN':
                     finishSQL = "UPDATE {0} SET FINISHED = 1 WHERE RECORD_ID = {1}".format(reportTable, tableID)
-                    self.DBClient.executeNoResult(updateSQL)
+                    self.DBClient.executeNoResult(finishSQL)
 
                 rmSql = "DELETE FROM externalWaitingJobs WHERE JOB_ID LIKE '{0}_{1}_{2}_{3}_%'".format(study, modality, tableID, subjectScanID)
                 self.DBClient.executeNoResult(rmSql)

@@ -78,4 +78,18 @@ class PETHelper:
         xfmFileName = '{0}_{1}_PET_{2}_{3}_T1_{4}_{5}'.format(study, rid, pet_sid, pet_iid, t1_sid, t1_iid)
         self.CoregHand.requestCoreg(study, rid, processingItemObj.modality, pet_folder, t1_folder, pet_scanType, t1_scanType, xfmFileName)
 
+    def checkIfAlreadyDone(self, processingItemObj, matchedT1entry):
+        study = processingItemObj.study
+        rid = processingItemObj.subject_rid
+        pet_sid = processingItemObj.s_identifier
+        pet_iid = processingItemObj.i_identifier
+        t1_sid = matchedT1entry[6]
+        t1_iid = matchedT1entry[7]
+        XFM_UNIQID = 'PET_{0}_{1}_T1_{2}_{3}'.format(pet_sid, pet_iid, t1_sid, t1_iid)
+        checkAlreadyDoneSQL = "SELECT * FROM MANUAL_XFM WHERE XFM_UNIQUEID = '{0}'".format(XFM_UNIQID)
+        result = self.DBClient.executeAllResults(checkAlreadyDoneSQL)
+        if len(result) > 0:
+            return result[0][4]
+        else:
+            return None
 

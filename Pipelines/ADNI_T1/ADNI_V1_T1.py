@@ -39,7 +39,7 @@ class ProcessingItemObj:
 class ADNI_V1_T1:
     def __init__(self):
         self.DBClient = DbUtils()
-        self.QCHandler = QCHandler
+        self.QCHandler = QCHandler()
 
     def process(self, processingItem):
         processingItemObj = ProcessingItemObj(processingItem)
@@ -179,8 +179,7 @@ class ADNI_V1_T1:
         qcFieldDict = dict(civet='QC', beast='BEAST_QC')
         qcFolderDict = { 'civet' : '{0}/civet'.format(processingItemObj.root_folder),
                          'beast' : '{0}/beast'.format(processingItemObj.root_folder)}
-        self.QCHandler.requestQC(processingItemObj.study, '{0}_{1}_Pipeline'.format(processingItemObj.study,
-                                                                                    processingItemObj.modality),
-                                 processingItemObj.table_id, qcFieldDict[qctype], qctype, qcFolderDict[qctype])
+        tablename = '{0}_{1}_Pipeline'.format(processingItemObj.study, processingItemObj.modality)
+        self.QCHandler.requestQC(processingItemObj.study, tablename, processingItemObj.table_id, qcFieldDict[qctype], qctype, qcFolderDict[qctype])
 
 

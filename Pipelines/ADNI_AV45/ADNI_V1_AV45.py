@@ -55,9 +55,15 @@ class ADNI_V1_AV45:
                 manualXFM = self.PETHelper.getManualXFM(processingItemObj, matching_t1)
                 processingItemObj.manual_xfm = manualXFM
             elif processingItemObj.manual_xfm == 'Req_man_reg':
-                self.PETHelper.requestCoreg(processingItemObj, matching_t1)
-                PipelineLogger.log('root', 'INFO', 'Manual XFM was not found. Request to create one may have added.  - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
-                return 0
+                coregDone = self.PETHelper.checkIfAlreadyDone(processingItemObj, matching_t1)
+                if coregDone:
+                    manualXFM = coregDone
+                    setPPTableSQL = "UPDATE {0}_{1}_Pipeline SET MANUAL_XFM = '{2}' WHERE RECORD_ID = {3}".format(processingItemObj.study, processingItemObj.modality, manualXFM, processingItemObj.table_id)
+                    self.DBClient.executeNoResult(setPPTableSQL)
+                else:
+                    self.PETHelper.requestCoreg(processingItemObj, matching_t1)
+                    PipelineLogger.log('root', 'INFO', 'Manual XFM was not found. Request to create one may have added.  - {0} - {1}'.format(processingItemObj.subject_rid, processingItemObj.scan_date))
+                    return 0
             else:
                 manualXFM = processingItemObj.manual_xfm
             if manualXFM:
