@@ -28,7 +28,7 @@ class QSubJobHandler(threading.Thread):
         threading.Thread.__init__(self)
         self.sock = None
         self.thread_list = []
-        self.jobReporter = QSubJobStatusReporter()
+
 
     def doWork(self, conn):
         data = conn.recv(1024)
@@ -38,6 +38,7 @@ class QSubJobHandler(threading.Thread):
         if jobID not in self.submittedJobs:
             PipelineLogger.log('manager', 'error',' ++++++++ QSub Job Handler unidentified JobID - {0}.'.format(jobID))
         else:
+            jobReporter = QSubJobStatusReporter()
             if  status == 'Start':
                 PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
                 self.submittedJobs[jobID].Start = True
@@ -45,11 +46,11 @@ class QSubJobHandler(threading.Thread):
             elif status == 'Success':
                 PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
                 self.submittedJobs[jobID].Fin = True
-                self.jobReporter.setStatus(self.submittedJobs[jobID], status)
+                jobReporter.setStatus(self.submittedJobs[jobID], status)
             elif status == 'Fail':
                 PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
                 self.submittedJobs[jobID].Fin = True
-                self.jobReporter.setStatus(self.submittedJobs[jobID], status)
+                jobReporter.setStatus(self.submittedJobs[jobID], status)
             else:
                 PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status (Unhandled)- {1}.'.format(jobID, status))
 

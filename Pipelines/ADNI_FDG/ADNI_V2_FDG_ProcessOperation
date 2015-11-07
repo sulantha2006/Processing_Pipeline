@@ -1,5 +1,6 @@
 #!/bin/bash
-source /data/data03/bin/1.9.10/minc-toolkit-config.sh
+source /opt/minc-toolkit/minc-toolkit-config.sh
+
 ##1 -> ID
 ##2 -> INPUT MNC
 ##3 -> OUTPUT PATH
@@ -68,12 +69,16 @@ mv $3/intermediate/${t1fileSubID}_t1_nu2.mnc $3/intermediate/${t1fileSubID}_t1_n
 ##################### Automatic Initial XFM generation ############################
 if [ $initXFM = "auto" ];
 then
+    source /data/data03/bin/1.9.10/minc-toolkit-config.sh
+
     echo "++++++++++++++++++++ Starting automatic PET->MRI registration."
     /opt/minc-toolkit/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
     initXFM=$3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
     cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
     xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
     xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+
+    source /opt/minc-toolkit/minc-toolkit-config.sh
 fi
 ###################################################################################
 

@@ -35,7 +35,7 @@ class DbUtils:
                                        database=self.database,
                                        user=self.username,
                                        password=self.password)
-        self.conn.autocommit
+        self.conn.autocommit = True
         self.cursor = self.conn.cursor()
 
     def executeNoResult(self, sqlStr):
