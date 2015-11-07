@@ -13,12 +13,14 @@ from Utils.PipelineLogger import PipelineLogger
 import glob
 import shutil
 from distutils import dir_util
+from QC.QCHandler import QCHandler
 
 class PipelineHandler:
     def __init__(self):
         self.processingPPDict = {'ADNI':{'V1':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V1_AV45(), 'FDG':ADNI_V1_FDG()},
                                          'V2':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V2_AV45(), 'FDG':ADNI_V2_FDG()}}}
         self.DBClient = DbUtils()
+        self.QCH = QCHandler()
 
     def checkExternalJobs(self, study, modality):
         getExtJobSql = "SELECT * FROM externalWaitingJobs WHERE JOB_ID LIKE '{0}_{1}_%'".format(study, modality)
@@ -57,6 +59,13 @@ class PipelineHandler:
                 if jobType == 'CIVETRUN':
                     finishSQL = "UPDATE {0} SET FINISHED = 1 WHERE RECORD_ID = {1}".format(reportTable, tableID)
                     self.DBClient.executeNoResult(finishSQL)
+                    modal_table = reportTable
+                    modal_tableId = tableID
+                    qcField = 'QC'
+                    qctype = 'civet'
+                    qcFolder = civetFolder
+                    self.QCH.requestQC(study, modal_table, modal_tableId, qcField, qctype, qcFolder)
+
 
                 rmSql = "DELETE FROM externalWaitingJobs WHERE JOB_ID LIKE '{0}_{1}_{2}_{3}_%'".format(study, modality, tableID, subjectScanID)
                 self.DBClient.executeNoResult(rmSql)
