@@ -70,8 +70,6 @@ mv $3/intermediate/${t1fileSubID}_t1_nu2.mnc $3/intermediate/${t1fileSubID}_t1_n
 ##################### Automatic Initial XFM generation ############################
 if [ $initXFM = "auto" ];
 then
-    source /data/data03/bin/1.9.10/minc-toolkit-config.sh
-
     echo "++++++++++++++++++++ Starting automatic PET->MRI registration."
     echo $(which minctracc)
     /opt/minc-toolkit/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
@@ -79,6 +77,40 @@ then
     cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
     xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
     xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+
+    mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+    mincresample -nearest -like $3/t1/*t1.mnc $3/t1/*skull_mask.mnc $3/temp/skull_mask_nativeT1Grid.mnc
+    brainMaxVal=$(mincstats -max -quiet -mask $3/temp/skull_mask_nativeT1Grid.mnc -mask_binvalue 1 $3/verify/${petfileSubID}_MRISPACE_Verify.mnc)
+
+    autoRegError=$(echo "$brainMaxVal < 0.1" | bc)
+    if [ $autoRegError -eq 1 ];
+    then
+        rm $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+        rm $3/transforms/${petfileSubID}_pet2mri.xfm
+        rm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+        rm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+        rm $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+        rm $3/temp/skull_mask_nativeT1Grid.mnc
+
+        source /data/data03/bin/1.9.10/minc-toolkit-config.sh
+
+        echo $(which minctracc)
+        /opt/minc-toolkit/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+        initXFM=$3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+        cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
+        xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+        xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+
+        mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+        mincresample -nearest -like $3/t1/*t1.mnc $3/t1/*skull_mask.mnc $3/temp/skull_mask_nativeT1Grid.mnc
+        brainMaxValNew=$(mincstats -max -quiet -mask $3/temp/skull_mask_nativeT1Grid.mnc -mask_binvalue 1 $3/verify/${petfileSubID}_MRISPACE_Verify.mnc)
+        autoRegErrorNEWToolKit=$(echo "$brainMaxValNew < 0.1" | bc)
+        if [ $autoRegErrorNEWToolKit -eq 1 ];
+        then
+            echo $1_Fail | nc -w 0 $8 $9
+            exit
+        fi
+    fi
 
     source /opt/minc-toolkit/minc-toolkit-config.sh
 fi
@@ -262,7 +294,6 @@ mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc 
 
 ############################# Link to verify file ##################
 ln -s $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pbavg_ref_cerGM.mnc $3/verify/${petfileSubID}_final_qcVerify.mnc
-mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
 minc_qc.pl /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc --mask $3/verify/${petfileSubID}_final_qcVerify.mnc --spectral-mask $3/verify/${petfileSubID}_MNI152Template.jpg --big
 minc_qc.pl /data/data03/quarantine/mni_adni_t1w_tal_nlin_asym.mnc --mask $3/verify/${petfileSubID}_final_qcVerify.mnc --spectral-mask $3/verify/${petfileSubID}_ADNITemplate.jpg --big
 
