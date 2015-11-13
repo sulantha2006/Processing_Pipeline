@@ -9,7 +9,7 @@ from Manager.QSubJob import QSubJob
 from Manager.QSubJobHanlder import QSubJobHandler
 from Utils.PipelineLogger import PipelineLogger
 import socket
-from Pipelines.ADNI_T1.ADNI_T1_Helper import ADNI_T1_Helper
+from Pipelines.ADNI_T1.ADNI_T1_Fmri_Helper import ADNI_T1_Fmri_Helper # Different for Fmri and PET
 import glob
 
 class Niak:
@@ -75,8 +75,10 @@ class Niak:
         return templateFileWithInformation, fmri, niakFolder
 
     def findCorrespondingMRI(self, processingItemObj):
-        matching_t1 = ADNI_T1_Helper().getMatchingT1(processingItemObj)
-        processed = ADNI_T1_Helper().checkProcessed(matching_t1)
+        matching_t1 = ADNI_T1_Fmri_Helper().getMatchingT1(processingItemObj)
+        if not matching_t1:
+            return 0
+        processed = ADNI_T1_Fmri_Helper().checkProcessed(matching_t1)
         if not processed:
             PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed.')
             return 0
