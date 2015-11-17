@@ -66,6 +66,11 @@ cp $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_${blurV}mm_psf.
 nu_correct $3/t1/*t1.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
 nu_correct $3/intermediate/${t1fileSubID}_t1_nu.mnc $3/intermediate/${t1fileSubID}_t1_nu2.mnc
 mv $3/intermediate/${t1fileSubID}_t1_nu2.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
+
+##################### T1 NLIN #####################################################
+xfmconcat $3/transforms/*t1_tal.xfm $3/transforms/*nlfit_It.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm
+###################################################################################
+
 ##################### Automatic Initial XFM generation ############################
 if [ $initXFM = "auto" ];
 then
@@ -75,7 +80,7 @@ then
     initXFM=$3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
     cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
     xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-    xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
 
     mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
     mincresample -nearest -like $3/t1/*t1.mnc $3/t1/*skull_mask.mnc $3/temp/skull_mask_nativeT1Grid.mnc
@@ -98,7 +103,7 @@ then
         initXFM=$3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
         cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
         xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-        xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+        xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
 
         mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
         mincresample -nearest -like $3/t1/*t1.mnc $3/t1/*skull_mask.mnc $3/temp/skull_mask_nativeT1Grid.mnc
@@ -141,7 +146,7 @@ then
 
     mincresample -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_pet_t1space.mnc
     xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-    xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
 
     ######## Copied fron old Jared scripts.
     ######## If there was an error, try creating an xfm on the basis that the image needed a big rotation.
@@ -151,7 +156,7 @@ then
 
     minctracc -identity -mi $3/intermediate/${petfileSubID}_${blurV}mm_psf_rsl.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} -simplex 1 -step 2 2 2 $3/transforms/${petfileSubID}_pet2mri.xfm -est_center -source_mask $3/temp/skull_mask_petspace_rsl.mnc -model_mask $3/t1/*skull_mask.mnc
     xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-    xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
     fi
 fi
 echo "Registration Finished"
