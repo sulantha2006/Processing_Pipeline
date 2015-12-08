@@ -12,12 +12,14 @@ from Manager.QSubJobHanlder import QSubJobHandler
 
 def main():
 
+    # Start an email client and logging capacity
     emailClient = EmailClient()
     logging.config.fileConfig('Config/LoggingConfig.conf')
     studyList = None
 
     ## Added ability to run from command line.
     try:
+        ## Open up for arguments
         parser = argparse.ArgumentParser()
         parser.add_argument('--studyList', required=True, nargs='+', choices=StudyConfig.AllowedStudyList, help='Space seperated study list.')
         parser.add_argument('--steps', required=False, nargs='+', choices=StudyConfig.AllowedStepsList, help='Space seperated steps list.')
