@@ -27,8 +27,11 @@ class Niak:
         return r[0][0]
 
     def process(self, processingItemObj):
-        matlabScript, nativeFileName, niakFolder = self.readTemplateFile(processingItemObj)
-        PipelineLogger.log('manager', 'info', 'NIAK starting for {0}'.format(nativeFileName))
+        try:
+            matlabScript, nativeFileName, niakFolder = self.readTemplateFile(processingItemObj)
+            PipelineLogger.log('manager', 'info', 'NIAK starting for {0}'.format(nativeFileName))
+        except:
+            return 0
 
         # Delete PIPE.lock file, if is exists
         if os.path.isfile("%s/preprocessing/logs/PIPE.lock" % niakFolder):
@@ -45,19 +48,25 @@ class Niak:
                 #### Report error
 
     def readTemplateFile(self, processingItemObj):
-        niakTemplateFile = 'Pipelines/ADNI_Fmri/MatlabScripts/niakPreprocessingTemplate.m'
+        niakTemplateFile = os.path.dirname(__file__) + '/MatlabScripts/niakPreprocessingTemplate.m'
 
         niakFolder = '{0}/niak'.format(processingItemObj.root_folder)
         logDir = '{0}/logs'.format(processingItemObj.root_folder)
 
         # Get the corresponding subject-space MRI path
-        anat = self.findCorrespondingMRI(processingItemObj) + '/civet/native/*t1.mnc'
+        if False:
+            correspondingMRI = self.findCorrespondingMRI(processingItemObj)
+            if not correspondingMRI: # If there is no corresponding MRI file
+                return 0
+            else:
+                anat = correspondingMRI + '/civet/native/*t1.mnc'
+        anat = '/data/data03/civet/native/*t1.mnc'
 
         # Get all subjects
-        patientInfo = "files_in.subject1.anat = '%s';"
+        patientInfo = "files_in.subject1.anat = '%s';" % anat
         for fmri in glob.glob(processingItemObj.converted_folder + '/*.mnc*'):
             iteration = fmri[fmri.rindex('_run') + 4 : fmri.rindex('.mnc')]
-            patientInfo = patientInfo + "\n files_in.subject1.fmri.session1{%s} = '%s'" % (iteration, fmri)
+            patientInfo = patientInfo + "\nfiles_in.subject1.fmri.session1{%s} = '%s'" % (iteration, fmri)
 
         # Read templateFileWithInformation
         with open(niakTemplateFile, 'r') as templateFile:
@@ -75,10 +84,15 @@ class Niak:
         return templateFileWithInformation, fmri, niakFolder
 
     def findCorrespondingMRI(self, processingItemObj):
+        # Find Matching T1
         matching_t1 = ADNI_T1_Helper().getMatchingT1(processingItemObj)
+        if not matching_t1:
+            return 0
+
+        # Find out whether T1 has been processed
         processed = ADNI_T1_Helper().checkProcessed(matching_t1)
         if not processed:
-            PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed.')
+            PipelineLogger.log('root', 'error', 'FMRI cannot be processed due to matching T1 not being processed.')
             return 0
         else:
             return matching_t1

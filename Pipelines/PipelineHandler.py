@@ -85,6 +85,7 @@ class PipelineHandler:
         toProcessinModalityPerStudy = self.DBClient.executeAllResults("SELECT * FROM Processing INNER JOIN (SELECT * FROM {0}_{1}_Pipeline WHERE NOT (FINISHED OR SKIP)) as TMP ON Processing.RECORD_ID=TMP.PROCESSING_TID".format(study, modality))
         for processingItem in toProcessinModalityPerStudy:
             version = processingItem[10]
+            # Calling on the process .section of given studies and modalities
             self.processingPPDict[study][version][modality].process(processingItem)
 
         return 0
