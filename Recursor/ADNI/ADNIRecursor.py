@@ -29,6 +29,8 @@ class ADNIRecursor():
     def createNewScanSession(self,down_most_folder, filelist):
         # Return parts of the folder path, the ones of interest
         folder = down_most_folder.replace(self.root_folder,"")
+        if filelist is None: # If no file in folder, ignore and skip
+            return None
         try:
             folder_parts = folder.split("/")  # List containing each parts/folders of the full path
             filename_parts = filelist[0].split("_")  # Takes the first filename and create a list of its parts
