@@ -12,14 +12,21 @@ class ADNI_T1_Helper:
         self.MatchDBClient = DbUtils(database=pc.ADNI_dataMatchDBName)
 
     def getMatchingT1(self, processingItemObj):
-        modalityID = '{0}{1}{2}{3}{4}{5}{6}'.format(processingItemObj.study, processingItemObj.version, processingItemObj.subject_rid, processingItemObj.modality, processingItemObj.scan_date.replace('-', ''), processingItemObj.s_identifier, processingItemObj.i_identifier)
+        modalityID = '{0}{1}{2}{3}{4}{5}{6}'.format(processingItemObj.study, processingItemObj.version,
+                                                    processingItemObj.subject_rid, processingItemObj.modality,
+                                                    processingItemObj.scan_date.replace('-', ''),
+                                                    processingItemObj.s_identifier, processingItemObj.i_identifier)
         getFromMatchTableSQL = "SELECT * FROM MatchT1 WHERE MODALITY_ID = '{0}'".format(modalityID)
         existingMatchedRec = self.DBClient.executeAllResults(getFromMatchTableSQL)
         if len(existingMatchedRec) == 1:
             getConvSQL = "SELECT * FROM Conversion WHERE RECORD_ID = '{0}'".format(existingMatchedRec[0][3])
             return self.DBClient.executeAllResults(getConvSQL)[0]
         else:
-            getPETRecordSQL = "SELECT * FROM PET_META_LIST WHERE subject LIKE '%_%_{0}' AND seriesid = {1} AND imageid = {2}".format(processingItemObj.subject_rid, processingItemObj.s_identifier.replace('S', ''), processingItemObj.i_identifier.replace('I', ''))
+
+            if processingItemObj.modality == 'FMRI': sqlList = 'MRILIST'
+            else: sqlList = 'PET_META_LIST' # By Default
+
+            getPETRecordSQL = "SELECT * FROM {0} WHERE subject LIKE '%_%_{1}' AND seriesid = {2} AND imageid = {3}".format(sqlList, processingItemObj.subject_rid, processingItemObj.s_identifier.replace('S', ''), processingItemObj.i_identifier.replace('I', ''))
 
             petrecord = self.MatchDBClient.executeAllResults(getPETRecordSQL)
             if not petrecord:
@@ -68,7 +75,7 @@ class ADNI_T1_Helper:
                 if len(t1_conversion) > 0 :
                     matchedT1withScanDescriptions.append(t1_conversion[0])
                 else:
-                    PipelineLogger.log('root', 'error', 'Correspoding MRI was not found in the system : {0} - {1} - {2}'.format(processingItemObj.subject_rid, 'S{0}'.format(rec[7]), 'I{0}'.format(rec[8])))
+                    PipelineLogger.log('root', 'error', 'Corresponding MRI was not found in the system : {0} - {1} - {2}'.format(processingItemObj.subject_rid, 'S{0}'.format(rec[7]), 'I{0}'.format(rec[8])))
                     continue
             if len(matchedT1withScanDescriptions) < 1:
                 PipelineLogger.log('root', 'error', 'Matched T1s are not in the database. : Matched T1 s - \n {0}'.format(matchedT1Recs))

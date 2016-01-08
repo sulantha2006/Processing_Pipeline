@@ -60,10 +60,9 @@ class Niak:
                 return 0
             else:
                 anat = correspondingMRI + '/civet/native/*t1.mnc'
-        anat = '/data/data03/civet/native/*t1.mnc'
 
         # Get all subjects
-        patientInfo = "files_in.subject1.anat = '%s';" % anat
+        patientInfo = "files_in.subject1.anat = '%s';" % (anat)
         for fmri in glob.glob(processingItemObj.converted_folder + '/*.mnc*'):
             iteration = fmri[fmri.rindex('_run') + 4 : fmri.rindex('.mnc')]
             patientInfo = patientInfo + "\nfiles_in.subject1.fmri.session1{%s} = '%s'" % (iteration, fmri)
@@ -97,10 +96,10 @@ class Niak:
         else:
             return matching_t1
 
-    def replaceString(self, text, replacing_dict):
+    def replaceString(self, templateText, replacing_dict):
         for query, replacedInto in replacing_dict.items():
-            text = text.replace(query, replacedInto)
-        return text
+            templateText = templateText.replace(query, replacedInto)
+        return templateText
 
     def executeScript(self, processingItemObj, matlabScript, niakFolder):
         # Prepare matlab command
