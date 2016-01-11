@@ -12,7 +12,7 @@ emma_tools_location = '/home/wang/Documents/MATLAB/emma'
 matlab_location = '/opt/matlab12b/bin/matlab'
 matlab_scripts = 'Pipelines/ADNI_Fmri/MatlabScripts'
 fwhm_smoothing = '6'
-matlab_call = '%s -nodisplay << addpath(%s)' % (matlab_location, matlab_scripts)
+matlab_call = '%s -nodisplay -nosplash -r "addpath(%s);' % (matlab_location, matlab_scripts)
 sourcing = 'source /opt/minc-toolkit/minc-toolkit-config.sh'
 
 T1TempDirForCIVETProcessing = '/data/data03/CIVETUPLOAD'

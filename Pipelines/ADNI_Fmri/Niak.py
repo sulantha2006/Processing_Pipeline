@@ -54,12 +54,11 @@ class Niak:
         logDir = '{0}/logs'.format(processingItemObj.root_folder)
 
         # Get the corresponding subject-space MRI path
-        if False:
-            correspondingMRI = self.findCorrespondingMRI(processingItemObj)
-            if not correspondingMRI: # If there is no corresponding MRI file
-                return 0
-            else:
-                anat = correspondingMRI + '/civet/native/*t1.mnc'
+        correspondingMRI = self.findCorrespondingMRI(processingItemObj)
+        if not correspondingMRI: # If there is no corresponding MRI file
+            return 0
+        else:
+            anat = correspondingMRI[9] + '/civet/native/*t1.mnc'  # correspondingMRI[9] returns the root folder of the T1 MRI file
 
         # Get all subjects
         patientInfo = "files_in.subject1.anat = '%s';" % (anat)
@@ -101,9 +100,21 @@ class Niak:
             templateText = templateText.replace(query, replacedInto)
         return templateText
 
+
+    def createMatlabFile(self, matlabScript, niakFolder):
+        matlab_file_path = niakFolder + '/preprocessing_script.m'
+        with open(matlab_file_path, 'w') as matlab_file:  # Overwrite previous matlab script file if it already existed
+            matlab_file.write(matlabScript)
+        return matlab_file_path
+
+
     def executeScript(self, processingItemObj, matlabScript, niakFolder):
+
+        # Create a matlab file to be called later on
+        matlabFile = self.createMatlabFile(matlabScript, niakFolder)
+
         # Prepare matlab command
-        matlabCommand = '%s %s' % (config.matlab_call, matlabScript)
+        matlabCommand = '%s %s;exit' % (config.matlab_call, matlabFile)
 
         # Creating log folder
         logDir = '{0}/logs'.format(processingItemObj.root_folder)

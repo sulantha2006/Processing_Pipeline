@@ -23,12 +23,12 @@ class ADNI_T1_Helper:
             return self.DBClient.executeAllResults(getConvSQL)[0]
         else:
 
-            if processingItemObj.modality == 'FMRI': sqlList = 'MRILIST'
-            else: sqlList = 'PET_META_LIST' # By Default
+            if processingItemObj.modality == 'FMRI':  # For MRI and fMRI images
+                getRecordSQL = "SELECT * FROM MRILIST WHERE subject LIKE '%_%_{0}' AND seriesid = {1} AND imageuid = {2}".format(processingItemObj.subject_rid, processingItemObj.s_identifier.replace('S', ''), processingItemObj.i_identifier.replace('I', ''))
+            else:  # By Default, for PET images
+                getRecordSQL = "SELECT * FROM PET_META_LIST WHERE subject LIKE '%_%_{0}' AND seriesid = {1} AND imageid = {2}".format(processingItemObj.subject_rid, processingItemObj.s_identifier.replace('S', ''), processingItemObj.i_identifier.replace('I', ''))
 
-            getPETRecordSQL = "SELECT * FROM {0} WHERE subject LIKE '%_%_{1}' AND seriesid = {2} AND imageid = {3}".format(sqlList, processingItemObj.subject_rid, processingItemObj.s_identifier.replace('S', ''), processingItemObj.i_identifier.replace('I', ''))
-
-            petrecord = self.MatchDBClient.executeAllResults(getPETRecordSQL)
+            petrecord = self.MatchDBClient.executeAllResults(getRecordSQL)
             if not petrecord:
                 PipelineLogger.log('root', 'error', 'Cannot find PET record : {0} - {1} - {2}'.format(processingItemObj.subject_rid, processingItemObj.s_identifier.replace('S', ''), processingItemObj.i_identifier.replace('I', '')))
                 return None

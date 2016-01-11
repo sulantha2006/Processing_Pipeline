@@ -66,22 +66,22 @@ def main():
         pipeline.convertRawData()
         PipelineLogger.log('root', 'info', 'Converting to MINC done ...############')
         PipelineLogger.log('root', 'info', 'Modifying processing pipeline table. This may take a while. Please wait....############')
-        pipeline.getConvertedList()
-        pipeline.refreshModalityTables()
-        pipeline.getProcessList()
-        pipeline.fillPipelineTables()
+        pipeline.getConvertedList()  # Get all files that have been converted, from Conversion table
+        pipeline.refreshModalityTables()  # Get the correct modality, insert or ignore information in Processing table, takes quite some time
+        pipeline.getProcessList()  # Returning all rows from the Processing table that has not been processed or skipped, takes time too
+        pipeline.fillPipelineTables()  # Creating jobs queue in {study}_{modality}_Pipeline table, takes time too
         for modality in modalities:
             if modality == 'BLUFF':
                 break
-            pipeline.checkExternalJobs(modality)
+            pipeline.checkExternalJobs(modality)  # Update list of external waiting jobs in externalWaitingJobs table
         for modality in modalities:
             if modality == 'BLUFF':
                 break
-            pipeline.checkOnQCJobs(modality)
+            pipeline.checkOnQCJobs(modality)  # Update jobs with success QC in Processing table
         for modality in modalities:
             if modality == 'BLUFF':
                 break
-            pipeline.processModality(modality)
+            pipeline.processModality(modality)  # Actually processing jobs
 
         QSubJobHandler.submittedJobs['xxxx'].Fin = True
         PipelineLogger.log('root', 'info', 'Pipeline reached end. Waiting on submitted jobs. ')
