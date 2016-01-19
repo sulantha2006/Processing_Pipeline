@@ -1,16 +1,13 @@
 __author__ = 'wang'
 
-import subprocess, os
+import subprocess, os, glob, socket, shutil
 from Utils.DbUtils import DbUtils
 import Config.PipelineConfig as config
 import distutils.dir_util
-import shutil
 from Manager.QSubJob import QSubJob
 from Manager.QSubJobHanlder import QSubJobHandler
 from Utils.PipelineLogger import PipelineLogger
-import socket
 from Pipelines.ADNI_T1.ADNI_T1_Helper import ADNI_T1_Helper
-import glob
 
 class Niak:
     def __init__(self):
@@ -58,7 +55,8 @@ class Niak:
         if not correspondingMRI: # If there is no corresponding MRI file
             return 0
         else:
-            anat = correspondingMRI[9] + '/civet/native/*t1.mnc'  # correspondingMRI[9] returns the root folder of the T1 MRI file
+            anat = correspondingMRI + '/civet/native/*t1.mnc'  # correspondingMRI[9] returns the root folder of the T1 MRI file
+            anat = glob.glob(anat)[0]
 
         # Get all subjects
         patientInfo = "files_in.subject1.anat = '%s';" % (anat)
@@ -93,7 +91,7 @@ class Niak:
             PipelineLogger.log('root', 'error', 'FMRI cannot be processed due to matching T1 not being processed.')
             return 0
         else:
-            return matching_t1
+            return processed
 
     def replaceString(self, templateText, replacing_dict):
         for query, replacedInto in replacing_dict.items():
@@ -103,6 +101,8 @@ class Niak:
 
     def createMatlabFile(self, matlabScript, niakFolder):
         matlab_file_path = niakFolder + '/preprocessing_script.m'
+        if not os.path.exists(niakFolder):
+            os.makedirs(niakFolder)
         with open(matlab_file_path, 'w') as matlab_file:  # Overwrite previous matlab script file if it already existed
             matlab_file.write(matlabScript)
         return matlab_file_path
@@ -114,7 +114,7 @@ class Niak:
         matlabFile = self.createMatlabFile(matlabScript, niakFolder)
 
         # Prepare matlab command
-        matlabCommand = '%s %s;exit' % (config.matlab_call, matlabFile)
+        matlabCommand = '%s run %s;exit"' % (config.matlab_call, matlabFile)
 
         # Creating log folder
         logDir = '{0}/logs'.format(processingItemObj.root_folder)
@@ -143,15 +143,8 @@ class Niak:
                   (config.sourcing, id, matlabCommand, niakFolder, logDir, socket.gethostname(), '50500', outputFiles)
 
         # Create NIAK folder
-        try:
-            shutil.rmtree(niakFolder)
-        except:
-            pass
-        try:
-            distutils.dir_util.mkpath(niakFolder)
-        except Exception as e:
-            PipelineLogger.log('manager', 'error', 'Error in creating NIAK folder. \n {0}'.format(e))
-            return 0
+        if not os.path.exists(niakFolder):
+            os.makedirs(niakFolder)
 
         # Run converter command
         PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(command))
