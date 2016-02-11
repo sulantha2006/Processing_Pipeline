@@ -1,10 +1,9 @@
 __author__ = 'wang'
 
-import subprocess, os
+import subprocess, os, glob, socket, shutil
 from Utils.DbUtils import DbUtils
 import Config.PipelineConfig as config
 import distutils.dir_util
-import shutil
 from Manager.QSubJob import QSubJob
 from Manager.QSubJobHanlder import QSubJobHandler
 from Utils.PipelineLogger import PipelineLogger
@@ -27,8 +26,11 @@ class Niak:
         return r[0][0]
 
     def process(self, processingItemObj):
-        matlabScript, nativeFileName, niakFolder = self.readTemplateFile(processingItemObj)
-        PipelineLogger.log('manager', 'info', 'NIAK starting for {0}'.format(nativeFileName))
+        try:
+            matlabScript, nativeFileName, niakFolder = self.readTemplateFile(processingItemObj)
+            PipelineLogger.log('manager', 'info', 'NIAK starting for {0}'.format(nativeFileName))
+        except:
+            return 0
 
         # Delete PIPE.lock file, if is exists
         if os.path.isfile("%s/preprocessing/logs/PIPE.lock" % niakFolder):
@@ -45,19 +47,24 @@ class Niak:
                 #### Report error
 
     def readTemplateFile(self, processingItemObj):
-        niakTemplateFile = 'Pipelines/ADNI_Fmri/MatlabScripts/niakPreprocessingTemplate.m'
+        niakTemplateFile = os.path.dirname(__file__) + '/MatlabScripts/niakPreprocessingTemplate.m'
 
         niakFolder = '{0}/niak'.format(processingItemObj.root_folder)
         logDir = '{0}/logs'.format(processingItemObj.root_folder)
 
         # Get the corresponding subject-space MRI path
-        anat = self.findCorrespondingMRI(processingItemObj) + '/civet/native/*t1.mnc'
+        correspondingMRI = self.findCorrespondingMRI(processingItemObj)
+        if not correspondingMRI: # If there is no corresponding MRI file
+            return 0
+        else:
+            anat = correspondingMRI + '/civet/native/*t1.mnc'  # correspondingMRI[9] returns the root folder of the T1 MRI file
+            anat = glob.glob(anat)[0]
 
         # Get all subjects
-        patientInfo = "files_in.subject1.anat = '%s';"
+        patientInfo = "files_in.subject1.anat = '%s';" % (anat)
         for fmri in glob.glob(processingItemObj.converted_folder + '/*.mnc*'):
             iteration = fmri[fmri.rindex('_run') + 4 : fmri.rindex('.mnc')]
-            patientInfo = patientInfo + "\n files_in.subject1.fmri.session1{%s} = '%s'" % (iteration, fmri)
+            patientInfo = patientInfo + "\nfiles_in.subject1.fmri.session1{%s} = '%s'" % (iteration, fmri)
 
         # Read templateFileWithInformation
         with open(niakTemplateFile, 'r') as templateFile:
@@ -75,24 +82,41 @@ class Niak:
         return templateFileWithInformation, fmri, niakFolder
 
     def findCorrespondingMRI(self, processingItemObj):
+		# Find Matching T1
         matching_t1 = ADNI_T1_Fmri_Helper().getMatchingT1(processingItemObj)
         if not matching_t1:
             return 0
+			
+		# Find out whether T1 has been processed
         processed = ADNI_T1_Fmri_Helper().checkProcessed(matching_t1)
         if not processed:
-            PipelineLogger.log('root', 'error', 'PET cannot be processed due to matching T1 not being processed.')
+            PipelineLogger.log('root', 'error', 'FMRI cannot be processed due to matching T1 not being processed.')
             return 0
         else:
-            return matching_t1
+            return processed
 
-    def replaceString(self, text, replacing_dict):
+    def replaceString(self, templateText, replacing_dict):
         for query, replacedInto in replacing_dict.items():
-            text = text.replace(query, replacedInto)
-        return text
+            templateText = templateText.replace(query, replacedInto)
+        return templateText
+
+
+    def createMatlabFile(self, matlabScript, niakFolder):
+        matlab_file_path = niakFolder + '/preprocessing_script.m'
+        if not os.path.exists(niakFolder):
+            os.makedirs(niakFolder)
+        with open(matlab_file_path, 'w') as matlab_file:  # Overwrite previous matlab script file if it already existed
+            matlab_file.write(matlabScript)
+        return matlab_file_path
+
 
     def executeScript(self, processingItemObj, matlabScript, niakFolder):
+
+        # Create a matlab file to be called later on
+        matlabFile = self.createMatlabFile(matlabScript, niakFolder)
+
         # Prepare matlab command
-        matlabCommand = '%s %s' % (config.matlab_call, matlabScript)
+        matlabCommand = '%s run %s;exit"' % (config.matlab_call, matlabFile)
 
         # Creating log folder
         logDir = '{0}/logs'.format(processingItemObj.root_folder)
@@ -121,15 +145,8 @@ class Niak:
                   (config.sourcing, id, matlabCommand, niakFolder, logDir, socket.gethostname(), '50500', outputFiles)
 
         # Create NIAK folder
-        try:
-            shutil.rmtree(niakFolder)
-        except:
-            pass
-        try:
-            distutils.dir_util.mkpath(niakFolder)
-        except Exception as e:
-            PipelineLogger.log('manager', 'error', 'Error in creating NIAK folder. \n {0}'.format(e))
-            return 0
+        if not os.path.exists(niakFolder):
+            os.makedirs(niakFolder)
 
         # Run converter command
         PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(command))
