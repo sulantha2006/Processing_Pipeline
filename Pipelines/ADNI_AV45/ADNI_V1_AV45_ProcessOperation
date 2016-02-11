@@ -63,6 +63,10 @@ nu_correct $3/t1/*t1.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
 nu_correct $3/intermediate/${t1fileSubID}_t1_nu.mnc $3/intermediate/${t1fileSubID}_t1_nu2.mnc
 mv $3/intermediate/${t1fileSubID}_t1_nu2.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
 
+##################### T1 NLIN #####################################################
+xfmconcat $3/transforms/*t1_tal.xfm $3/transforms/*nlfit_It.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm
+###################################################################################
+
 xfmconcat $initXFM $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
 mincresample -short -nearest -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/*t1_tal.xfm -invert_transformation /data/data01/database/human/public/quarantine/skull_mask.mnc $3/temp/skull_mask_mrispace.mnc
 mincresample -short -invert_transform -nearest -like $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm /data/data01/database/human/public/quarantine/skull_mask.mnc $3/temp/skull_mask_petspace.mnc
@@ -94,7 +98,7 @@ minctracc -mi $3/intermediate/${petfileSubID}_${blurV}mm_blur.mnc $3/intermediat
 
 mincresample -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_pet_t1space.mnc
 xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
 
 ######## Copied fron old Jared scripts.
 ######## If there was an error, try creating an xfm on the basis that the image needed a big rotation.
@@ -104,7 +108,7 @@ mincresample -like $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc -tran
 
 minctracc -identity -mi $3/intermediate/${petfileSubID}_${blurV}mm_blur_rsl.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} -simplex 1 -step 2 2 2 $3/transforms/${petfileSubID}_pet2mri.xfm -est_center -source_mask $3/temp/skull_mask_petspace_rsl.mnc -model_mask $3/t1/*skull_mask.mnc
 xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-xfmconcat $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
 fi
 
 echo "Registration Finished"
