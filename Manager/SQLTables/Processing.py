@@ -25,7 +25,7 @@ class Processing:
     def insertFromConvertionObj(self, convertionObj):
         convertionValues = convertionObj.getValuesDict()
         convertionValues['modality'] = sc.ProcessingModalityAndPipelineTypePerStudy[convertionObj.study][convertionObj.scan_type]
-        convertionValues['root_folder'] = '/'.join(convertionObj.converted_folder.split('/')[0:-2])
+        convertionValues['root_folder'] = '/'.join(convertionObj.converted_folder.split('/')[0:-2])  # Keeping only the three last elements
         self.insertToTable([ProcessingObject(convertionValues)])
 
     def getToProcessListPerStudy(self, study):

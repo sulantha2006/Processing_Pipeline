@@ -3,7 +3,7 @@ import os
 from multiprocessing import Pool
 from Recursor.Recursor import Recursor
 from Utils.DbUtils import DbUtils
-from Config import StudyConfig as sc
+from Config import StudyConfig as StudyConfig
 from Manager.SQL.SQLBuilder import SQLBuilder
 import distutils.dir_util
 from Utils.PipelineLogger import PipelineLogger
@@ -50,9 +50,9 @@ class PipelineManager:
     def _getRecursorList(self, studyList):
         for study in studyList:
             if study == 'ADNI':
-                self.recursorList.append(Recursor(study, sc.ADNIDownloadRoot))
+                self.recursorList.append(Recursor(study, StudyConfig.ADNIDownloadRoot))
             elif study == 'ADNI_OLD':
-                self.recursorList.append(Recursor(study, sc.ADNIOLDDownloadRoot))
+                self.recursorList.append(Recursor(study, StudyConfig.ADNIOLDDownloadRoot))
 
     # This method will recurse through the download folders.
     def recurseForNewData(self):

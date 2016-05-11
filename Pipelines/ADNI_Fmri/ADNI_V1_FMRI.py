@@ -6,6 +6,7 @@ from Pipelines.ADNI_Fmri.Niak import Niak
 import Pipelines.ADNI_Fmri.SmoothFmriFile as smoothing
 from Utils.PipelineLogger import PipelineLogger
 
+
 class ProcessingItemObj:
     def __init__(self, processingItem):
         self.processing_rid = processingItem[0]
@@ -33,6 +34,7 @@ class ADNI_V1_FMRI:
         self.DBClient = DbUtils()
         self.niak = Niak()
 
+    # This is called upon by Pipelines/PipelineHandler.py
     def process(self, processingItem):
         processingItemObj = ProcessingItemObj(processingItem)
         self.runNiak(processingItemObj)
