@@ -201,6 +201,7 @@ minccalc -short -clob -expression '(A[0]+1)*A[1]' ${outputFolder}/transforms/${c
 mincblur -clob -fwhm ${psf} ${outputFolder}/pvc/${classify_basename}_parenchyma_nl_modulated.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm
 mv ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc
 mincmath -clamp -const2 0.2 1 ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc
+mincresample -clob -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_sym_09a_mask.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc
 echo "############## PVC END #####################"
 ######## End PVC
 
