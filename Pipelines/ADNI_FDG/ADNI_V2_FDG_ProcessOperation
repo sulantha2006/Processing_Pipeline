@@ -54,7 +54,7 @@ mincresample -short -like $3/t1/*final.mnc -tricubic -transform $3/transforms/*n
 #### STX SEGEMENT> DIRECT IMPROT FROM OLD JARED SCRIPTS> ####
 echo "STX SEGEMENTING STARTING"
 classify_clean -clean_tags $3/t1/*t1_final.mnc -mask $3/t1/*skull_mask.mnc -mask_source $3/t1/${t1fileSubID}_t1_tal_classified.mnc
-Pipelines/ADNI_AV45/stx_segment -symmetric_atlas $3/transforms/*nlfit_It.xfm /home/jrowley/bin/identify.xfm $3/t1/${t1fileSubID}_t1_tal_classified.mnc $3/t1/${t1fileSubID}_t1_tal_segmented.mnc
+Pipelines/ADNI_FDG/stx_segment -symmetric_atlas $3/transforms/*nlfit_It.xfm /home/jrowley/bin/identify.xfm $3/t1/${t1fileSubID}_t1_tal_classified.mnc $3/t1/${t1fileSubID}_t1_tal_segmented.mnc
 echo "STX SEGEMENTING Done"
 #### STX SEGEMENT Done. ####
 
@@ -178,12 +178,25 @@ mincresample -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petf
 mincmath -ge -const 0.70 $3/pvc/${gm_basename}_petspace.mnc $3/pvc/${gm_basename}_petspace_mask.mnc
 mincmath -ge -const 0.70 $3/pvc/${wm_basename}_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc
 
-mincmask $3/t1/*pve_classify.mnc $3/t1/*skull_mask.mnc $3/pvc/${classify_basename}_mask.mnc
-mincmath -ge -const 2 $3/pvc/${classify_basename}_mask.mnc $3/pvc/${classify_basename}_parenchyma.mnc
-mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc  $3/pvc/${classify_basename}_parenchyma.mnc $3/pvc/${classify_basename}_parenchyma_t.mnc
-mincblur -clob -fwhm ${blurV} $3/pvc/${classify_basename}_parenchyma_t.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm
-mv $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur_t.mnc
-mincmath -clamp -const2 0.2 1 $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur_t.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc
+## OLD PVC METHOD
+##mincmask ${outputFolder}/t1/*pve_classify.mnc ${outputFolder}/t1/*skull_mask.mnc ${outputFolder}/pvc/${classify_basename}_mask.mnc
+##mincmath -ge -const 2 ${outputFolder}/pvc/${classify_basename}_mask.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma.mnc
+##mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc  ${outputFolder}/pvc/${classify_basename}_parenchyma.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_t.mnc
+##mincblur -clob -fwhm ${psf} ${outputFolder}/pvc/${classify_basename}_parenchyma_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm
+##mv ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc
+##mincmath -clamp -const2 0.2 1 ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc
+
+## NEW PVC METHOD - MODULATED
+mincmask ${outputFolder}/t1/*pve_classify.mnc ${outputFolder}/t1/*skull_mask.mnc ${outputFolder}/pvc/${classify_basename}_mask.mnc
+mincmath -ge -const 2 ${outputFolder}/pvc/${classify_basename}_mask.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma.mnc
+xfm_normalize.pl --clob --invert --like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc --step 1 ${outputFolder}/transforms/*nlfit_It.xfm ${outputFolder}/transforms/${classify_basename}_reversed_transform.xfm
+mincreshape -clob -dimorder vector_dimension,xspace,yspace,zspace ${outputFolder}/transforms/${classify_basename}_reversed_transform_grid_0.mnc ${outputFolder}/transforms/${classify_basename}_reversed_transform_grid_0_reordered.mnc
+mincblob -clob -determinant ${outputFolder}/transforms/${classify_basename}_reversed_transform_grid_0_reordered.mnc ${outputFolder}/transforms/${classify_basename}_reversed_transform_det.mnc
+mincresample -clob -float -like ${outputFolder}/transforms/${classify_basename}_reversed_transform_det.mnc -transformation ${outputFolder}/transforms/*nlfit_It.xfm ${outputFolder}/pvc/${classify_basename}_parenchyma.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_nl_detResolution.mnc
+minccalc -short -clob -expression '(A[0]+1)*A[1]' ${outputFolder}/transforms/${classify_basename}_reversed_transform_det.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_nl_detResolution.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_nl_modulated.mnc
+mincblur -clob -fwhm ${psf} ${outputFolder}/pvc/${classify_basename}_parenchyma_nl_modulated.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm
+mv ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc
+mincmath -clamp -const2 0.2 1 ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc
 echo "############## PVC END #####################"
 ######## End PVC
 
