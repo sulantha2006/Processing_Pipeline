@@ -54,7 +54,7 @@ with open('/data/data03/sulantha/Downloads/fdg_list.csv', 'r') as file:
         outLine = [rid, dateS, v1Path, v2Path]
         outLines.append(outLine)
 
-thefile = open('/data/data03/sulantha/Downloads/fdg_list_newProcessed.csv', 'w')
+thefile = open('/data/data03/sulantha/Downloads/fdg_list_newProcessed_23.csv', 'w')
 for item in outLines:
   thefile.write("%s\n" % item)
 

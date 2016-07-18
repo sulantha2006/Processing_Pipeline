@@ -56,6 +56,7 @@ class ADNI_V2_FDG:
                     manualXFM = coregDone
                     setPPTableSQL = "UPDATE {0}_{1}_Pipeline SET MANUAL_XFM = '{2}' WHERE RECORD_ID = {3}".format(processingItemObj.study, processingItemObj.modality, manualXFM, processingItemObj.table_id)
                     self.DBClient.executeNoResult(setPPTableSQL)
+                    processingItemObj.manual_xfm = manualXFM
                     self.processPET(processingItemObj, processed)
                 else:
                     self.PETHelper.requestCoreg(processingItemObj, matching_t1)

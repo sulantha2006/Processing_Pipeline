@@ -11,7 +11,7 @@ import hashlib
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s','--study', help='Study name. ', choices=['adni'])
-parser.add_argument('-t','--type', help='The type of qc. ', choices=['civet', 'av45', 'beast', 'fdg', 'fmri'])
+parser.add_argument('-t','--type', help='The type of qc. ', choices=['civet', 'av45', 'beast', 'fdg', 'fmri', 'av1451'])
 parser.add_argument('-u','--user', help='Username ')
 parser.add_argument('--createUser', help=argparse.SUPPRESS)
 args = parser.parse_args()
@@ -111,6 +111,9 @@ def runPETQC(study, type, username):
         elif type.lower() == 'fdg':
             regCMD1 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
             regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
+        elif type.lower() == 'av1451':
+            regCMD1 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
+            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
         proc1 = subprocess.Popen(regCMD1, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
         proc2 = subprocess.Popen(regCMD2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
 
@@ -190,7 +193,7 @@ if __name__ == '__main__':
                     print('Starting {0} QC. '.format(args.type.upper()))
                     runBEASTQC(args.study.upper(), args.user)
                     print('{0} QC finished '.format(args.type.upper()))
-                if args.type == 'av45' or args.type == 'fdg':
+                if args.type == 'av45' or args.type == 'fdg' or args.type == 'av1451':
                     print('Starting {0} QC. '.format(args.type.upper()))
                     runPETQC(args.study.upper(), args.type, args.user)
                     print('{0} QC finished '.format(args.type.upper()))

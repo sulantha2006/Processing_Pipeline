@@ -7,6 +7,7 @@ import Config.StudyConfig as sc
 from Utils.PipelineLogger import PipelineLogger
 import re, glob
 from xml.dom import minidom
+import xmltodict
 
 """
 Parse ADNI Data Structure from Monica Download and return a list of instances with scans' information
@@ -29,21 +30,25 @@ class ADNIRecursor():
     def createNewScanSession(self,down_most_folder, filelist):
         # Return parts of the folder path, the ones of interest
         folder = down_most_folder.replace(self.root_folder,"")
+        xmllist = [ x for x in filelist if 'xml' in x ]
+        filelist = [ x for x in filelist if 'xml' not in x ]
         if filelist is None: # If no file in folder, ignore and skip
             return None
         try:
             folder_parts = folder.split("/")  # List containing each parts/folders of the full path
             filename_parts = filelist[0].split("_")  # Takes the first filename and create a list of its parts
+            xmlFileS = open('{0}/{1}'.format(down_most_folder, xmllist[0])).read()
+            xmlDict = xmltodict.parse(xmlFileS)
 
-            rid = folder_parts[1][-4:]  # Get the last 4 characters
+            rid = xmlDict['metadata']['subject']['@id'].split('_')[-1]
             if re.search('[a-zA-Z]', rid) is not None:
                 rid = filename_parts[3]
                 if re.search('[a-zA-Z]', rid) is not None:
                     PipelineLogger.log('root', 'error', 'File recurse error on Folder RID cannot be identified. - {0}, \n Filelist - {1}'.format(folder, filelist))
                     return None
 
-            s_identifier = filename_parts[-2]
-            i_identifier = filename_parts[-1].split('.', 1)[0]
+            s_identifier = xmlDict['metadata']['series']['@uid']
+            i_identifier = xmlDict['metadata']['image']['@uid']
             scan_type = self.determineScanType(folder_parts[-3], self.study,rid, s_identifier, i_identifier)
             scan_date = folder_parts[-2].split('_')[0]
             scan_time = folder_parts[-2].split('_', 1)[-1].replace("_", ":")
@@ -78,6 +83,10 @@ class ADNIRecursor():
             if 'AV45' in scanTypeRaw or 'AV-45' in scanTypeRaw or 'AV_45' in scanTypeRaw:
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match AV45...'.format(scanTypeRaw))
                 return 'AV45'
+            if 'AV1451' in scanTypeRaw or 'AV-1451' in scanTypeRaw or 'AV_1451' in scanTypeRaw or 'tau' in scanTypeRaw.lower():
+                PipelineLogger.log('root', 'error',
+                                   'Scan Type unidentified : {0} -> Close match AV1451...'.format(scanTypeRaw))
+                return 'AV1451'
             if 'MPRAGE' in scanTypeRaw.upper():
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match MPRAGE...'.format(scanTypeRaw))
                 return 'MPRAGE'
@@ -93,6 +102,10 @@ class ADNIRecursor():
                     if 'AV45' in typeFromXML or 'AV-45' in typeFromXML or 'AV_45' in typeFromXML:
                         PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match  from XML - AV45...'.format(typeFromXML))
                         return 'AV45'
+                    if 'AV1451' in scanTypeRaw or 'AV-1451' in scanTypeRaw or 'AV_1451' in scanTypeRaw or 'tau' in scanTypeRaw.lower():
+                        PipelineLogger.log('root', 'error',
+                                           'Scan Type unidentified : {0} -> Close match AV1451...'.format(scanTypeRaw))
+                        return 'AV1451'
                 else:
                     PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> No match...'.format(scanTypeRaw))
                     return 'unknown'
@@ -125,3 +138,5 @@ class ADNIRecursor():
             return rad
         else:
             return None
+
+d = ADNIRecursor('ADNI', '/data/data03/sulantha/TAUIMAGE_processing/RAW_DL/AV1451')

@@ -32,7 +32,7 @@ class ProcessingItemObj:
         self.manual_xfm = processingItem[20]
         self.qc = processingItem[21]
 
-class ADNI_V2_AV45:
+class ADNI_V2_AV1451:
     def __init__(self):
         self.DBClient = DbUtils()
         self.MatchDBClient = DbUtils(database=pc.ADNI_dataMatchDBName)
@@ -94,7 +94,7 @@ class ADNI_V2_AV45:
         paramStrd = ast.literal_eval(processingItemObj.parameters)
         paramStrt = ' '.join(['[\"{0}\"]=\"{1}\"'.format(k, v) for k,v in paramStrd.items()])
         paramStr = '({0})'.format(paramStrt)
-        petCMD = "source /opt/minc-toolkit/minc-toolkit-config.sh; Pipelines/ADNI_AV45/ADNI_V2_AV45_Process {0} {1} {2} {3} {4} {5} '{6}' {7} {8}".format(id, petFileName, processedFolder, matchT1Path, 'auto' if processingItemObj.manual_xfm == '' else processingItemObj.manual_xfm, logDir, paramStr,socket.gethostname(), 50500)
+        petCMD = "source /opt/minc-toolkit/minc-toolkit-config.sh; Pipelines/ADNI_AV1451/ADNI_V2_AV1451_Process {0} {1} {2} {3} {4} {5} '{6}' {7} {8}".format(id, petFileName, processedFolder, matchT1Path, 'auto' if processingItemObj.manual_xfm == '' else processingItemObj.manual_xfm, logDir, paramStr,socket.gethostname(), 50500)
         try:
             processedFolder_del = '{0}/processed_del'.format(processingItemObj.root_folder)
             os.rename(processedFolder, processedFolder_del)
@@ -113,7 +113,7 @@ class ADNI_V2_AV45:
         PipelineLogger.log('manager', 'debug', 'Process Log Output : \n{0}'.format(out))
         PipelineLogger.log('manager', 'debug', 'Process Log Err : \n{0}'.format(err))
 
-        QSubJobHandler.submittedJobs[id] = QSubJob(id, '02:00:00', processingItemObj, 'av45')
+        QSubJobHandler.submittedJobs[id] = QSubJob(id, '02:00:00', processingItemObj, 'av1451')
         return 1
 
 

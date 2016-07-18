@@ -3,6 +3,7 @@ import os
 
 defaultT1config = "{'n3Dist':'75', 'headHeight':'150'}"
 defaultAV45config = "{'blur':'8'}"
+defaultAV1451config = "{'blur':'8'}"
 defaultFDGconfig = "{'blur':'8'}"
 defaultFMRIconfig = "{'nu_correct':'-75', 'fwhm_smoothing':'6'}"
 
@@ -16,8 +17,8 @@ fwhm_smoothing = '6'
 matlab_call = '%s -nodisplay -nosplash -r "addpath(\'%s\');' % (matlab_location, matlab_scripts)
 sourcing = 'source /opt/minc-toolkit/minc-toolkit-config.sh'
 
-T1TempDirForCIVETProcessing = '/data/data03/CIVETUPLOAD'
-T1TempDirForCIVETDownload = '/data/data03/CIVETDOWNLOAD/2015-11-19'
+T1TempDirForCIVETProcessing = '/data/data03/CIVETUPLOAD_TAUMRI'
+T1TempDirForCIVETDownload = '/data/data03/CIVETDOWNLOAD/2016-06-18'
 
 ADNI_dataMatchDBName = 'Study_Data.ADNI'
 ADNI_visitCode_Dict = {
@@ -44,7 +45,10 @@ ADNI_visitCode_Dict = {
     'ADNIGO Month 3 MRI': 'adg_m3',
     'ADNI2 Screening MRI-New Pt': 'ad2_sc',
     'ADNI2 Month 3 MRI-New Pt': 'ad2_m3',
-    'ADNI2 Month 6-New Pt': 'ad2_m6'
+    'ADNI2 Month 6-New Pt': 'ad2_m6',
+    'ADNI2 No Visit Defined': 'ad2_und',
+    'ADNI2 Screening-New Pt': 'ad2_sc',
+    'ADNI2 Year 5 Visit':'ad2_m60'
 }
 
 ADNI_T1_match_accepted_scantypes = ['MPR-R_B1_N3', 'MPR_B1_N3S', 'MPR_B1_N3', 'MPR_B1', 'MPR_N3', 'MPR', 'MPR-R',
@@ -58,3 +62,5 @@ ADNI_T1_match_scantype_priorityList = ['MPR-R_B1_N3', 'MPR_B1_N3S', 'MPR_B1_N3',
                                     'S_IR-FSPGR', 'AS_IR-SPGR', 'IR-FSPGR',
                                        'MT1_N3m', 'MPR_B1', 'MPR_N3', 'MPR', 'MPR-R',
                                     'MPR_N3S', 'MPR__N3', 'MPR_N3S', 'S_IR-SPGR',  'IR-FSPGR_Rep', 'MPR__M', 'MPR-R__M', 'MPRAGE']
+
+SourcePath = None

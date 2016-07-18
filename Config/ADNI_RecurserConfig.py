@@ -8,7 +8,7 @@ fileExtensionDict = {'dcm': 'dicom',
                      'mnc.gz': 'minc',
                      'v': 'v'}
 
-fileExtensionTuple = ('.nii', '.dcm', '.mnc', '.nii.gz', '.dcm.gz', '.mnc.gz', '.v', '.v.gz')
+fileExtensionTuple = ('.nii', '.dcm', '.mnc', '.nii.gz', '.dcm.gz', '.mnc.gz', '.v', '.v.gz', 'xml')
 
 scanTypeDict = {
                 '4x5minute_frames_4i_16s__AV45': 'AV45',

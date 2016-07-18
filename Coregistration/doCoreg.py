@@ -12,7 +12,8 @@ import shutil
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s','--study', help='Study name. ', choices=['adni'])
-parser.add_argument('-t','--type', help='The type of pet. ', choices=['av45', 'fdg'])
+parser.add_argument('-t','--type', help='The type of pet. ', choices=['av45', 'fdg', 'av1451'])
+parser.add_argument('-r','--rid', help='Username ', required=False)
 parser.add_argument('-u','--user', help='Username ')
 parser.add_argument('--createUser', help=argparse.SUPPRESS)
 args = parser.parse_args()
@@ -25,9 +26,13 @@ xfmFile = '1.xfm'
 tagFile = '1.tag'
 
 
-def runCoreg(study, type, username):
+def runCoreg(study, type, username, rid = None):
     while 1:
-        getEntrySql = "SELECT * FROM Coregistration WHERE TYPE = '{0}' AND STUDY = '{1}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(type, study)
+        if rid:
+            getEntrySql = "SELECT * FROM Coregistration WHERE TYPE = '{0}' AND STUDY = '{1}' AND RID = {2} AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(
+                type, study, rid)
+        else:
+            getEntrySql = "SELECT * FROM Coregistration WHERE TYPE = '{0}' AND STUDY = '{1}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(type, study)
         resT = DBClient.executeAllResults(getEntrySql)
         if len(resT) < 1:
             print('No files to coregister. ')
@@ -131,7 +136,7 @@ if __name__ == '__main__':
                 if os.path.exists(tagFile):
                     os.remove(tagFile)
 
-                runCoreg(args.study.upper(), args.type.upper(), args.user)
+                runCoreg(args.study.upper(), args.type.upper(), args.user, args.rid)
                 print('Corestration finished. ')
             else:
                 print('Username/password incorrect.. ')

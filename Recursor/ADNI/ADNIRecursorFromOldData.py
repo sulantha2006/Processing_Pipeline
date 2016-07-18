@@ -74,6 +74,10 @@ class ADNIRecursorFromOldData():
             if 'AV45' in scanTypeRaw:
                 PipelineLogger.log('root', 'error', 'Scan Type not defined : {0} -> Close match AV45...'.format(scanTypeRaw))
                 return 'AV45'
+            if 'AV1451' in scanTypeRaw or 'AV-1451' in scanTypeRaw or 'AV_1451' in scanTypeRaw:
+                PipelineLogger.log('root', 'error',
+                                   'Scan Type unidentified : {0} -> Close match AV1451...'.format(scanTypeRaw))
+                return 'AV1451'
             if 'MPRAGE' in scanTypeRaw.upper():
                 PipelineLogger.log('root', 'error', 'Scan Type unidentified : {0} -> Close match MPRAGE...'.format(scanTypeRaw))
                 return 'MPRAGE'

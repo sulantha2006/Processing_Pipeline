@@ -105,6 +105,7 @@ class ADNI_V1_T1:
         beastFolder = '{0}/beast'.format(processingItemObj.root_folder)
         logDir = '{0}/logs'.format(processingItemObj.root_folder)
         PipelineLogger.log('manager', 'info', 'BeAST starting for {0}'.format(nativeFileName))
+        PipelineLogger.log('manager', 'info', 'Current working folder : {0}'.format(os.getcwd()))
         try:
             distutils.dir_util.mkpath(logDir)
         except Exception as e:
@@ -124,6 +125,7 @@ class ADNI_V1_T1:
             return 0
 
         PipelineLogger.log('manager', 'debug', 'Command : {0}'.format(beastCMD))
+        os.chdir(pc.SourcePath)
         p = subprocess.Popen(beastCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
         out, err = p.communicate()
         PipelineLogger.log('manager', 'debug', 'Beast Log Output : \n{0}'.format(out.decode("utf-8")))

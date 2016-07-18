@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+####1 -> ID
+####2 -> INPUT MNC
+####3 -> OUTPUT PATH
+####4 -> SUBJECT T1 PATH
+####5 -> MANUAL XFM
+####6 -> LOG DIR
+####7 -> PARAMETER STRING
+#### FOR SEND MESSAGE TO HANDLER
+####8 -> HOST
+####9 -> PORT
+
+source /home/vfonov/quarantine/init.sh
+queue=veryfast.q
+datestr=$(date +%Y%m%d%H%M%S)
+echo "qsub -j y -o $6/AV1451_LOG_$1.log -V -cwd -q $queue -N AV1451_$1 Pipelines/ADNI_AV1451/ADNI_V2_AV1451_ProcessOperation $1 $2 $3 $4 $5 $6 $7 $8 $9"
+qsub -j y -o $6/AV1451_LOG_$1_${datestr}.log -V -cwd -q $queue -N AV1451_$1 Pipelines/ADNI_AV1451/ADNI_V2_AV1451_ProcessOperation $1 $2 $3 $4 $5 $6 $7 $8 $9

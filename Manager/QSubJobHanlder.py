@@ -32,6 +32,7 @@ class QSubJobHandler(threading.Thread):
 
     def doWork(self, conn):
         data = conn.recv(1024)
+        #PipelineLogger.log('manager', 'info', ' Data recieved - {0}.'.format(data))
         jobID = data.strip().decode('utf-8').split('_')[0]
         status = data.strip().decode('utf-8').split('_')[1]
         PipelineLogger.log('manager', 'info',' ++++++++ QSub Job Handler received JobID - {0}.'.format(jobID))

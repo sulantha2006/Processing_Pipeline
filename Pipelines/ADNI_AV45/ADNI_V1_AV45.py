@@ -113,6 +113,11 @@ class ADNI_V1_AV45:
             PipelineLogger.log('manager', 'error', 'Error in creating processing folder. \n {0}'.format(e))
             return 0
 
+        ### This section is new for ADNI Pre processing - Per scanner type blurring. Only required if
+        ### the images are aquired from different scanners and need to get to same PSF.
+        blur_x, blur_y, blur_z = self.PETHelper.getBlurringParams(processingItemObj)
+        ### End pre processing.
+
         PipelineLogger.log('manager', 'debug', 'Command : {0}'.format(petCMD))
         p = subprocess.Popen(petCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
         out, err = p.communicate()

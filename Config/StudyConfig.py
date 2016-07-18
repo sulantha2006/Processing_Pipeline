@@ -1,12 +1,13 @@
 __author__ = 'Sulantha'
 
 AllowedStudyList = ['ADNI', 'ADNI_OLD']
-AllowedStepsList = ['Sort', 'Move', 'T1Beast', 'T1Process', 'ProcessAV45', 'ProcessFDG', 'ProcessFMRI', 'ProcessDTI']
+AllowedStepsList = ['Sort', 'Move', 'T1Beast', 'T1Process', 'ProcessAV45', 'ProcessFDG', 'ProcessFMRI', 'ProcessDTI', 'ProcessAV1451']
 AllowedVersions = ['V1', 'V2', 'V3']
-AllowedModalityList = ['T1', 'AV45', 'FDG', 'FMRI', 'BLUFF']
+AllowedModalityList = ['T1', 'AV45', 'FDG', 'FMRI', 'BLUFF', 'AV1451']
 
 
-ProcessingModalityAndPipelineTypePerStudy = dict(ADNI={'AV45':'AV45',
+ProcessingModalityAndPipelineTypePerStudy = dict(ADNI={'AV1451':'AV1451',
+                                            'AV45':'AV45',
                                             'FDG':'FDG',
                                             'T1':'T1',
                                             'MPR':'T1',
@@ -41,11 +42,11 @@ ProcessingModalityAndPipelineTypePerStudy = dict(ADNI={'AV45':'AV45',
                                                 })
 
 #This versioning dict should have an entry if the default processing version is not V1 - Still in test.
-defaultVersioningForStudy = dict(ADNI={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1', 'BLUFF': 'V1'}, ADNI_OLD={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1'})
+defaultVersioningForStudy = dict(ADNI={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1', 'BLUFF': 'V1', 'AV1451': 'V1'}, ADNI_OLD={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1', 'AV1451': 'V1'})
 
-ADNIDownloadRoot = '/data/data03/wang/temp/EMPTY/'
+ADNIDownloadRoot = '/data/data02/sulantha/ADNI_DL'
 # ADNIDownloadRoot = '/data/data02/ADNI/raw' # /data/data02/ADNI/new_raw
-xmlPath = '/data/data03/sulantha/Downloads/ADNI/PET/xmls'
+xmlPath = '/data/data03/RawArchive/XMLProcessedArchive'
 
 ADNIOLDDownloadRoot = '/data/data02/ADNI/raw/AD'
 

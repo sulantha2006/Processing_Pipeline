@@ -2,11 +2,15 @@ __author__ = 'Sulantha'
 from Utils.DbUtils import DbUtils
 from Utils.PipelineLogger import PipelineLogger
 from Coregistration.CoregHandler import CoregHandler
+from pymongo import MongoClient
 
 class PETHelper:
     def __init__(self):
         self.DBClient = DbUtils()
         self.CoregHand = CoregHandler()
+        self.client = MongoClient('localhost', 27017)
+        self.db = self.client.ADNI_Database
+        self.XML_collection = self.db.Scan_XML_Collection
 
     def getManualXFM(self, processingItemObj, matchedT1entry):
         study = processingItemObj.study
@@ -92,4 +96,36 @@ class PETHelper:
             return result[0][4]
         else:
             return None
+
+    def getScannerType(self, processingItemObj):
+        rid = processingItemObj.subject_rid
+        sid = processingItemObj.s_identifier
+        iid = processingItemObj.i_identifier
+        scan_info_dict = {}
+        matched_doc = self.XML_collection.find_one({'_id':'{0}_{1}_{2}'.format(rid, sid, iid)})
+        if matched_doc:
+            for rec in matched_doc['idaxs']['project']['subject']['study']['series']['imagingProtocol']['protocolTerm'][
+                'protocol']:
+                try:
+                    scan_info_dict[rec['@term']] = rec['#text']
+                except KeyError:
+                    scan_info_dict[rec['@term']] = None
+        else:
+            matched_doc = self.XML_collection.find_one({'idaxs.project.subject.study.series.seriesIdentifier': sid[1:],
+                                                   'idaxs.project.subject.study.series.seriesLevelMeta.relatedImageDetail.originalRelatedImage.imageUID': iid[1:]})
+            for rec in matched_doc['idaxs']['project']['subject']['study']['series']['seriesLevelMeta']['relatedImageDetail'][
+                'originalRelatedImage']['protocolTerm']['protocol']:
+                try:
+                    scan_info_dict[rec['@term']] = rec['#text']
+                except KeyError:
+                    scan_info_dict[rec['@term']] = None
+        return scan_info_dict
+
+    def getBlurVals(self, scanner_type):
+        pass
+
+    def getBlurringParams(self, processingItemObj):
+        scanner_type = self.getScannerType(processingItemObj)
+        return self.getBlurVals(scanner_type)
+
 

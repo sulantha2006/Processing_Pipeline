@@ -51,7 +51,7 @@ mincresample -short -like $3/t1/*final.mnc -tricubic -transform $3/transforms/*n
 #### STX SEGEMENT> DIRECT IMPROT FROM OLD JARED SCRIPTS> ####
 echo "STX SEGEMENTING STARTING"
 classify_clean -clean_tags $3/t1/*t1_final.mnc -mask $3/t1/*skull_mask.mnc -mask_source $3/t1/${t1fileSubID}_t1_tal_classified.mnc
-Pipelines/ADNI_AV45/stx_segment -symmetric_atlas $3/transforms/*nlfit_It.xfm /home/jrowley/bin/identify.xfm $3/t1/${t1fileSubID}_t1_tal_classified.mnc $3/t1/${t1fileSubID}_t1_tal_segmented.mnc
+Pipelines/ADNI_AV1451/stx_segment -symmetric_atlas $3/transforms/*nlfit_It.xfm /home/jrowley/bin/identify.xfm $3/t1/${t1fileSubID}_t1_tal_classified.mnc $3/t1/${t1fileSubID}_t1_tal_segmented.mnc
 echo "STX SEGEMENTING Done"
 #### STX SEGEMENT Done. ####
 

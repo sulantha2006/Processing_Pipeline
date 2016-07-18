@@ -9,6 +9,9 @@ import Config.EmailConfig as ec
 from Utils.EmailClient import EmailClient
 import traceback
 from Manager.QSubJobHanlder import QSubJobHandler
+import os
+from Config import PipelineConfig
+PipelineConfig.SourcePath = os.getcwd()
 
 def main():
 
@@ -83,10 +86,10 @@ def main():
                 break
             pipeline.processModality(modality)  # Actually processing jobs
 
-        QSubJobHandler.submittedJobs['xxxx'].Fin = True
+        pipeline.qsubJobHandler.submittedJobs['xxxx'].Fin = True
         PipelineLogger.log('root', 'info', 'Pipeline reached end. Waiting on submitted jobs. ')
         #### End
-        if not QSubJobHandler.submittedJobs:
+        if not pipeline.qsubJobHandler.submittedJobs:
             PipelineLogger.log('root', 'info', 'No QSUB Jobs in waiting ...############')
             PipelineLogger.log('root', 'info', 'Pipeline exiting ...############')
             PipelineLogger.log('root', 'info', '##################Pipeline Done.#################')

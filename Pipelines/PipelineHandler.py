@@ -7,6 +7,8 @@ from Pipelines.ADNI_FDG.ADNI_V1_FDG import ADNI_V1_FDG
 from Pipelines.ADNI_FDG.ADNI_V2_FDG import ADNI_V2_FDG
 from Pipelines.ADNI_AV45.ADNI_V1_AV45 import ADNI_V1_AV45
 from Pipelines.ADNI_AV45.ADNI_V2_AV45 import ADNI_V2_AV45
+from Pipelines.ADNI_AV1451.ADNI_V1_AV1451 import ADNI_V1_AV1451
+from Pipelines.ADNI_AV1451.ADNI_V2_AV1451 import ADNI_V2_AV1451
 from Pipelines.ADNI_Fmri.ADNI_V1_FMRI import ADNI_V1_FMRI
 from Config import PipelineConfig
 from Utils.PipelineLogger import PipelineLogger
@@ -17,8 +19,8 @@ from QC.QCHandler import QCHandler
 
 class PipelineHandler:
     def __init__(self):
-        self.processingPPDict = {'ADNI':{'V1':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V1_AV45(), 'FDG':ADNI_V1_FDG()},
-                                         'V2':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V2_AV45(), 'FDG':ADNI_V2_FDG()}}}
+        self.processingPPDict = {'ADNI':{'V1':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V1_AV45(), 'FDG':ADNI_V1_FDG(), 'AV1451': ADNI_V1_AV1451()},
+                                         'V2':{'T1':ADNI_V1_T1(), 'FMRI':ADNI_V1_FMRI(), 'AV45':ADNI_V2_AV45(), 'FDG':ADNI_V2_FDG(), 'AV1451': ADNI_V2_AV1451()}}}
         self.DBClient = DbUtils()
         self.QCH = QCHandler()
 
@@ -99,6 +101,7 @@ class PipelineHandler:
 
         addToTableDict = dict(T1="INSERT IGNORE INTO {0}_T1_Pipeline VALUES (NULL, {1}, \"{2}\", 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultT1config),
                               AV45="INSERT IGNORE INTO {0}_AV45_Pipeline VALUES (NULL, {1}, \"{2}\", '{3}', 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultAV45config, ''),
+                              AV1451="INSERT IGNORE INTO {0}_AV1451_Pipeline VALUES (NULL, {1}, \"{2}\", '{3}', 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultAV1451config, ''),
                               FDG="INSERT IGNORE INTO {0}_FDG_Pipeline VALUES (NULL, {1}, \"{2}\", '{3}', 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultFDGconfig, ''),
                               FMRI="INSERT IGNORE INTO {0}_FMRI_Pipeline VALUES (NULL, {1}, \"{2}\", '{3}', 0, 0, 0, NULL, NULL)".format(study, r_id, PipelineConfig.defaultFMRIconfig, 'NIAK_STH_COMESHERE'))
 

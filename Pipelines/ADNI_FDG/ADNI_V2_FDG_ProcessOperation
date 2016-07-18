@@ -24,6 +24,7 @@ mkdir -p $3/pvc
 mkdir -p $3/mask
 mkdir -p $3/final
 mkdir -p $3/verify
+outputFolder=$3
 
 if [ $5 != "auto" ];
 then
@@ -111,6 +112,7 @@ then
         autoRegErrorNEWToolKit=$(echo "$brainMaxValNew < 0.1" | bc)
         if [ $autoRegErrorNEWToolKit -eq 1 ];
         then
+            echo "Registration Failed. Stopping processing. "
             echo $1_Fail | nc -w 0 $8 $9
             exit
         fi
@@ -187,6 +189,7 @@ mincmath -ge -const 0.70 $3/pvc/${wm_basename}_petspace.mnc $3/pvc/${wm_basename
 ##mincmath -clamp -const2 0.2 1 ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc
 
 ## NEW PVC METHOD - MODULATED
+psf=${blurV}
 mincmask ${outputFolder}/t1/*pve_classify.mnc ${outputFolder}/t1/*skull_mask.mnc ${outputFolder}/pvc/${classify_basename}_mask.mnc
 mincmath -ge -const 2 ${outputFolder}/pvc/${classify_basename}_mask.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma.mnc
 xfm_normalize.pl --clob --invert --like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc --step 1 ${outputFolder}/transforms/*nlfit_It.xfm ${outputFolder}/transforms/${classify_basename}_reversed_transform.xfm
