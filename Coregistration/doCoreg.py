@@ -9,6 +9,7 @@ import os, subprocess, signal
 import getpass
 import hashlib
 import shutil
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s','--study', help='Study name. ', choices=['adni'])
@@ -35,8 +36,18 @@ def runCoreg(study, type, username, rid = None):
             getEntrySql = "SELECT * FROM Coregistration WHERE TYPE = '{0}' AND STUDY = '{1}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(type, study)
         resT = DBClient.executeAllResults(getEntrySql)
         if len(resT) < 1:
-            print('No files to coregister. ')
-            break
+            time.sleep(1)
+            ## Trying again
+            if rid:
+                getEntrySql = "SELECT * FROM Coregistration WHERE TYPE = '{0}' AND STUDY = '{1}' AND RID = {2} AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(
+                    type, study, rid)
+            else:
+                getEntrySql = "SELECT * FROM Coregistration WHERE TYPE = '{0}' AND STUDY = '{1}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(
+                    type, study)
+            resT = DBClient.executeAllResults(getEntrySql)
+            if len(resT) < 1:
+                print('No files to coregister. ')
+                break
         res = resT[0]
         recID = res[0]
         global currentRec
@@ -48,7 +59,7 @@ def runCoreg(study, type, username, rid = None):
         t1Path = res[5]
         petScanType = res[6]
         t1ScanType = res[7]
-        regCMD = 'register {0}/*_{2}.mnc {1}/*_{3}.mnc'.format(petPath, t1Path, petScanType, t1ScanType)
+        regCMD = 'register {0}/*_{2}.mnc {1}/civet/native/*_t1.mnc'.format(petPath, t1Path, petScanType)
         subprocess.Popen(regCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh').wait()
 
         if os.path.exists(xfmFile) and os.path.exists(tagFile):

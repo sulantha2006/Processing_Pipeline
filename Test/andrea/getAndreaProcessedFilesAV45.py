@@ -4,13 +4,13 @@ from Utils.DbUtils import DbUtils
 import glob
 DBClient = DbUtils()
 outLines = []
-with open('/data/data03/sulantha/Downloads/av45_list.csv', 'r') as file:
+with open('/data/data02/sulantha/Tharick_VBM/Av45_Date_and_RID', 'r') as file:
     next(file)
     for line in file:
         row = line.split(',')
         rid = row[0]
         date = row[1].strip()
-        dateT = datetime.datetime.strptime(date, '%m/%d/%Y')
+        dateT = datetime.datetime.strptime(date, '%Y-%m-%d')
         dateS = dateT.strftime('%Y-%m-%d')
         findSQLV1 = "SELECT * FROM Processing WHERE RID = {0} AND MODALITY = 'AV45' AND SCAN_DATE = '{1}' AND VERSION = '{2}'".format(rid, dateS, 'V1')
         resv1 = DBClient.executeAllResults(findSQLV1)
@@ -54,7 +54,7 @@ with open('/data/data03/sulantha/Downloads/av45_list.csv', 'r') as file:
         outLine = [rid, dateS, v1Path, v2Path]
         outLines.append(outLine)
 
-thefile = open('/data/data03/sulantha/Downloads/av45_list_newProcessed.csv', 'w')
+thefile = open('/data/data02/sulantha/Tharick_VBM/Av45_new_processed.csv', 'w')
 for item in outLines:
   thefile.write("%s\n" % item)
 

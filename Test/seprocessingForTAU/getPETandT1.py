@@ -4,17 +4,19 @@ import glob, itertools
 
 DBClient = DbUtils()
 outLines = []
-date_col = 10
-type= 'AV45'
-with open('/home/sulantha/Downloads/2016_July12_Tau_AV45_FDG.csv', 'r') as file:
+date_col = 3
+type= 'AV1451'
+with open('/home/sulantha/Downloads/22_Aug_TAU_AMY.csv', 'r') as file:
     next(file)
     for line in file:
         row = line.split(',')
         rid = row[0].split('_')[-1]
         date = row[date_col].strip()
+        if date == '':
+            continue
         dateT = datetime.strptime(date, '%m/%d/%Y')
         dateS = dateT.strftime('%Y-%m-%d')
-        findSQLV2 = "SELECT CONVERTED_FOLDER FROM Processing WHERE RID = {0} AND MODALITY = '{3}' AND SCAN_DATE = '{1}' AND VERSION = '{2}' LIMIT 1".format(
+        findSQLV2 = "SELECT CONVERTED_FOLDER FROM Conversion WHERE RID = {0} AND SCAN_TYPE = '{3}' AND SCAN_DATE = '{1}' AND VERSION = '{2}' LIMIT 1".format(
             rid, dateS, 'V2', type.upper())
         resv2 = DBClient.executeSomeResults(findSQLV2, 1)
 

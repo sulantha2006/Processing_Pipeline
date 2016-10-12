@@ -98,7 +98,7 @@ then
         rm $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
         rm $3/temp/skull_mask_nativeT1Grid.mnc
 
-        source /data/data03/bin/1.9.10/minc-toolkit-config.sh
+        source /opt/minc-1.9.12/minc-toolkit-config.sh
 
         echo $(which minctracc)
         /opt/minc-toolkit/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
@@ -323,7 +323,7 @@ minc_qc.pl /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc --mask $
 minc_qc.pl /data/data03/quarantine/mni_adni_t1w_tal_nlin_asym.mnc --mask $3/verify/${petfileSubID}_final_qcVerify.mnc --spectral-mask $3/verify/${petfileSubID}_ADNITemplate.jpg --big
 
 #### SEND MESSAGE TO QSUB JOB HANDLER IN PIPELINE MANAGER
-if [[ -f $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pbavg_ref_cerGM_wmnorm_085.mnc  && -f $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pvcd_final_pbavg_ref_cerGM_wmnorm_085.mnc ]]
+if [[ -f $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pbavg_ref_cerGM_wmnorm_085.mnc ]]
  then
     echo $1_Success | nc -w 0 $8 $9
  else

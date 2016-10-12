@@ -33,27 +33,30 @@ class QSubJobHandler(threading.Thread):
     def doWork(self, conn):
         data = conn.recv(1024)
         #PipelineLogger.log('manager', 'info', ' Data recieved - {0}.'.format(data))
-        jobID = data.strip().decode('utf-8').split('_')[0]
-        status = data.strip().decode('utf-8').split('_')[1]
-        PipelineLogger.log('manager', 'info',' ++++++++ QSub Job Handler received JobID - {0}.'.format(jobID))
-        if jobID not in self.submittedJobs:
-            PipelineLogger.log('manager', 'error',' ++++++++ QSub Job Handler unidentified JobID - {0}.'.format(jobID))
-        else:
-            jobReporter = QSubJobStatusReporter()
-            if  status == 'Start':
-                PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
-                self.submittedJobs[jobID].Start = True
-                self.submittedJobs[jobID].startTime = datetime.datetime.now()
-            elif status == 'Success':
-                PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
-                self.submittedJobs[jobID].Fin = True
-                jobReporter.setStatus(self.submittedJobs[jobID], status)
-            elif status == 'Fail':
-                PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
-                self.submittedJobs[jobID].Fin = True
-                jobReporter.setStatus(self.submittedJobs[jobID], status)
+        try:
+            jobID = data.strip().decode('utf-8').split('_')[0]
+            status = data.strip().decode('utf-8').split('_')[1]
+            PipelineLogger.log('manager', 'info',' ++++++++ QSub Job Handler received JobID - {0}.'.format(jobID))
+            if jobID not in self.submittedJobs:
+                PipelineLogger.log('manager', 'error',' ++++++++ QSub Job Handler unidentified JobID - {0}.'.format(jobID))
             else:
-                PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status (Unhandled)- {1}.'.format(jobID, status))
+                jobReporter = QSubJobStatusReporter()
+                if  status == 'Start':
+                    PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
+                    self.submittedJobs[jobID].Start = True
+                    self.submittedJobs[jobID].startTime = datetime.datetime.now()
+                elif status == 'Success':
+                    PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
+                    self.submittedJobs[jobID].Fin = True
+                    jobReporter.setStatus(self.submittedJobs[jobID], status)
+                elif status == 'Fail':
+                    PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status - {1}.'.format(jobID, status))
+                    self.submittedJobs[jobID].Fin = True
+                    jobReporter.setStatus(self.submittedJobs[jobID], status)
+                else:
+                    PipelineLogger.log('manager', 'info',' ++++++++ JobID - {0} -> Status (Unhandled)- {1}.'.format(jobID, status))
+        except Exception as e:
+            PipelineLogger.log('manager', 'error', ' Data recieved - {0} - {1}.'.format(data, e))
 
 
     def run(self):

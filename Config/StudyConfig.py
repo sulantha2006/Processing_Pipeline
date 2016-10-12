@@ -44,7 +44,7 @@ ProcessingModalityAndPipelineTypePerStudy = dict(ADNI={'AV1451':'AV1451',
 #This versioning dict should have an entry if the default processing version is not V1 - Still in test.
 defaultVersioningForStudy = dict(ADNI={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1', 'BLUFF': 'V1', 'AV1451': 'V1'}, ADNI_OLD={'T1': 'V1', 'AV45': 'V1', 'FDG': 'V1', 'FMRI': 'V1', 'AV1451': 'V1'})
 
-ADNIDownloadRoot = '/data/data02/sulantha/ADNI_DL'
+ADNIDownloadRoot = '/data/data02/ADNI_Downloads/ADNI_EMPTY'
 # ADNIDownloadRoot = '/data/data02/ADNI/raw' # /data/data02/ADNI/new_raw
 xmlPath = '/data/data03/RawArchive/XMLProcessedArchive'
 

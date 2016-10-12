@@ -8,6 +8,7 @@ from Config import QCConfig
 import os, subprocess, signal
 import getpass
 import hashlib
+import psutil
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s','--study', help='Study name. ', choices=['adni'])
@@ -18,6 +19,12 @@ args = parser.parse_args()
 
 DBClient = DbUtils()
 currentRec = None
+
+def kill(proc_pid):
+    process = psutil.Process(proc_pid)
+    for proc_ in process.children(recursive=True):
+        proc_.kill()
+    process.kill()
 
 def runCIVETQC(study, username):
     while 1:
@@ -53,7 +60,7 @@ def runCIVETQC(study, username):
             finSQL = "UPDATE QC SET END = 1, PASS = 0 WHERE RECORD_ID = {0}".format(recID)
             DBClient.executeNoResult(finSQL)
 
-        proc.kill()
+        kill(proc.pid)
 
 def runBEASTQC(study, username):
     while 1:
@@ -88,7 +95,7 @@ def runBEASTQC(study, username):
             finSQL = "UPDATE QC SET END = 1, PASS = 0 WHERE RECORD_ID = {0}".format(recID)
             DBClient.executeNoResult(finSQL)
 
-        proc.kill()
+        kill(proc.pid)
 
 def runPETQC(study, type, username):
     while 1:
@@ -106,15 +113,11 @@ def runPETQC(study, type, username):
 
         petPath = res[6]
         if type.lower() == 'av45':
-            regCMD1 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
             regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
         elif type.lower() == 'fdg':
-            regCMD1 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
             regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
         elif type.lower() == 'av1451':
-            regCMD1 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ICBMT1_TemplatePath)
             regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
-        proc1 = subprocess.Popen(regCMD1, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
         proc2 = subprocess.Popen(regCMD2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
 
         qcpass = 'z'
@@ -132,8 +135,7 @@ def runPETQC(study, type, username):
             finSQL = "UPDATE QC SET END = 1, PASS = 0 WHERE RECORD_ID = {0}".format(recID)
             DBClient.executeNoResult(finSQL)
 
-        proc1.kill()
-        proc2.kill()
+        kill(proc2.pid)
 
 
 if __name__ == '__main__':

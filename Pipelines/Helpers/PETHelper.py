@@ -77,10 +77,16 @@ class PETHelper:
         t1_iid = matchedT1entry[7]
         pet_folder = processingItemObj.converted_folder
         pet_scanType = self.getScanType(processingItemObj)
-        t1_folder = matchedT1entry[10]
-        t1_scanType = matchedT1entry[3]
-        xfmFileName = '{0}_{1}_PET_{2}_{3}_T1_{4}_{5}'.format(study, rid, pet_sid, pet_iid, t1_sid, t1_iid)
-        self.CoregHand.requestCoreg(study, rid, processingItemObj.modality, pet_folder, t1_folder, pet_scanType, t1_scanType, xfmFileName)
+        t1_civet_root = self.DBClient.executeAllResults("SELECT ROOT_FOLDER FROM Processing WHERE S_IDENTIFIER = '{0}' "
+                                        "AND I_IDENTIFIER = '{1}' AND PROCESSED = 1".format(t1_sid, t1_iid))
+        if len(t1_civet_root)>0:
+            t1_folder = t1_civet_root[0][0]
+            t1_scanType = matchedT1entry[3]
+            xfmFileName = '{0}_{1}_PET_{2}_{3}_T1_{4}_{5}'.format(study, rid, pet_sid, pet_iid, t1_sid, t1_iid)
+            self.CoregHand.requestCoreg(study, rid, processingItemObj.modality, pet_folder, t1_folder, pet_scanType, t1_scanType, xfmFileName)
+        else:
+            PipelineLogger.log('root', 'error', 'T1 files not processed and cannot be added for manual coregistration - {0} - {1} - {2}'.format(processingItemObj.subject_rid,
+                                                                                         processingItemObj.scan_date, matchedT1entry[10]))
 
     def checkIfAlreadyDone(self, processingItemObj, matchedT1entry):
         study = processingItemObj.study

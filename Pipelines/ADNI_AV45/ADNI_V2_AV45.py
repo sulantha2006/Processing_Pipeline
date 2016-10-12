@@ -113,7 +113,7 @@ class ADNI_V2_AV45:
         PipelineLogger.log('manager', 'debug', 'Process Log Output : \n{0}'.format(out))
         PipelineLogger.log('manager', 'debug', 'Process Log Err : \n{0}'.format(err))
 
-        QSubJobHandler.submittedJobs[id] = QSubJob(id, '02:00:00', processingItemObj, 'av45')
+        QSubJobHandler.submittedJobs[id] = QSubJob(id, '23:00:00', processingItemObj, 'av45')
         return 1
 
 
