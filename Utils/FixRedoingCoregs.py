@@ -7,7 +7,7 @@ import shutil
 
 DBClient = DbUtils()
 
-getAllTodoSQL = "SELECT XFM_NAME FROM Coregistration WHERE END = 0 AND SKIP = 0 AND START = 0 AND PET_SCANTYPE = 'FDG'"
+getAllTodoSQL = "SELECT XFM_NAME FROM Coregistration WHERE END = 0 AND SKIP = 0 AND START = 0 AND PET_SCANTYPE = 'AV45'"
 res = DBClient.executeAllResults(getAllTodoSQL)
 totalC = 0
 done_c = 0

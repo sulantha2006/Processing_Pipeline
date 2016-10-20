@@ -1,4 +1,4 @@
-#!/home/sulantha/anaconda3/bin/python
+#!/data/data02/sulantha/bin/anaconda35/bin/python
 __author__ = 'sulantha'
 import argparse
 import sys
