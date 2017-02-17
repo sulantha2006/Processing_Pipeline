@@ -115,7 +115,10 @@ class ADNI_V1_AV45:
 
         ### This section is new for ADNI Pre processing - Per scanner type blurring. Only required if
         ### the images are aquired from different scanners and need to get to same PSF.
-        blur_x, blur_y, blur_z = self.PETHelper.getBlurringParams(processingItemObj)
+        try:
+            blur_x, blur_y, blur_z = self.PETHelper.getBlurringParams(processingItemObj)
+        except:
+            PipelineLogger.log('manager', 'exception', 'Error getting preprocess data from XML. ')
         ### End pre processing.
 
         PipelineLogger.log('manager', 'debug', 'Command : {0}'.format(petCMD))

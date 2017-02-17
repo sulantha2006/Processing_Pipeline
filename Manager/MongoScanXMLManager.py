@@ -41,10 +41,14 @@ class MongoScanXMLManager:
             collection = db.Scan_XML_Collection
             try:
                 post_id = collection.insert_one(o).inserted_id
-                shutil.move(file, moncfg.XMLProcessedArchivePath)
             except DuplicateKeyError:
                 PipelineLogger.log('root', 'exception', 'XML already in DB - {0}.'.format(_id))
+                post_id = _id
+            try:
                 shutil.move(file, moncfg.XMLProcessedArchivePath)
+            except shutil.Error:
+                PipelineLogger.log('root', 'Info', 'XML already in processed path  - {0}.'.format(_id))
+                os.remove(file)
                 post_id = _id
             return post_id
 

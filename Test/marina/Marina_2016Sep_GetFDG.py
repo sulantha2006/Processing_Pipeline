@@ -17,7 +17,7 @@ with open('/data/data02/sulantha/Marina_Sep_2016/Marina_2016Sep_Full_SQL_CSV_Bef
         dateT = datetime.strptime(fdgdate, '%Y-%m-%d')
         dateS = dateT.strftime('%Y-%m-%d')
 
-        findSQLV2 = "SELECT * FROM Processing WHERE RID = {0} AND MODALITY = 'FDG' AND VERSION = '{2}' AND PROCESSED = 0".format(
+        findSQLV2 = "SELECT * FROM Processing WHERE RID = {0} AND MODALITY = 'FDG' AND VERSION = '{2}' AND PROCESSED = 1 AND QCPASSED = 1".format(
             rid, dateS, 'V2')
         resv2 = DBClient.executeAllResults(findSQLV2)
         date_diff = ''
@@ -37,6 +37,6 @@ with open('/data/data02/sulantha/Marina_Sep_2016/Marina_2016Sep_Full_SQL_CSV_Bef
             outLines.append([rid, abs(date_diff.days), closestFD[8]])
         count +=1
 print('Writing...')
-thefile = open('/data/data02/sulantha/Marina_Sep_2016/Marina_2016Sep_Full_SQL_CSV_FDG_Scans.csv', 'w')
+thefile = open('/data/data02/sulantha/Marina_Sep_2016/Marina_2016Sep_Full_SQL_CSV_FDG_Scans_2.csv', 'w')
 for item in outLines:
   thefile.write("%s\n" % item)
