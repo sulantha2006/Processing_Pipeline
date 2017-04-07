@@ -6,7 +6,7 @@ from distutils import file_util, dir_util
 import shutil
 
 DBClient = DbUtils()
-IID_list = ['I546612', 'I620366', 'I535767', 'I560359', 'I581738']
+IID_list = ['45WL3UA1MPRAGEv0020111115xDICOM']
 for iid in IID_list:
     getDataFolderSQL = "SELECT RAW_FOLDER FROM Sorting WHERE I_IDENTIFIER = '{0}'".format(iid)
     res = DBClient.executeAllResults(getDataFolderSQL)

@@ -113,7 +113,7 @@ class ADNI_V1_T1:
             return 0
 
         id = '{0}{1}{2}{3}'.format(processingItemObj.subject_rid, processingItemObj.scan_date.replace('-', ''), processingItemObj.s_identifier, processingItemObj.i_identifier)
-        beastCMD = 'source /opt/minc-toolkit/minc-toolkit-config.sh; Pipelines/ADNI_T1/ADNI_V1_T1_BeAST {0} {1} {2} {3} {4} {5}'.format(id, nativeFileName, beastFolder, logDir, socket.gethostname(), 50500)
+        beastCMD = 'source /opt/minc-1.9.15/minc-toolkit-config.sh; Pipelines/ADNI_T1/ADNI_V1_T1_BeAST {0} {1} {2} {3} {4} {5}'.format(id, nativeFileName, beastFolder, logDir, socket.gethostname(), 50500)
         try:
             shutil.rmtree(beastFolder)
         except:

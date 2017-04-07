@@ -1,0 +1,14 @@
+#!/bin/sh
+#THIS SCRIPT IS USED TO RUN ONE BEAST EXECUTION ON QSUB
+#$1 -> ID
+#$2 -> INPUT MNC
+#$3 -> OUTPUT BEAST PATH
+#$4 -> LOG DIR
+#### FOR SEND MESSAGE TO HANDLER
+#$5 -> HOST
+#$6 -> PORT
+
+source /home/vfonov/quarantine/init.sh
+queue=all.q
+echo "qsub -j y -o $4/BEAST_LOG_$1.log -V -cwd -q $queue -N BEAST_$1 Pipelines/DIAN_T1/DIAN_V1_T1_BeASTOperation $1 $2 $3 $4 $5 $6"
+qsub -j y -o $4/BEAST_LOG_$1.log -V -cwd -q $queue -N BEAST_$1 Pipelines/DIAN_T1/DIAN_V1_T1_BeASTOperation $1 $2 $3 $4 $5 $6

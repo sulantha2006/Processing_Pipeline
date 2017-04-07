@@ -14,5 +14,5 @@
 source /home/vfonov/quarantine/init.sh
 queue=all.q
 datestr=$(date +%Y%m%d%H%M%S)
-echo "qsub -j y -o $6/FDG_LOG_$1.log -V -cwd -q $queue -N FDG_$1 Pipelines/ADNI_FDG/ADNI_V1_FDG_ProcessOperation $1 $2 $3 $4 $5 $6 $7 $8 $9"
-qsub -j y -o $6/FDG_LOG_$1_${datestr}.log -V -cwd -q $queue -N FDG_$1 Pipelines/ADNI_FDG/ADNI_V1_FDG_ProcessOperation $1 $2 $3 $4 $5 $6 $7 $8 $9
+echo "qsub -j y -o $6/FDG_LOG_$1.log -V -cwd -q $queue -N FDG_$1 Pipelines/ADNI_FDG/ADNI_V1_FDG_ProcessOperation $1 $2 $3 $4 $5 $6 '$7' $8 $9"
+qsub -j y -o $6/FDG_LOG_$1_${datestr}.log -V -cwd -q $queue -N FDG_$1 Pipelines/ADNI_FDG/ADNI_V1_FDG_ProcessOperation $1 $2 $3 $4 $5 $6 '$7' $8 $9

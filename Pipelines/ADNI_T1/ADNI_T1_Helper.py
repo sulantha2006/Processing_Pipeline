@@ -120,7 +120,7 @@ class ADNI_T1_Helper:
         date_diff = abs(mri_date - pet_date)
         t1ID = '{0}{1}{2}_x_{3}_x_{4}{5}{6}'.format(t1Record[1], t1Record[11], t1Record[2], t1Record[3], t1Record[4].strftime('%Y-%m-%d').replace('-', ''), t1Record[6], t1Record[7])
         conversionID = t1Record[0]
-        sql = "INSERT IGNORE INTO MatchT1 VALUES (Null, '{0}', '{1}', '{2}', {3})".format(modalityID, t1ID, conversionID, date_diff.days)
+        sql = "INSERT IGNORE INTO MatchT1 VALUES (Null, '{0}', '{1}', '{2}', {3}, Null)".format(modalityID, t1ID, conversionID, date_diff.days)
         self.DBClient.executeNoResult(sql)
 
     def startProcessOFT1(self, processTableEntry):

@@ -23,7 +23,7 @@ class ADNI_V1_T1:
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
-        cmd = '/opt/minc/bin/nii2mnc {0} {1}'.format(rawFile, outTempFile)
+        cmd = '/opt/minc-1.9.15/bin/nii2mnc {0} {1}'.format(rawFile, outTempFile)
         cmdRes = 'mincresample -short {0} {1}'.format(outTempFile, outFile)
         PipelineLogger.log('converter', 'info',
                            'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
@@ -75,7 +75,7 @@ class ADNI_V1_T1:
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
-        cmd = '/opt/minc/bin/ecattomincc {0} {1}'.format(rawFile, outTempFile)
+        cmd = '/opt/minc-1.9.15/bin/ecattomincc {0} {1}'.format(rawFile, outTempFile)
         cmdRes = 'mincresample -short {0} {1}'.format(outTempFile, outFile)
         PipelineLogger.log('converter', 'info',
                            'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
@@ -123,7 +123,7 @@ class ADNI_V1_T1:
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
-        cmd = '/home/vfonov/quarantine/bin/dcm2mnc32 {0} {1}/../'.format(rawFile, convertionObj.converted_folder)
+        cmd = '/opt/minc-1.9.15/bin/dcm2mnc {0} {1}/../'.format(rawFile, convertionObj.converted_folder)
         PipelineLogger.log('converter', 'info',
                            'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                          convertionObj.rid,
@@ -154,7 +154,7 @@ class ADNI_V1_T1:
                                    convertionObj.scan_type))
             return 0
         elif len(mncList) == 1:
-            copyMIncCmd = '/opt/minc-toolkit/bin/mincaverage -short {0} {1}'.format(mncList[0], outFile)
+            copyMIncCmd = '/opt/minc-1.9.15/bin/mincaverage -short {0} {1}'.format(mncList[0], outFile)
             p_t = subprocess.Popen(copyMIncCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out_t, err_t = p_t.communicate()
             PipelineLogger.log('converter', 'debug', 'Mincncopy Output : \n{0}'.format(out_t))
@@ -200,7 +200,7 @@ class ADNI_V1_T1:
             return 0
         elif len(mncList) == 1:
             PipelineLogger.log('converter', 'error', 'T1 Conversion MINC file as INPUT. Only 1 MINC found. Checking for time dimension ')
-            checkTimeDimCmd = '/opt/minc-toolkit/bin/mincinfo {0} | grep time'.format(mncList[0])
+            checkTimeDimCmd = '/opt/minc-1.9.15/bin/mincinfo {0} | grep time'.format(mncList[0])
             p_t = subprocess.Popen(checkTimeDimCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out_t, err_t = p_t.communicate()
             PipelineLogger.log('converter', 'debug', 'Check time dim Output : \n{0}'.format(out_t))
@@ -218,7 +218,7 @@ class ADNI_V1_T1:
                     distutils.dir_util.mkpath(convertionObj.converted_folder)
                 except:
                     pass
-                copyMIncCmd = '/opt/minc-toolkit/bin/mincaverage -short {0} {1}'.format(mncList[0], outFile)
+                copyMIncCmd = '/opt/minc-1.9.15/bin/mincaverage -short {0} {1}'.format(mncList[0], outFile)
                 p_t = subprocess.Popen(copyMIncCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out_t, err_t = p_t.communicate()
                 PipelineLogger.log('converter', 'debug', 'Mincncopy Output : \n{0}'.format(out_t.decode("utf-8")))

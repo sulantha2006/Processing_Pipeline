@@ -1,5 +1,6 @@
 __author__ = 'wang'
 from Recursor.ADNI.ADNIRecursor import ADNIRecursor
+from Recursor.DIAN.DIANRecursor import DIANRecursor
 from Recursor.ADNI.ADNIRecursorFromOldData import ADNIRecursorFromOldData
 
 """
@@ -15,6 +16,8 @@ class Recursor:
             self.subRecursor = ADNIRecursor(studyID, root_download)
         elif studyID.lower() == 'adni_old':
             self.subRecursor = ADNIRecursorFromOldData(studyID, root_download)
+        elif studyID.lower() == 'dian':
+            self.subRecursor = DIANRecursor(studyID, root_download)
         else:
             pass
 

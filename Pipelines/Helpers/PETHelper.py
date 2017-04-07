@@ -3,6 +3,8 @@ from Utils.DbUtils import DbUtils
 from Utils.PipelineLogger import PipelineLogger
 from Coregistration.CoregHandler import CoregHandler
 from pymongo import MongoClient
+import os, subprocess, difflib
+import Config.PipelineConfig as pc
 
 class PETHelper:
     def __init__(self):
@@ -103,35 +105,104 @@ class PETHelper:
         else:
             return None
 
-    def getScannerType(self, processingItemObj):
-        rid = processingItemObj.subject_rid
-        sid = processingItemObj.s_identifier
-        iid = processingItemObj.i_identifier
-        scan_info_dict = {}
-        matched_doc = self.XML_collection.find_one({'_id':'{0}_{1}_{2}'.format(rid, sid, iid)})
-        if matched_doc:
-            for rec in matched_doc['idaxs']['project']['subject']['study']['series']['imagingProtocol']['protocolTerm'][
-                'protocol']:
-                try:
-                    scan_info_dict[rec['@term']] = rec['#text']
-                except KeyError:
-                    scan_info_dict[rec['@term']] = None
+    def getScannerType(self, processingItemObj, source):
+        if source == 'xml':
+            rid = processingItemObj.subject_rid
+            sid = processingItemObj.s_identifier
+            iid = processingItemObj.i_identifier
+            scan_info_dict = {}
+            matched_doc = self.XML_collection.find_one({'_id':'{0}_{1}_{2}'.format(rid, sid, iid)})
+            if matched_doc:
+                for rec in matched_doc['idaxs']['project']['subject']['study']['series']['imagingProtocol']['protocolTerm']['protocol']:
+                    try:
+                        scan_info_dict[rec['@term']] = rec['#text']
+                    except KeyError:
+                        scan_info_dict[rec['@term']] = None
+            else:
+                matched_doc = self.XML_collection.find_one({'idaxs.project.subject.study.series.seriesIdentifier': sid[1:],
+                                                       'idaxs.project.subject.study.series.seriesLevelMeta.relatedImageDetail.originalRelatedImage.imageUID': iid[1:]})
+                for rec in matched_doc['idaxs']['project']['subject']['study']['series']['seriesLevelMeta']['relatedImageDetail'][
+                    'originalRelatedImage']['protocolTerm']['protocol']:
+                    try:
+                        scan_info_dict[rec['@term']] = rec['#text']
+                    except KeyError:
+                        scan_info_dict[rec['@term']] = None
+            return scan_info_dict
+        elif source == 'dcm':
+            iid = processingItemObj.i_identifier
+            get_raw_folder_sql = "SELECT RAW_FOLDER FROM Conversion WHERE I_IDENTIFIER = '{0}'".format(iid)
+            raw_path = self.DBClient.executeAllResults(get_raw_folder_sql)[0][0]
+            dcm_0 = os.listdir(raw_path)[0]
+            scan_info_dict = self.getDCMScannerDetails('{0}/{1}'.format(raw_path, dcm_0))
+            return scan_info_dict
         else:
-            matched_doc = self.XML_collection.find_one({'idaxs.project.subject.study.series.seriesIdentifier': sid[1:],
-                                                   'idaxs.project.subject.study.series.seriesLevelMeta.relatedImageDetail.originalRelatedImage.imageUID': iid[1:]})
-            for rec in matched_doc['idaxs']['project']['subject']['study']['series']['seriesLevelMeta']['relatedImageDetail'][
-                'originalRelatedImage']['protocolTerm']['protocol']:
-                try:
-                    scan_info_dict[rec['@term']] = rec['#text']
-                except KeyError:
-                    scan_info_dict[rec['@term']] = None
-        return scan_info_dict
+            raise NotImplementedError
 
-    def getBlurVals(self, scanner_type):
-        pass
+    def getDCMScannerDetails(self, dcm_file):
+        cmd = "/data/data02/sulantha/bin/gdcmbin/bin/gdcmdump -d {0} ".format(dcm_file)
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        tmp = proc.stdout.read().decode("utf-8")
+        manufacturer = None
+        model = None
+        pet_version = None
+        rows = None
+        columns = None
+        slices = None
+        pet_scanner_desc = None
+        pet_scanner_mfn = None
+        for line in tmp.split("\n"):
+            if '(0008,0070)' in line:
+                manufacturer = line.split('\t')[-1].strip()
+        for line in tmp.split("\n"):
+            if '(0008,1090)' in line:
+                model = line.split('\t')[-1].strip()
+        for line in tmp.split("\n"):
+            if '(0028,0010)' in line:
+                rows = line.split('\t')[-1].strip()
+        for line in tmp.split("\n"):
+            if '(0028,0011)' in line:
+                columns = line.split('\t')[-1].strip()
+        for line in tmp.split("\n"):
+            if '(0054,0081)' in line:
+                slices = line.split('\t')[-1].strip()
+        for line in tmp.split("\n"):
+            if '(0009,1001)' in line:
+                pet_version = line.split('\t')[-1].strip()
+        for line in tmp.split("\n"):
+            if '(0009,1011)' in line:
+                pet_scanner_desc = line.split('\t')[-1].strip()
+        for line in tmp.split("\n"):
+            if '(0009,1012)' in line:
+                pet_scanner_mfn = line.split('\t')[-1].strip()
+
+        return dict(dcm_file=dcm_file, manufacturer=manufacturer, model=model, pet_version=pet_version, rows=rows, columns=columns,
+                    slices=slices, pet_scanner_desc=pet_scanner_desc, pet_scanner_mfn=pet_scanner_mfn)
+
+    def getBlurVals(self, scanner_type, study):
+        if study == 'DIAN':
+            scanners_dict_lower = {k.lower(): v for k, v in pc.DIAN_scanner_specific_blurs.items()}
+            list_of_scanners = list(scanners_dict_lower.keys())
+            scanner_str = '{0}_{1}'.format(
+                scanner_type['manufacturer'] if scanner_type['manufacturer'] else scanner_type['pet_scanner_mfn'],
+                scanner_type['model'] if scanner_type['model'] else scanner_type['pet_scanner_desc'])
+
+            if scanner_type['model'] == 'HR+':
+                return scanners_dict_lower['HR+']
+            elif scanner_type['model'] == 'HRRT':
+                return scanners_dict_lower['HRRT']
+            else:
+                best_match = difflib.get_close_matches(scanner_str.lower(), list_of_scanners, 1, 0.3)
+                if not best_match:
+                    return None, None, None
+
+                return scanners_dict_lower[best_match[0]]
 
     def getBlurringParams(self, processingItemObj):
-        scanner_type = self.getScannerType(processingItemObj)
-        return self.getBlurVals(scanner_type)
+        if processingItemObj.study == 'ADNI':
+            source = 'xml'
+        elif processingItemObj.study == 'DIAN':
+            source = 'dcm'
+        scanner_type = self.getScannerType(processingItemObj, source)
+        return self.getBlurVals(scanner_type, processingItemObj.study)
 
 

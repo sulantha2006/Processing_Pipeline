@@ -1,11 +1,12 @@
 __author__ = 'Seqian Wang'
 
 import os
-from Recursor.ADNI.ScanSession import ScanSession
+import re
+
 import Config.ADNI_RecurserConfig as arc
 import Config.StudyConfig as sc
+from Recursor.ScanSession import ScanSession
 from Utils.PipelineLogger import PipelineLogger
-import re
 
 """
 Parse ADNI Data Structure from Monica Download and return a list of instances with scans' information

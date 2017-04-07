@@ -1,0 +1,289 @@
+#!/bin/bash
+source /opt/minc-1.9.15/minc-toolkit-config.sh
+
+##1 -> ID
+##2 -> INPUT MNC
+##3 -> OUTPUT PATH
+##4 -> SUBJECT T1 PATH
+##5 -> MANUAL XFM
+##6 -> LOG DIR
+##7 -> PARAMETER STRING
+#### FOR SEND MESSAGE TO HANDLER
+##8 -> HOST
+##9 -> PORT
+
+#### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
+echo $1_Start | nc -w 0 $8 $9
+
+mkdir -p $3/transforms
+mkdir -p $3/t1
+mkdir -p $3/temp
+mkdir -p $3/intermediate
+mkdir -p $3/native
+mkdir -p $3/pvc
+mkdir -p $3/mask
+mkdir -p $3/final
+mkdir -p $3/verify
+outputFolder=$3
+
+if [ $5 != "auto" ];
+then
+    cp $5 $3/transforms/
+fi
+cp $4/civet/transforms/linear/*t1_tal.xfm $3/transforms/
+cp $4/civet/transforms/nonlinear/*nlfit_It.xfm $3/transforms/
+cp $4/civet/transforms/nonlinear/*nlfit_It_grid_0.mnc $3/transforms/
+
+cp $4/civet/native/*t1.mnc $3/t1/
+cp $4/civet/final/*t1_final.mnc $3/t1/
+cp $4/civet/final/*t1_tal.mnc $3/t1/
+cp $4/civet/mask/*skull_mask.mnc $3/t1/
+cp $4/civet/classify/*pve_exactgm.mnc $3/t1/
+cp $4/civet/classify/*pve_exactwm.mnc $3/t1/
+cp $4/civet/classify/*pve_exactcsf.mnc $3/t1/
+cp $4/civet/classify/*pve_classify.mnc $3/t1/
+
+cp $2 $3/native/
+
+declare -A parameters=$(eval echo $7)
+
+blur_x=${parameters["blur_x"]}
+blur_y=${parameters["blur_y"]}
+blur_z=${parameters["blur_z"]}
+blurV=8
+inputPET=$2
+petfileSubID=$(basename $2 .mnc)
+outputFolder=$3
+cp ${inputPET} ${outputFolder}/native/${petfileSubID}_Dyn.mnc
+mincaverage -short -clob -avgdim time ${outputFolder}/native/${petfileSubID}_Dyn.mnc ${outputFolder}/native/${petfileSubID}.mnc
+mincblur -3dfwhm ${blur_x} ${blur_y} ${blur_z} ${outputFolder}/native/${petfileSubID}.mnc ${outputFolder}/native/${petfileSubID}_${blurV}mm
+petfileSubID=$(basename ${outputFolder}/native/${petfileSubID}_${blurV}mm_blur.mnc .mnc)
+
+initXFM=$5
+t1fileSubID=$(basename $3/t1/*final.mnc _final.mnc)
+
+echo "mincresample -like $3/t1/*final.mnc -tricubic -transform $3/transforms/*nlfit_It.xfm $3/t1/*final.mnc $3/t1/${t1fileSubID}_final_nl.mnc"
+mincresample -short -like $3/t1/*final.mnc -tricubic -transform $3/transforms/*nlfit_It.xfm $3/t1/*final.mnc $3/t1/${t1fileSubID}_final_nl.mnc
+
+#### STX SEGEMENT> DIRECT IMPROT FROM OLD JARED SCRIPTS> ####
+echo "STX SEGEMENTING STARTING"
+classify_clean -clean_tags $3/t1/*t1_final.mnc -mask $3/t1/*skull_mask.mnc -mask_source $3/t1/${t1fileSubID}_t1_tal_classified.mnc
+Pipelines/DIAN_FDG/stx_segment -symmetric_atlas $3/transforms/*nlfit_It.xfm /home/jrowley/bin/identify.xfm $3/t1/${t1fileSubID}_t1_tal_classified.mnc $3/t1/${t1fileSubID}_t1_tal_segmented.mnc
+echo "STX SEGEMENTING Done"
+#### STX SEGEMENT Done. ####
+
+#### Semi automatic registration
+echo "Registration STARTING"
+
+cp $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc
+nu_correct $3/t1/*t1.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
+nu_correct $3/intermediate/${t1fileSubID}_t1_nu.mnc $3/intermediate/${t1fileSubID}_t1_nu2.mnc
+mv $3/intermediate/${t1fileSubID}_t1_nu2.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
+
+##################### T1 NLIN #####################################################
+xfmconcat $3/transforms/*t1_tal.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm
+###################################################################################
+
+##################### Automatic Initial XFM generation ############################
+if [ $initXFM = "auto" ];
+then
+    echo "++++++++++++++++++++ Starting automatic PET->MRI registration."
+    echo $(which minctracc)
+    /opt/minc-1.9.15/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+    initXFM=$3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+    cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+
+    mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+    mincresample -nearest -like $3/t1/*t1.mnc $3/t1/*skull_mask.mnc $3/temp/skull_mask_nativeT1Grid.mnc
+    mincresample -like $3/verify/${petfileSubID}_MRISPACE_Verify.mnc $3/temp/skull_mask_nativeT1Grid.mnc $3/temp/skull_mask_nativeT1Grid_resVerify.mnc
+    brainMaxVal=$(mincstats -max -quiet -mask $3/temp/skull_mask_nativeT1Grid_resVerify.mnc -mask_binvalue 1 $3/verify/${petfileSubID}_MRISPACE_Verify.mnc)
+
+    autoRegError=$(echo "$brainMaxVal < 0.1" | bc)
+    if [ $autoRegError -eq 1 ];
+    then
+        echo "Registration Failed. Stopping processing. "
+        echo $1_Fail | nc -w 0 $8 $9
+        exit
+        #rm $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+        #rm $3/transforms/${petfileSubID}_pet2mri.xfm
+        #rm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+        #rm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+        #rm $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+        #rm $3/temp/skull_mask_nativeT1Grid.mnc
+
+        #source /opt/minc-1.9.12/minc-toolkit-config.sh
+
+        #echo $(which minctracc)
+        #/opt/minc-1.9.15/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+        #initXFM=$3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+        #cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
+        #xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+        #xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+
+        #mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+        #mincresample -nearest -like $3/t1/*t1.mnc $3/t1/*skull_mask.mnc $3/temp/skull_mask_nativeT1Grid.mnc
+        #brainMaxValNew=$(mincstats -max -quiet -mask $3/temp/skull_mask_nativeT1Grid.mnc -mask_binvalue 1 $3/verify/${petfileSubID}_MRISPACE_Verify.mnc)
+        #autoRegErrorNEWToolKit=$(echo "$brainMaxValNew < 0.1" | bc)
+        #if [ $autoRegErrorNEWToolKit -eq 1 ];
+        #then
+        #    echo "Registration Failed. Stopping processing. "
+        #    echo $1_Fail | nc -w 0 $8 $9
+        #    exit
+        #fi
+    fi
+
+    source /opt/minc-1.9.15/minc-toolkit-config.sh
+fi
+###################################################################################
+
+if [ $5 != "auto" ];
+then
+    xfmconcat $initXFM $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+    mincresample -short -nearest -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/*t1_tal.xfm -invert_transformation /data/data01/database/human/public/quarantine/skull_mask.mnc $3/temp/skull_mask_mrispace.mnc
+    mincresample -short -invert_transform -nearest -like $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm /data/data01/database/human/public/quarantine/skull_mask.mnc $3/temp/skull_mask_petspace.mnc
+
+    ponsV=$(mincstats -mean -mask $3/temp/skull_mask_petspace.mnc -mask_floor .9 $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc)
+    echo "PonsV - $ponsV"
+    pons=$(echo $ponsV | sed 's/Mean:\ \([0-9].*\).*/\1/')
+    num=$(echo "$pons" | sed 's/e/*10^/g;s/ /*/' | bc)
+    compare_result=$(echo "$num < 0.5" | bc)
+    echo "Compare Res - $compare_result"
+
+    pet_minV=$(mincstats -floor 0 -min -mask $3/temp/skull_mask_petspace.mnc -mask_binvalue 1 $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc)
+    pet_min=$(echo $pet_minV | sed 's/Min:\ \([0-9].*\).*/\1/')
+    mri_thresholdV=$(mincstats -max -mask $3/t1/*skull_mask.mnc -mask_binvalue 1 $3/intermediate/${t1fileSubID}_t1_nu.mnc)
+    mri_threshold_t=$(echo $mri_thresholdV | sed 's/Max:\ \([0-9].*\).*/\1/')
+    temp_var=$(echo $mri_threshold_t|awk '{print int($1+0.5)}')
+    nlin_num=25
+    mri_threshold=$(expr $temp_var / $nlin_num)
+
+    minctracc -transformation $initXFM -mi $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} $3/transforms/temp_${petfileSubID}_pet2mri.xfm -simplex 5 -est_center
+    minctracc -mi $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold}  -transformation $3/transforms/temp_${petfileSubID}_pet2mri.xfm -simplex 1 -step 2 2 2 $3/transforms/${petfileSubID}_pet2mri.xfm -est_center
+
+    mincresample -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_pet_t1space.mnc
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+
+    ######## Copied fron old Jared scripts.
+    ######## If there was an error, try creating an xfm on the basis that the image needed a big rotation.
+    if [ ! -f $3/transforms/${petfileSubID}_pet2tal_nlin.xfm ]; then
+    mincresample -tfm_input_sampling -clob -transform $initXFM $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc $3/intermediate/${petfileSubID}_${blurV}mm_psf_rsl.mnc
+    mincresample -like $3/intermediate/${petfileSubID}_${blurV}mm_psf_rsl.mnc -transform $initXFM $3/temp/skull_mask_petspace.mnc $3/temp/skull_mask_petspace_rsl.mnc
+
+    minctracc -identity -mi $3/intermediate/${petfileSubID}_${blurV}mm_psf_rsl.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} -simplex 1 -step 2 2 2 $3/transforms/${petfileSubID}_pet2mri.xfm -est_center -source_mask $3/temp/skull_mask_petspace_rsl.mnc -model_mask $3/t1/*skull_mask.mnc
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+    fi
+fi
+echo "Registration Finished"
+########
+echo "######################################################################################################################"
+echo "###########################Creating subjects own masks##################################"
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc $3/t1/*pve_exactgm.mnc -transform $3/transforms/*nlfit_It.xfm $3/mask/${petfileSubID}_gm_nlinTemp.mnc
+mincmask $3/mask/${petfileSubID}_gm_nlinTemp.mnc /data/data03/quarantine/icbm_segmented_masked_jackmask_res_8mm_blur_050.mnc $3/mask/${petfileSubID}_jackmask.mnc
+echo "###########################Finished subjects own masks##################################"
+########
+######## Partial Volume Correction Masks
+echo "############## PVC MASK STARTING #####################"
+wm_basename=$(basename $3/t1/*pve_exactwm.mnc .mnc)
+gm_basename=$(basename $3/t1/*pve_exactgm.mnc .mnc)
+classify_basename=$(basename $3/t1/*pve_classify.mnc .mnc)
+
+mincresample -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm -invert_transform $3/t1/*pve_exactgm.mnc $3/pvc/${gm_basename}_petspace.mnc
+mincresample -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm -invert_transform $3/t1/*pve_exactwm.mnc $3/pvc/${wm_basename}_petspace.mnc
+mincmath -ge -const 0.70 $3/pvc/${gm_basename}_petspace.mnc $3/pvc/${gm_basename}_petspace_mask.mnc
+mincmath -ge -const 0.70 $3/pvc/${wm_basename}_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc
+
+## OLD PVC METHOD
+##mincmask ${outputFolder}/t1/*pve_classify.mnc ${outputFolder}/t1/*skull_mask.mnc ${outputFolder}/pvc/${classify_basename}_mask.mnc
+##mincmath -ge -const 2 ${outputFolder}/pvc/${classify_basename}_mask.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma.mnc
+##mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc  ${outputFolder}/pvc/${classify_basename}_parenchyma.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_t.mnc
+##mincblur -clob -fwhm ${psf} ${outputFolder}/pvc/${classify_basename}_parenchyma_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm
+##mv ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc
+##mincmath -clamp -const2 0.2 1 ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc
+
+## NEW PVC METHOD - MODULATED
+psf=${blurV}
+mincmask ${outputFolder}/t1/*pve_classify.mnc ${outputFolder}/t1/*skull_mask.mnc ${outputFolder}/pvc/${classify_basename}_mask.mnc
+mincmath -ge -const 2 ${outputFolder}/pvc/${classify_basename}_mask.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma.mnc
+xfm_normalize.pl --clob --invert --like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc --step 1 ${outputFolder}/transforms/*nlfit_It.xfm ${outputFolder}/transforms/${classify_basename}_reversed_transform.xfm
+mincreshape -clob -dimorder vector_dimension,xspace,yspace,zspace ${outputFolder}/transforms/${classify_basename}_reversed_transform_grid_0.mnc ${outputFolder}/transforms/${classify_basename}_reversed_transform_grid_0_reordered.mnc
+mincblob -clob -determinant ${outputFolder}/transforms/${classify_basename}_reversed_transform_grid_0_reordered.mnc ${outputFolder}/transforms/${classify_basename}_reversed_transform_det.mnc
+mincresample -clob -float -like ${outputFolder}/transforms/${classify_basename}_reversed_transform_det.mnc -transformation ${outputFolder}/transforms/*nlfit_It.xfm ${outputFolder}/pvc/${classify_basename}_parenchyma.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_nl_detResolution.mnc
+minccalc -short -clob -expression '(A[0]+1)*A[1]' ${outputFolder}/transforms/${classify_basename}_reversed_transform_det.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_nl_detResolution.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_nl_modulated.mnc
+mincblur -clob -fwhm ${psf} ${outputFolder}/pvc/${classify_basename}_parenchyma_nl_modulated.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm
+mv ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc
+mincmath -clamp -const2 0.2 1 ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc
+mincresample -clob -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_sym_09a_mask.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur_t.mnc ${outputFolder}/pvc/${classify_basename}_parenchyma_${psf}mm_blur.mnc
+echo "############## PVC END #####################"
+######## End PVC
+
+######## Start mask builing
+echo "############## MASK BUILD STARTING #####################"
+mincmath -gt -const 0.1 $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc $3/intermediate/${petfileSubID}_valid_mask_petspace.mnc
+
+### CER GM
+mincresample -nearest -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm -invert_transformation /data/data03/quarantine/cerebellum_mask_rsl_8mm_blur_075.mnc $3/mask/cerebellum_mask_rsl_8mm_blur_075_petspace.mnc
+### FULL CER
+mincresample -nearest -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm -invert_transformation /data/data03/quarantine/cerebellum_full_mask_8mm_blur_075.mnc $3/mask/cerebellum_full_mask_8mm_blur_075_petspace.mnc
+### PONS
+mincresample -nearest -like $3/native/${petfileSubID}.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm -invert_transformation /data/data03/quarantine/pons_mask_rsl_8mm_blur_050.mnc $3/mask/pons_mask_rsl_8mm_blur_050_petspace.mnc
+### FULL CER + WM COMPOSITE MASK
+mincmath -or $3/mask/cerebellum_full_mask_8mm_blur_075_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc $3/mask/cerm_full_WM_composite_mask_petspace.mnc
+### CER GM + WM COMPOSITE MASK
+mincmath -or $3/mask/cerebellum_mask_rsl_8mm_blur_075_petspace.mnc $3/pvc/${wm_basename}_petspace_mask.mnc $3/mask/cerm_gm_WM_composite_mask_petspace.mnc
+echo "############## MASK BUILD END #####################"
+#####
+## JACK MASK - SUBJECT WISE IF NEEDED SHOULD GO HERE>
+################## Removing NEGATIVE SIDE FROM BLURRED ORIG IMAGE.
+mv $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc $3/intermediate/${petfileSubID}_${blurV}mm_psf_t.mnc
+minccalc -short -expression "if (A[0]>0) result=A[0] else result=0" $3/intermediate/${petfileSubID}_${blurV}mm_psf_t.mnc $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc
+######
+echo "############## MAIN PET START #####################"
+##PET MAIN PROCESING
+mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc $3/final/${petfileSubID}_${blurV}mm_psf_tal_lin.mnc
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin.mnc
+
+######## Partial Volume Correction
+minccalc -float -expression "if (A[0]>0) result=A[1]/A[2] else result=0" /data/data03/quarantine/mni_icbm152_t1_tal_nlin_sym_09a_mask.mnc $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin.mnc $3/pvc/${classify_basename}_parenchyma_${blurV}mm_blur.mnc $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pvcd_final.mnc
+######## END PVC
+
+##BRANCH 1 - MNI SPACE MASKS - NORM - PONS
+echo "############## B1 #####################"
+maskVal=$(mincstats -quiet -floor 0 -mean -mask /data/data03/quarantine/pons_mask_rsl_8mm_blur_050.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin.mnc $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pbavg_ref_pons.mnc
+normalize_pet -mask /data/data03/quarantine/icbm_avg_152_t1_tal_nlin_symmetric_VI_mask_rsl.mnc -normalized_mean 1.25 $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pbavg_ref_pons.mnc $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pbavg_ref_pons_norm.mnc
+
+### NOW WITH PVCD IMAGES
+echo "############## B1 PVC #####################"
+maskVal=$(mincstats -quiet -floor 0 -mean -mask /data/data03/quarantine/pons_mask_rsl_8mm_blur_050.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pvcd_final.mnc)
+mincmath -short  -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pvcd_final.mnc $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pvcd_final_pbavg_ref_pons.mnc
+normalize_pet -mask /data/data03/quarantine/icbm_avg_152_t1_tal_nlin_symmetric_VI_mask_rsl.mnc -normalized_mean 1.25 $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pvcd_final_pbavg_ref_pons.mnc $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pvcd_final_pbavg_ref_pons_norm.mnc
+
+
+##BRANCH 2 - SUBJECT MASKS - NO NORM, PONS
+echo "############## B2 #####################"
+cp $3/intermediate/${petfileSubID}_${blurV}mm_psf.mnc $3/final/
+###########################################
+
+maskVal=$(mincstats -quiet -floor 0 -mean -mask $3/mask/pons_mask_rsl_8mm_blur_050_petspace.mnc -mask_binvalue 1 $3/final/${petfileSubID}_${blurV}mm_psf.mnc)
+mincmath -clob -div -const ${maskVal} $3/final/${petfileSubID}_${blurV}mm_psf.mnc $3/final/${petfileSubID}_${blurV}mm_psf_pbavg_ref_pons.mnc
+mincresample -like /data/data03/quarantine/icbm_avg_152_t1_tal_lin.mnc -transform $3/transforms/${petfileSubID}_pet2tal_lin.xfm $3/final/${petfileSubID}_${blurV}mm_psf_pbavg_ref_pons.mnc $3/final/${petfileSubID}_${blurV}mm_psf_pbavg_ref_pons_tal_lin.mnc
+mincresample -like /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc -transform $3/transforms/${petfileSubID}_pet2tal_nlin.xfm $3/final/${petfileSubID}_${blurV}mm_psf_pbavg_ref_pons.mnc $3/final/${petfileSubID}_${blurV}mm_psf_pbavg_ref_pons_tal_nlin.mnc
+
+
+############################# Link to verify file ##################
+ln -s $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pbavg_ref_pons.mnc $3/verify/${petfileSubID}_final_qcVerify.mnc
+mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+minc_qc.pl /data/data03/quarantine/mni_icbm152_t1_tal_nlin_asym_09a.mnc --mask $3/verify/${petfileSubID}_final_qcVerify.mnc --spectral-mask $3/verify/${petfileSubID}_MNI152Template.jpg --big
+minc_qc.pl /data/data03/quarantine/mni_adni_t1w_tal_nlin_asym.mnc --mask $3/verify/${petfileSubID}_final_qcVerify.mnc --spectral-mask $3/verify/${petfileSubID}_ADNITemplate.jpg --big
+
+#### SEND MESSAGE TO QSUB JOB HANDLER IN PIPELINE MANAGER
+if [[ -f $3/final/${petfileSubID}_${blurV}mm_psf_tal_nlin_pbavg_ref_pons_norm.mnc ]]
+ then
+    echo $1_Success | nc -w 0 $8 $9
+ else
+    echo $1_Fail | nc -w 0 $8 $9
+fi

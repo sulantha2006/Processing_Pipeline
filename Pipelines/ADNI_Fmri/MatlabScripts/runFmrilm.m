@@ -38,13 +38,13 @@ voxel = [x(:),y(:),z(:)]; % Inversed right there
 
 % Parameters retrieval
 if isempty(time_frames)
-[~, time_frames] = system(['source /opt/minc/init.sh; mincinfo -attvalue time:length ' input_file]); %Since NIAK scrubbing technique removes certain time frames, time_frames is variable
+[~, time_frames] = system(['source /opt/minc-1.9.15/init.sh; mincinfo -attvalue time:length ' input_file]); %Since NIAK scrubbing technique removes certain time frames, time_frames is variable
 time_frames = str2double(time_frames); end
 if isempty(slice_number)
-[~, slice_number] = system(['source /opt/minc/init.sh; mincinfo -attvalue acquisition:num_phase_enc_steps ' input_file]); % mincinfo -attvalue acquisition:num_phase_enc_steps
+[~, slice_number] = system(['source /opt/minc-1.9.15/init.sh; mincinfo -attvalue acquisition:num_phase_enc_steps ' input_file]); % mincinfo -attvalue acquisition:num_phase_enc_steps
 slice_number = str2double(slice_number); end
 if isempty(tr)
-[~, tr] = system(['source /opt/minc/init.sh; mincinfo -attvalue time:step ' input_file]); % mincinfo -attvalue acquisition:repetition_time
+[~, tr] = system(['source /opt/minc-1.9.15/init.sh; mincinfo -attvalue time:step ' input_file]); % mincinfo -attvalue acquisition:repetition_time
 tr = str2double(tr); end
 
 % Acquisition Correction

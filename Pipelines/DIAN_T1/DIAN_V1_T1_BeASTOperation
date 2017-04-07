@@ -1,0 +1,35 @@
+#!/bin/sh
+
+###1 -> ID
+###2 -> INPUT MNC
+###3 -> OUTPUT BEAST PATH
+###4 -> LOG DIR
+#### FOR SEND MESSAGE TO HANDLER
+###5 -> HOST
+###6 -> PORT
+
+#### SEND MESSAGE TO QSUB JOB HANLDER - JOB STARTING
+echo $1_Start | nc -w 0 $5 $6
+
+mkdir -p $3/final
+mkdir -p $3/mask
+mkdir -p $3/xfm
+
+BASE=`/usr/bin/basename $2 .mnc`
+
+echo "/data/data01/scripts/beast_normalize $2 $3/final/${BASE}_tal_lin.mnc $3/xfm/${BASE}_tal_lin.xfm -modeldir /data/data01/database/human/public/quarantine/beast-library-1.0/ -intensity_norm 1"
+/data/data01/scripts/beast_normalize $2 $3/final/${BASE}_tal_lin.mnc $3/xfm/${BASE}_tal_lin.xfm -modeldir /data/data01/database/human/public/quarantine/beast-library-1.0/ -intensity_norm 1
+
+echo "/home/jrowley/bin/mincbeast-1.15_x86_64/mincbeast /data/data01/database/human/public/quarantine/beast-library-1.0 $3/final/${BASE}_tal_lin.mnc $3/mask/${BASE}_tal_lin_skull_mask.mnc -conf /data/data01/database/human/public/quarantine/beast-library-1.0/default.2mm.conf -same_res -median -fill"
+/home/jrowley/bin/mincbeast-1.15_x86_64/mincbeast /data/data01/database/human/public/quarantine/beast-library-1.0 $3/final/${BASE}_tal_lin.mnc $3/mask/${BASE}_tal_lin_skull_mask.mnc -conf /data/data01/database/human/public/quarantine/beast-library-1.0/default.2mm.conf -same_res -median -fill
+
+echo "mincresample -clobber -like $2 -transform $3/xfm/${BASE}_tal_lin.xfm -invert_transformation -nearest $3/mask/${BASE}_tal_lin_skull_mask.mnc $3/mask/${BASE}_skull_mask_native.mnc"
+mincresample -clobber -like $2 -transform $3/xfm/${BASE}_tal_lin.xfm -invert_transformation -nearest $3/mask/${BASE}_tal_lin_skull_mask.mnc $3/mask/${BASE}_skull_mask_native.mnc
+
+#### SEND MESSAGE TO QSUB JOB HANDLER IN PIPELINE MANAGER
+if [ -a $3/mask/${BASE}_skull_mask_native.mnc ]
+ then
+    echo $1_Success | nc -w 0 $5 $6
+ else
+    echo $1_Fail | nc -w 0 $5 $6
+fi

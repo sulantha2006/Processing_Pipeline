@@ -11,8 +11,8 @@ import hashlib
 import psutil
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-s','--study', help='Study name. ', choices=['adni'])
-parser.add_argument('-t','--type', help='The type of qc. ', choices=['civet', 'av45', 'beast', 'fdg', 'fmri', 'av1451'])
+parser.add_argument('-s','--study', help='Study name. ', choices=['adni', 'dian'])
+parser.add_argument('-t','--type', help='The type of qc. ', choices=['civet', 'av45', 'beast', 'fdg', 'fmri', 'av1451', 'pib'])
 parser.add_argument('-u','--user', help='Username ')
 parser.add_argument('--createUser', help=argparse.SUPPRESS)
 args = parser.parse_args()
@@ -29,8 +29,9 @@ def kill(proc_pid):
 def runCIVETQC(study, username):
     while 1:
         getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = 'civet' AND STUDY = '{0}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(study)
-        resT = DBClient.executeAllResults(getEntrySql)
-        if len(resT) < 1:
+        try:
+            resT = DBClient.executeSomeResults(getEntrySql, 1)[0]
+        except IndexError:
             print('No files to QC. ')
             break
         res = resT[0]
@@ -43,7 +44,7 @@ def runCIVETQC(study, username):
 
         civetpath = res[6]
         displayCMD = 'display {0}/verify/*_verify.png'.format(civetpath)
-        proc = subprocess.Popen(displayCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
+        proc = subprocess.Popen(displayCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
 
         qcpass = 'z'
         while not (qcpass.lower() == 'y' or qcpass.lower() == 'n'):
@@ -65,8 +66,9 @@ def runCIVETQC(study, username):
 def runBEASTQC(study, username):
     while 1:
         getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = 'beast' AND STUDY = '{0}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(study)
-        res = DBClient.executeSomeResults(getEntrySql, 1)[0]
-        if len(res) < 1:
+        try:
+            res = DBClient.executeSomeResults(getEntrySql, 1)[0]
+        except IndexError:
             print('No files to QC. ')
             break
         recID = res[0]
@@ -78,7 +80,7 @@ def runBEASTQC(study, username):
 
         beastPath = res[6]
         regCMD = 'register {0}/mask/*_skull_mask_native.mnc {0}/native/*_t1.mnc'.format(beastPath)
-        proc = subprocess.Popen(regCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
+        proc = subprocess.Popen(regCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
 
         qcpass = 'z'
         while not (qcpass.lower() == 'y' or qcpass.lower() == 'n'):
@@ -100,25 +102,33 @@ def runBEASTQC(study, username):
 def runPETQC(study, type, username):
     while 1:
         getEntrySql = "SELECT * FROM QC WHERE QC_TYPE = '{0}' AND STUDY = '{1}' AND SKIP = 0 AND START = 0 AND END = 0 LIMIT 1".format(type.lower(), study)
-        res = DBClient.executeSomeResults(getEntrySql, 1)[0]
-        if len(res) < 1:
+        try:
+            res = DBClient.executeSomeResults(getEntrySql, 1)[0]
+        except IndexError:
             print('No files to QC. ')
             break
+
         recID = res[0]
         global currentRec
         currentRec = recID
         setStartSql = "UPDATE QC SET START = 1, USER = '{1}' WHERE RECORD_ID = '{0}'".format(recID, username)
         DBClient.executeNoResult(setStartSql)
 
+        if study == 'ADNI' or study == 'adni':
+            template = QCConfig.ADNIT1_TemplatePath
+        elif study == 'DIAN' or study == 'dian':
+            temaplte = QCConfig.ICBMT1_TemplatePath
 
         petPath = res[6]
         if type.lower() == 'av45':
-            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
+            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, temaplte)
         elif type.lower() == 'fdg':
-            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
+            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, temaplte)
         elif type.lower() == 'av1451':
-            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, QCConfig.ADNIT1_TemplatePath)
-        proc2 = subprocess.Popen(regCMD2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/sh')
+            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, temaplte)
+        elif type.lower() == 'pib':
+            regCMD2 = 'register {0}/verify/*_final_qcVerify.mnc {1}'.format(petPath, temaplte)
+        proc2 = subprocess.Popen(regCMD2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
 
         qcpass = 'z'
         while not (qcpass.lower() == 'y' or qcpass.lower() == 'n'):
@@ -195,7 +205,7 @@ if __name__ == '__main__':
                     print('Starting {0} QC. '.format(args.type.upper()))
                     runBEASTQC(args.study.upper(), args.user)
                     print('{0} QC finished '.format(args.type.upper()))
-                if args.type == 'av45' or args.type == 'fdg' or args.type == 'av1451':
+                if args.type == 'av45' or args.type == 'fdg' or args.type == 'av1451' or args.type == 'pib':
                     print('Starting {0} QC. '.format(args.type.upper()))
                     runPETQC(args.study.upper(), args.type, args.user)
                     print('{0} QC finished '.format(args.type.upper()))

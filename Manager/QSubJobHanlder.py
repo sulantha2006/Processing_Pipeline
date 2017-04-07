@@ -34,8 +34,8 @@ class QSubJobHandler(threading.Thread):
         data = conn.recv(1024)
         #PipelineLogger.log('manager', 'info', ' Data recieved - {0}.'.format(data))
         try:
-            jobID = data.strip().decode('utf-8').split('_')[0]
-            status = data.strip().decode('utf-8').split('_')[1]
+            jobID = data.strip().decode('utf-8').rsplit('_', 1)[0]
+            status = data.strip().decode('utf-8').rsplit('_', 1)[1]
             PipelineLogger.log('manager', 'info',' ++++++++ QSub Job Handler received JobID - {0}.'.format(jobID))
             if jobID not in self.submittedJobs:
                 PipelineLogger.log('manager', 'error',' ++++++++ QSub Job Handler unidentified JobID - {0}.'.format(jobID))

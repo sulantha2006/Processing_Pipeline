@@ -9,7 +9,7 @@
 ####6 -> PORT
 #### ADDITIONAL FEATURES
 ####7+ -> GENERATED FILES
-source /opt/minc-toolkit/minc-toolkit-config.sh
+source /opt/minc-1.9.15/minc-toolkit-config.sh
 id=$1
 command=$2
 outputFolder=$3

@@ -100,7 +100,7 @@ class ADNI_V1_AV1451:
         paramStrd = ast.literal_eval(processingItemObj.parameters)
         paramStrt = ' '.join(['[\"{0}\"]=\"{1}\"'.format(k, v) for k,v in paramStrd.items()])
         paramStr = '({0})'.format(paramStrt)
-        petCMD = "source /opt/minc-toolkit/minc-toolkit-config.sh; Pipelines/ADNI_AV1451/ADNI_V1_AV1451_Process {0} {1} {2} {3} {4} {5} '{6}' {7} {8}".format(id, petFileName, processedFolder, matchT1Path, processingItemObj.manual_xfm, logDir, paramStr,socket.gethostname(), 50500)
+        petCMD = "source /opt/minc-1.9.15/minc-toolkit-config.sh; Pipelines/ADNI_AV1451/ADNI_V1_AV1451_Process {0} {1} {2} {3} {4} {5} '{6}' {7} {8}".format(id, petFileName, processedFolder, matchT1Path, processingItemObj.manual_xfm, logDir, paramStr,socket.gethostname(), 50500)
         try:
             processedFolder_del = '{0}/processed_del'.format(processingItemObj.root_folder)
             os.rename(processedFolder, processedFolder_del)

@@ -18,7 +18,7 @@ def recurseCivetFolder():
 
 def getSandIIDs(item):
     nativeFile = item[1]
-    cmd = 'source /opt/minc/init.sh; minchistory {0}'.format(nativeFile)
+    cmd = 'source /opt/minc-1.9.15/init.sh; minchistory {0}'.format(nativeFile)
     readRes, err = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     for strItem in str(readRes).strip().split('/'):
         if re.search(r'_S\d+_I\d+', strItem):

@@ -36,7 +36,7 @@ class PipelineManager:
         self.conversionTable = Conversion()
 
         self.raw2mincConverter = Raw2MINCConverter()
-        self.pool = Pool(processes=12)
+        self.pool = Pool()
         self.qsubJobHandler = QSubJobHandler()
         self.qsubJobHandler.start()
 
@@ -59,6 +59,8 @@ class PipelineManager:
                 self.recursorList.append(Recursor(study, StudyConfig.ADNIDownloadRoot))
             elif study == 'ADNI_OLD':
                 self.recursorList.append(Recursor(study, StudyConfig.ADNIOLDDownloadRoot))
+            elif study == 'DIAN':
+                self.recursorList.append(Recursor(study, StudyConfig.DIANDownloadRoot))
 
     # This method will recurse through the download folders.
     def recurseForNewData(self):

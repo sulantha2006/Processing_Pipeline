@@ -15,12 +15,14 @@ matlab_location = '/opt/matlab12b/bin/matlab'
 matlab_scripts = os.path.dirname(__file__) + '/../Pipelines/ADNI_Fmri/MatlabScripts'
 fwhm_smoothing = '6'
 matlab_call = '%s -nodisplay -nosplash -r "addpath(\'%s\');' % (matlab_location, matlab_scripts)
-sourcing = 'source /opt/minc-toolkit/minc-toolkit-config.sh'
+sourcing = 'source /opt/minc-1.9.15/minc-toolkit-config.sh'
 
-T1TempDirForCIVETProcessing = '/data/data03/CIVETUPLOAD_TAUMRI'
-T1TempDirForCIVETDownload = '/data/data03/CIVETDOWNLOAD/2016-06-18'
+T1TempDirForCIVETProcessing = '/data/data02/CIVETUPLOAD_DIAN'
+T1TempDirForCIVETDownload = '/data/data02/CIVETDOWNLOAD/2017-03-31'
 
 ADNI_dataMatchDBName = 'Study_Data.ADNI'
+DIAN_dataMatchDBName = 'Study_Data.DIAN'
+
 ADNI_visitCode_Dict = {
     'ADNI1 Baseline': 'ad1_bl',
     'ADNI1/GO Month 6': 'adg_m6',
@@ -48,19 +50,57 @@ ADNI_visitCode_Dict = {
     'ADNI2 Month 6-New Pt': 'ad2_m6',
     'ADNI2 No Visit Defined': 'ad2_und',
     'ADNI2 Screening-New Pt': 'ad2_sc',
-    'ADNI2 Year 5 Visit':'ad2_m60'
+    'ADNI2 Year 5 Visit': 'ad2_m60'
 }
 
 ADNI_T1_match_accepted_scantypes = ['MPR-R_B1_N3', 'MPR_B1_N3S', 'MPR_B1_N3', 'MPR_B1', 'MPR_N3', 'MPR', 'MPR-R',
                                     'MPR-R_N3', 'MPR_N3S', 'MPR-R_N3S', 'MPR-R_N3S', 'MPR-R_B1', 'MPR-R_B1_N3S',
                                     'MPR-R_B1_N3S', 'MT1_G_N3m', 'MT1_N3m', 'T1-SNMN3C', 'MPR-R__N3', 'MPR__N3S',
                                     'MPR__N3S', 'MPR__N3', 'MPR_N3S', 'S_IR-SPGR', 'AS_IR-SPGR', 'AS_IR-FSPGR',
-                                    'S_IR-FSPGR', 'AS_IR-SPGR', 'IR-FSPGR', 'IR-FSPGR_Rep', 'MPR__M', 'MPR-R__M', 'MPRAGE']
+                                    'S_IR-FSPGR', 'AS_IR-SPGR', 'IR-FSPGR', 'IR-FSPGR_Rep', 'MPR__M', 'MPR-R__M',
+                                    'MPRAGE']
 
-ADNI_T1_match_scantype_priorityList = ['MPR-R_B1_N3', 'MPR_B1_N3S', 'MPR_B1_N3', 'MT1_G_N3m', 'MPR-R_B1_N3S', 'MPR-R_B1_N3S', 'MPR-R_N3S',
-                                       'MPR-R_B1',  'MPR-R_N3', 'MPR-R__N3', 'MPR__N3S', 'AS_IR-SPGR', 'AS_IR-FSPGR', 'T1-SNMN3C',
-                                    'S_IR-FSPGR', 'AS_IR-SPGR', 'IR-FSPGR',
+ADNI_T1_match_scantype_priorityList = ['MPR-R_B1_N3', 'MPR_B1_N3S', 'MPR_B1_N3', 'MT1_G_N3m', 'MPR-R_B1_N3S',
+                                       'MPR-R_B1_N3S', 'MPR-R_N3S',
+                                       'MPR-R_B1', 'MPR-R_N3', 'MPR-R__N3', 'MPR__N3S', 'AS_IR-SPGR', 'AS_IR-FSPGR',
+                                       'T1-SNMN3C',
+                                       'S_IR-FSPGR', 'AS_IR-SPGR', 'IR-FSPGR',
                                        'MT1_N3m', 'MPR_B1', 'MPR_N3', 'MPR', 'MPR-R',
-                                    'MPR_N3S', 'MPR__N3', 'MPR_N3S', 'S_IR-SPGR',  'IR-FSPGR_Rep', 'MPR__M', 'MPR-R__M', 'MPRAGE']
+                                       'MPR_N3S', 'MPR__N3', 'MPR_N3S', 'S_IR-SPGR', 'IR-FSPGR_Rep', 'MPR__M',
+                                       'MPR-R__M', 'MPRAGE']
+
+DIAN_scanner_specific_blurs = {'HRRT': (6.0, 6.0, 6.0),
+                               'Siemens_BioGraph_1080': (5.5, 5.5, 5.5),
+                               'GemTF_Sharp': (4.5, 4.5, 5.0),
+                               'HR+': (5.0, 5.0, 5.0),
+                               'GE MEDICAL SYSTEMS_Discovery_690_3DIR': (5.5, 5.5, 5.0),
+                               'GE MEDICAL SYSTEMS_Discovery_600_3DIR': (5.5, 5.5, 5.0),
+                               'GE MEDICAL SYSTEMS_Discovery_610_3DIR': (5.5, 5.5, 5.0),
+                               'GE MEDICAL SYSTEMS_Discovery_710_3DIR': (5.5, 5.5, 5.0),
+                               'GE MEDICAL SYSTEMS_Discovery_RX_3DIR': (5.5, 5.5, 5.0),
+                               'GE MEDICAL SYSTEMS_Discovery_STE_3DIR': (5.5, 5.5, 5.0),
+                               'GE MEDICAL SYSTEMS_Discovery_LS_FORE_2DIR': (4.5, 4.5, 3.0),
+                               'Advance_LS_FORE_2DIR': (4.5, 4.5, 3.0),
+                               'GE MEDICAL SYSTEMS_Discovery_ST_3DIR': (5.0, 5.0, 5.0),
+                               'GE MEDICAL SYSTEMS_Discovery_ST_FORE_3DIR': (3.0, 3.0, 3.5),
+                               'Philips Medical Systems_Allegro': (3.0, 3.0, 3.0),
+                               'GemGXL': (3.0, 3.0, 3.0),
+                               'Gem': (3.0, 3.0, 3.0),
+                               'Siemens_BioGraph_1023': (2.0, 2.0, 3.0),
+                               'Siemens_BioGraph_1024': (2.0, 2.0, 3.0),
+                               'Accel': (2.0, 2.0, 3.0),
+                               'Exact': (2.0, 2.0, 3.0),
+                               'Siemens_Biograph_mMR': (5.5, 5.5, 5.5),
+                               'Siemens_Biograph_mCT': (5.5, 5.5, 5.5),
+                                'Siemens_Biograph64_mCT': (5.5, 5.5, 5.5),
+                                'Siemens_Biograph128_mCT': (5.5, 5.5, 5.5),
+                               'Siemens_BioGraph_1093': (5.5, 5.5, 5.5),
+                               'Siemens_BioGraph_1094': (5.5, 5.5, 5.5),
+                               'Sharp': (4.5, 4.5, 5.0),
+                               'Siemens_1023': (2.0, 2.0, 3.0),
+                               'Siemens_1024': (2.0, 2.0, 3.0),
+                               'Siemens_1093': (5.5, 5.5, 5.5),
+                               'Siemens_1094': (5.5, 5.5, 5.5),
+                               }
 
 SourcePath = None

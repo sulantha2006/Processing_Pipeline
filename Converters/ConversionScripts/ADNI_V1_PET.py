@@ -27,7 +27,7 @@ class ADNI_V1_PET:
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
-        cmd = '/opt/minc/bin/nii2mnc {0} {1}'.format(rawFile, outTempFile)
+        cmd = '/opt/minc-1.9.15/bin/nii2mnc {0} {1}'.format(rawFile, outTempFile)
         cmdRes = 'mincresample -short {0} {1}'.format(outTempFile, outDynFile)
         PipelineLogger.log('converter', 'info',
                            'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
@@ -83,7 +83,7 @@ class ADNI_V1_PET:
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
-        cmd = '/opt/minc/bin/ecattominc {0} {1}'.format(rawFile, outTempFile)
+        cmd = '/opt/minc-1.9.15/bin/ecattominc {0} {1}'.format(rawFile, outTempFile)
         cmdRes = 'mincresample -short {0} {1}'.format(outTempFile, outDynFile)
         PipelineLogger.log('converter', 'info',
                            'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
@@ -135,7 +135,7 @@ class ADNI_V1_PET:
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
 
-        cmd = 'source /opt/minc-toolkit/minc-toolkit-config.sh; Converters/ConversionScripts/BashScripts/ADNI_V1_PET_dicom {0} {1} {2} {3}'.format(convertionObj.raw_folder, convertionObj.converted_folder, outDynFile, outFile)
+        cmd = 'source /opt/minc-1.9.15/minc-toolkit-config.sh; Converters/ConversionScripts/BashScripts/ADNI_V1_PET_dicom {0} {1} {2} {3}'.format(convertionObj.raw_folder, convertionObj.converted_folder, outDynFile, outFile)
         PipelineLogger.log('converter', 'info',
                            'MINC conversion starting for : {0} - {1} - {2} - {3}'.format(convertionObj.study,
                                                                                          convertionObj.rid,
@@ -197,7 +197,7 @@ class ADNI_V1_PET:
         elif len(mncList) == 1:
             PipelineLogger.log('converter', 'error',
                                'PET Conversion MINC file as INPUT. Only 1 MINC found. Checking for time dimension  - {0} - {1} - {2} - {3}'.format(convertionObj.study, convertionObj.rid, convertionObj.scan_date, convertionObj.scan_type))
-            checkTimeDimCmd = '/opt/minc-toolkit/bin/mincinfo {0} | grep time'.format(mncList[0])
+            checkTimeDimCmd = '/opt/minc-1.9.15/bin/mincinfo {0} | grep time'.format(mncList[0])
             p_t = subprocess.Popen(checkTimeDimCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out_t, err_t = p_t.communicate()
             PipelineLogger.log('converter', 'debug', 'Check time dim Output : \n{0}'.format(out_t))
@@ -224,7 +224,7 @@ class ADNI_V1_PET:
                                                         convertionObj.rid, convertionObj.scan_date.replace('-', ''),
                                                         convertionObj.s_identifier, convertionObj.i_identifier,
                                                         convertionObj.scan_type)
-            cmd = '/opt/minc/bin/mincconcat -short -concat_dimension time {0} {1}'.format(rawFile, outDynFile)
+            cmd = '/opt/minc-1.9.15/bin/mincconcat -short -concat_dimension time {0} {1}'.format(rawFile, outDynFile)
             PipelineLogger.log('converter', 'debug', 'Command : {0}'.format(cmd))
             try:
                 os.remove(outDynFile)
@@ -254,7 +254,7 @@ class ADNI_V1_PET:
                 return 0
 
     def avgTime(self, inputMNC, outputMNC):
-        avgCMD = '/opt/minc-toolkit/bin/mincaverage -short -avgdim time {0} {1}'.format(inputMNC, outputMNC)
+        avgCMD = '/opt/minc-1.9.15/bin/mincaverage -short -avgdim time {0} {1}'.format(inputMNC, outputMNC)
         p = subprocess.Popen(avgCMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         PipelineLogger.log('converter', 'debug', 'Averaging Time Output : \n{0}'.format(out))

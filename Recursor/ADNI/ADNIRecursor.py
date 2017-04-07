@@ -1,13 +1,16 @@
 __author__ = 'Seqian Wang'
 
+import glob
 import os
-from Recursor.ADNI.ScanSession import ScanSession
+import re
+from xml.dom import minidom
+
+import xmltodict
+
 import Config.ADNI_RecurserConfig as arc
 import Config.StudyConfig as sc
+from Recursor.ScanSession import ScanSession
 from Utils.PipelineLogger import PipelineLogger
-import re, glob
-from xml.dom import minidom
-import xmltodict
 
 """
 Parse ADNI Data Structure from Monica Download and return a list of instances with scans' information
@@ -32,7 +35,7 @@ class ADNIRecursor():
         folder = down_most_folder.replace(self.root_folder,"")
         xmllist = [ x for x in filelist if 'xml' in x ]
         filelist = [ x for x in filelist if 'xml' not in x ]
-        if filelist is None: # If no file in folder, ignore and skip
+        if len(filelist) == 0: # If no file in folder, ignore and skip
             return None
         try:
             folder_parts = folder.split("/")  # List containing each parts/folders of the full path

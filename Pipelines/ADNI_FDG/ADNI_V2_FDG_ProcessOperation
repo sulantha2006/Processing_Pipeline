@@ -1,5 +1,5 @@
 #!/bin/bash
-source /opt/minc-toolkit/minc-toolkit-config.sh
+source /opt/minc-1.9.15/minc-toolkit-config.sh
 
 ##1 -> ID
 ##2 -> INPUT MNC
@@ -69,7 +69,7 @@ nu_correct $3/intermediate/${t1fileSubID}_t1_nu.mnc $3/intermediate/${t1fileSubI
 mv $3/intermediate/${t1fileSubID}_t1_nu2.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc
 
 ##################### T1 NLIN #####################################################
-xfmconcat $3/transforms/*t1_tal.xfm $3/transforms/*nlfit_It.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm
+xfmconcat $3/transforms/*t1_tal.xfm $3/transforms/*nlfit_It.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm
 ###################################################################################
 
 ##################### Automatic Initial XFM generation ############################
@@ -77,48 +77,52 @@ if [ $initXFM = "auto" ];
 then
     echo "++++++++++++++++++++ Starting automatic PET->MRI registration."
     echo $(which minctracc)
-    /opt/minc-toolkit/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+    /opt/minc-1.9.15/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
     initXFM=$3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
     cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
     xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
 
     mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
     mincresample -nearest -like $3/t1/*t1.mnc $3/t1/*skull_mask.mnc $3/temp/skull_mask_nativeT1Grid.mnc
-    brainMaxVal=$(mincstats -max -quiet -mask $3/temp/skull_mask_nativeT1Grid.mnc -mask_binvalue 1 $3/verify/${petfileSubID}_MRISPACE_Verify.mnc)
+    mincresample -like $3/verify/${petfileSubID}_MRISPACE_Verify.mnc $3/temp/skull_mask_nativeT1Grid.mnc $3/temp/skull_mask_nativeT1Grid_resVerify.mnc
+    brainMaxVal=$(mincstats -max -quiet -mask $3/temp/skull_mask_nativeT1Grid_resVerify.mnc -mask_binvalue 1 $3/verify/${petfileSubID}_MRISPACE_Verify.mnc)
 
     autoRegError=$(echo "$brainMaxVal < 0.1" | bc)
     if [ $autoRegError -eq 1 ];
     then
-        rm $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
-        rm $3/transforms/${petfileSubID}_pet2mri.xfm
-        rm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-        rm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
-        rm $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
-        rm $3/temp/skull_mask_nativeT1Grid.mnc
+        echo "Registration Failed. Stopping processing. "
+        echo $1_Fail | nc -w 0 $8 $9
+        exit
+        #rm $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+        #rm $3/transforms/${petfileSubID}_pet2mri.xfm
+        #rm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+        #rm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+        #rm $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+        #rm $3/temp/skull_mask_nativeT1Grid.mnc
 
-        source /opt/minc-1.9.12/minc-toolkit-config.sh
+        #source /opt/minc-1.9.12/minc-toolkit-config.sh
 
-        echo $(which minctracc)
-        /opt/minc-toolkit/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
-        initXFM=$3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
-        cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
-        xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-        xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+        #echo $(which minctracc)
+        #/opt/minc-1.9.15/bin/bestlinreg_s -nmi -lsq6 $3/native/${petfileSubID}.mnc $3/t1/*t1.mnc $3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+        #initXFM=$3/transforms/${petfileSubID}_TO_${t1fileSubID}_autoXFM.xfm
+        #cp $initXFM $3/transforms/${petfileSubID}_pet2mri.xfm
+        #xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
+        #xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
 
-        mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
-        mincresample -nearest -like $3/t1/*t1.mnc $3/t1/*skull_mask.mnc $3/temp/skull_mask_nativeT1Grid.mnc
-        brainMaxValNew=$(mincstats -max -quiet -mask $3/temp/skull_mask_nativeT1Grid.mnc -mask_binvalue 1 $3/verify/${petfileSubID}_MRISPACE_Verify.mnc)
-        autoRegErrorNEWToolKit=$(echo "$brainMaxValNew < 0.1" | bc)
-        if [ $autoRegErrorNEWToolKit -eq 1 ];
-        then
-            echo "Registration Failed. Stopping processing. "
-            echo $1_Fail | nc -w 0 $8 $9
-            exit
-        fi
+        #mincresample -like $3/t1/*t1.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/verify/${petfileSubID}_MRISPACE_Verify.mnc
+        #mincresample -nearest -like $3/t1/*t1.mnc $3/t1/*skull_mask.mnc $3/temp/skull_mask_nativeT1Grid.mnc
+        #brainMaxValNew=$(mincstats -max -quiet -mask $3/temp/skull_mask_nativeT1Grid.mnc -mask_binvalue 1 $3/verify/${petfileSubID}_MRISPACE_Verify.mnc)
+        #autoRegErrorNEWToolKit=$(echo "$brainMaxValNew < 0.1" | bc)
+        #if [ $autoRegErrorNEWToolKit -eq 1 ];
+        #then
+        #    echo "Registration Failed. Stopping processing. "
+        #    echo $1_Fail | nc -w 0 $8 $9
+        #    exit
+        #fi
     fi
 
-    source /opt/minc-toolkit/minc-toolkit-config.sh
+    source /opt/minc-1.9.15/minc-toolkit-config.sh
 fi
 ###################################################################################
 
@@ -148,7 +152,7 @@ then
 
     mincresample -like $3/intermediate/${t1fileSubID}_t1_nu.mnc -transform $3/transforms/${petfileSubID}_pet2mri.xfm $3/native/${petfileSubID}.mnc $3/intermediate/${petfileSubID}_pet_t1space.mnc
     xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
 
     ######## Copied fron old Jared scripts.
     ######## If there was an error, try creating an xfm on the basis that the image needed a big rotation.
@@ -158,7 +162,7 @@ then
 
     minctracc -identity -mi $3/intermediate/${petfileSubID}_${blurV}mm_psf_rsl.mnc $3/intermediate/${t1fileSubID}_t1_nu.mnc -lsq6 -debug -threshold $pet_min ${mri_threshold} -simplex 1 -step 2 2 2 $3/transforms/${petfileSubID}_pet2mri.xfm -est_center -source_mask $3/temp/skull_mask_petspace_rsl.mnc -model_mask $3/t1/*skull_mask.mnc
     xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/*t1_tal.xfm $3/transforms/${petfileSubID}_pet2tal_lin.xfm
-    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/$t1fileSubID_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
+    xfmconcat $3/transforms/${petfileSubID}_pet2mri.xfm $3/transforms/${t1fileSubID}_t1_2_tal_nlin.xfm $3/transforms/${petfileSubID}_pet2tal_nlin.xfm
     fi
 fi
 echo "Registration Finished"

@@ -5,6 +5,8 @@ import Config.ConverterConfig as cc
 from Converters.ConversionScripts.ADNI_V1_T1 import ADNI_V1_T1
 from Converters.ConversionScripts.ADNI_V1_PET import ADNI_V1_PET
 from Converters.ConversionScripts.ADNI_V1_Fmri import ADNI_V1_Fmri
+from Converters.ConversionScripts.DIAN_V1_PET import DIAN_V1_PET
+from Converters.ConversionScripts.DIAN_V1_T1 import DIAN_V1_T1
 from Config import StudyConfig as sc
 import Config.LIB_PATH as libpath
 
@@ -51,11 +53,18 @@ class Raw2MINCConverter:
                                             'dicom': self.adni_v1_rsfmri_dicom,
                                             'v': self.adni_v1_rsfmri_v,
                                             'minc': self.adni_v1_rsfmri_minc}}
-                              }}
+                              }, 'DIAN':
+                            {'T1':{'V1':{'dicom': self.dian_v1_t1_dicom}},
+                             'FDG':{'V1':{'dicom': self.dian_v1_pet_dicom}},
+                             'PIB':{'V1':{'dicom': self.dian_v1_pet_dicom}},
+                             'AV1451':{'V1':{'dicom': self.dian_v1_pet_dicom}}
+                            }}
 
         self.adni_v1_t1 = ADNI_V1_T1()
         self.adni_v1_pet = ADNI_V1_PET()
         self.adni_v1_fmri = ADNI_V1_Fmri()
+        self.dian_v1_t1 = DIAN_V1_T1()
+        self.dian_v1_pet = DIAN_V1_PET()
 
     def convert2minc(self, convertionObj):
         os.environ['PATH'] = ':'.join(libpath.PATH)
@@ -113,3 +122,9 @@ class Raw2MINCConverter:
 
     def adni_v1_t1_minc(self, conversionObj):
         return self.adni_v1_t1.convertMinc(conversionObj)
+
+    def dian_v1_t1_dicom(self, conversionObj):
+        return self.dian_v1_t1.convert_dicom(conversionObj)
+
+    def dian_v1_pet_dicom(self, conversionObj):
+        return self.dian_v1_pet.convert_dicom(conversionObj)

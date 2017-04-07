@@ -94,7 +94,7 @@ class ADNI_V2_AV45:
         paramStrd = ast.literal_eval(processingItemObj.parameters)
         paramStrt = ' '.join(['[\"{0}\"]=\"{1}\"'.format(k, v) for k,v in paramStrd.items()])
         paramStr = '({0})'.format(paramStrt)
-        petCMD = "source /opt/minc-toolkit/minc-toolkit-config.sh; Pipelines/ADNI_AV45/ADNI_V2_AV45_Process {0} {1} {2} {3} {4} {5} '{6}' {7} {8}".format(id, petFileName, processedFolder, matchT1Path, 'auto' if processingItemObj.manual_xfm == '' else processingItemObj.manual_xfm, logDir, paramStr,socket.gethostname(), 50500)
+        petCMD = "source /opt/minc-1.9.15/minc-toolkit-config.sh; Pipelines/ADNI_AV45/ADNI_V2_AV45_Process {0} {1} {2} {3} {4} {5} '{6}' {7} {8}".format(id, petFileName, processedFolder, matchT1Path, 'auto' if processingItemObj.manual_xfm == '' else processingItemObj.manual_xfm, logDir, paramStr,socket.gethostname(), 50500)
         try:
             processedFolder_del = '{0}/processed_del'.format(processingItemObj.root_folder)
             os.rename(processedFolder, processedFolder_del)
